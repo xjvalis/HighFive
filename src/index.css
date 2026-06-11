@@ -84,3 +84,20 @@
     @apply font-grotesk;
   }
 }
+/* Mobile tap target improvements */
+@media (max-width: 1024px) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Fix Safari 100vh issue */
+  .min-h-screen {
+    min-height: 100dvh;
+  }
+  
+  /* Safe area for iPhone notch */
+  .fixed.bottom-0 {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
