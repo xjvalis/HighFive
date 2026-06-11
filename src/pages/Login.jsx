@@ -62,6 +62,22 @@ export default function Login() {
             </div>
           )}
           {mode === 'login' && (
+      <Button
+  type="button"
+  variant="outline"
+  className="w-full rounded-xl flex items-center justify-center gap-2 mb-4"
+  onClick={() => supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin }
+  })}
+>
+  <img src="https://www.google.com/favicon.ico" className="w-4 h-4" />
+  {lang === 'cs' ? 'Přihlásit se přes Google' : 'Continue with Google'}
+</Button>
+<div className="relative my-4">
+  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border"/></div>
+  <div className="relative flex justify-center text-xs text-muted-foreground"><span className="bg-card px-2">{lang === 'cs' ? 'nebo' : 'or'}</span></div>
+</div>
             <form onSubmit={handleLogin} className="space-y-3">
               <Input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required className="rounded-xl" />
               <Input type="password" placeholder={lang === 'cs' ? 'Heslo' : 'Password'} value={password} onChange={e => setPassword(e.target.value)} required className="rounded-xl" />
