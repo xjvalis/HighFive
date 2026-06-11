@@ -199,7 +199,7 @@ export default function EventDetail() {
             <motion.button animate={joinAnim?{scale:[1,1.2,0.95,1.05,1]}:{}} onClick={handleJoin} disabled={joiningEvent}
               className={cn('flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all disabled:opacity-70',
                 isJoined?'bg-mint text-emerald-700 hover:bg-red-50 hover:text-red-600':isOnWaitlist?'bg-lemon text-yellow-700 hover:bg-red-50 hover:text-red-600':isFull?'bg-secondary text-muted-foreground hover:bg-orange-50 hover:text-orange-700':'bg-primary text-primary-foreground hover:bg-primary/90')}>
-              {joiningEvent?<Loader2 className="w-4 h-4 animate-spin"/>:<><span className="text-lg">{isJoined?'✓':isOnWaitlist?'⏳':isFull?'📋':'🙌'}</span>{isJoined?'Jdu! (odhlásit)':isOnWaitlist?'Na čekačce (odhlásit)':isFull?'Přidat na čekačku':'Jdu na to!'}</>}
+              {joiningEvent?<Loader2 className="w-4 h-4 animate-spin"/>:<><span className="text-lg">{isJoined?'✓':isOnWaitlist?'⏳':isFull?'📋':'🙌'}</span>{isJoined?(lang==='cs'?'Jdu! (odhlásit)':'Going! (leave)'):isOnWaitlist?(lang==='cs'?'Na čekačce (odhlásit)':'On waitlist (leave)'):isFull?(lang==='cs'?'Přidat na čekačku':'Join waitlist'):(lang==='cs'?'Jdu na to!':"I'm in!")}</>}
             </motion.button>
             <Button variant="outline" size="icon" className="rounded-2xl w-12 h-12" onClick={()=>setReportOpen(true)}><Flag className="w-4 h-4 text-muted-foreground"/></Button>
           </div>
@@ -207,7 +207,7 @@ export default function EventDetail() {
           <ReportModal eventId={id} user={user} open={reportOpen} onClose={()=>setReportOpen(false)}/>
           {showEdit && <EditEventModal event={event} open={showEdit} onClose={()=>setShowEdit(false)} onSaved={updated=>setEvent(updated)}/>}
           <PremiumModal open={showPremium} onClose={()=>setShowPremium(false)} profile={profile} onUpgrade={u=>updateProfile(u)}/>
-          <ConfirmDialog open={leaveConfirm} onConfirm={()=>{setLeaveConfirm(false);handleJoin(true);}} onCancel={()=>setLeaveConfirm(false)} title={isOnWaitlist?'Odhlásit se z čekačky?':'Zrušit účast?'} description={`Opravdu chceš opustit akci „${event?.title}"?`} confirmLabel={isOnWaitlist?'Odhlásit z čekačky':'Zrušit účast'} destructive/>
+          <ConfirmDialog open={leaveConfirm} onConfirm={()=>{setLeaveConfirm(false);handleJoin(true);}} onCancel={()=>setLeaveConfirm(false)} title={isOnWaitlist?(lang==='cs'?'Odhlásit se z čekačky?':'Leave waitlist?'):(lang==='cs'?'Zrušit účast?':'Cancel attendance?')} description={lang==='cs'?`Opravdu chceš opustit akci „${event?.title}"?`:`Are you sure you want to leave "${event?.title}"?`} confirmLabel={isOnWaitlist?(lang==='cs'?'Odhlásit z čekačky':'Leave waitlist'):(lang==='cs'?'Zrušit účast':'Cancel')} destructive/>
           {showDM && <SendDMModal open={showDM} onClose={()=>setShowDM(false)} toEmail={event.organizer_email} toName={event.organizer_name||event.organizer_email} fromUser={user} fromProfile={profile} event={event}/>}
         </div>
       </div>

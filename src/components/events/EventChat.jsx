@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { formatDisplayName } from '@/lib/utils';
 import { Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -40,7 +41,7 @@ export default function EventChat({ event, user, profile }) {
   const sendMessage = async () => {
     if (!newMsg.trim()||!user||isArchived) return;
     const content=newMsg.trim(); setNewMsg('');
-    const {error}=await supabase.from('event_chat').insert({event_id:event.id,author_id:user.id,author_email:user.email,author_name:profile?.display_name||user.email,author_avatar:profile?.avatar_url||null,content});
+    const {error}=await supabase.from('event_chat').insert({event_id:event.id,author_id:user.id,author_email:user.email,author_name:formatDisplayName(profile?.display_name)||user.email,author_avatar:profile?.avatar_url||null,content});
     if (error) { setNewMsg(content); toast.error('Nepodařilo se odeslat zprávu.'); }
   };
 

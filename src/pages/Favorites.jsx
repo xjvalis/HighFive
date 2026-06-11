@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
@@ -7,7 +8,9 @@ import { toast } from 'sonner';
 
 export default function Favorites() {
   const tr = useT();
-  const { user, profile, updateProfile } = useCurrentUser();
+  const { user, profile, updateProfile, loading } = useCurrentUser();
+  if (!user && !loading) { navigate('/login'); return null; }
+  const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const favRef = useRef(new Set());

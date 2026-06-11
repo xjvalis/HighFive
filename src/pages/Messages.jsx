@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
@@ -12,6 +13,9 @@ import { useT } from '@/lib/i18n';
 export default function Messages() {
   const tr = useT();
   const { user, profile } = useCurrentUser();
+  if (!user && !loading) { navigate('/login'); return null; }
+  const navigate = useNavigate();
+  const { lang } = useContext(LanguageContext);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
@@ -93,7 +97,7 @@ export default function Messages() {
       {!selected ? (
         <div className="space-y-1">
           {threads.length===0 ? (
-            <div className="text-center py-16"><p className="text-4xl mb-3">💬</p><p className="font-grotesk font-semibold">Žádné zprávy</p><p className="text-sm text-muted-foreground mt-1">Napiš někomu z události!</p></div>
+            <div className="text-center py-16"><p className="text-4xl mb-3">💬</p><p className="font-grotesk font-semibold">{lang==='cs'?'Žádné zprávy':'No messages'}</p><p className="text-sm text-muted-foreground mt-1">{lang==='cs'?'Napiš někomu z události!':'Send a message from an event!'}</p></div>
           ) : threads.map(t=>{
             const last=t.messages[0];
             return (

@@ -19,7 +19,9 @@ export default function CreateEvent() {
   const navigate = useNavigate();
   const { lang } = useContext(LanguageContext);
   const tr = useT();
-  const { user, profile, updateProfile } = useCurrentUser();
+  const { user, profile, updateProfile, loading } = useCurrentUser();
+  if (!user && !loading) { navigate('/login'); return null; }
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);

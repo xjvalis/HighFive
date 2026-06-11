@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import { useT } from '@/lib/i18n';
@@ -64,7 +65,9 @@ export default function Profile() {
 
   const joinedEvents = myEvents.filter(e=>e.participants?.includes(user?.email)&&e.organizer_email!==user?.email);
 
-  if (userLoading||!user) return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-lavender border-t-violet-500 rounded-full animate-spin"/></div>;
+  const navigate = useNavigate();
+  if (userLoading) return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-lavender border-t-violet-500 rounded-full animate-spin"/></div>;
+  if (!user) { navigate('/login'); return null; }
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">

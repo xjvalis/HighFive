@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
@@ -12,6 +13,8 @@ import { toast } from 'sonner';
 export default function MyEvents() {
   const tr = useT();
   const { user, profile } = useCurrentUser();
+  if (!user && !loading) { navigate('/login'); return null; }
+  const navigate = useNavigate();
   const [created, setCreated] = useState([]);
   const [joined, setJoined] = useState([]);
   const [loading, setLoading] = useState(true);
