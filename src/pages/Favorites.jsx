@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 
 export default function Favorites() {
   const tr = useT();
-  const { user, profile, updateProfile, loading } = useCurrentUser();
+  const { user, profile, updateProfile, loading: userLoading } = useCurrentUser();
   if (!user && !loading) { navigate('/login'); return null; }
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
