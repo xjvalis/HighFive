@@ -40,6 +40,13 @@ export default function Login() {
     setLoading(false);
   };
 
+  const handleGoogle = () => {
+    supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin }
+    });
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
@@ -61,23 +68,31 @@ export default function Login() {
               ))}
             </div>
           )}
+
+          {/* Google button — shown for login and register */}
+          {mode !== 'reset' && (
+            <div className="mb-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full rounded-xl flex items-center justify-center gap-2"
+                onClick={handleGoogle}
+              >
+                <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" />
+                {lang === 'cs' ? 'Pokračovat přes Google' : 'Continue with Google'}
+              </Button>
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs text-muted-foreground">
+                  <span className="bg-card px-2">{lang === 'cs' ? 'nebo' : 'or'}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {mode === 'login' && (
-      <Button
-  type="button"
-  variant="outline"
-  className="w-full rounded-xl flex items-center justify-center gap-2 mb-4"
-  onClick={() => supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.origin }
-  })}
->
-  <img src="https://www.google.com/favicon.ico" className="w-4 h-4" />
-  {lang === 'cs' ? 'Přihlásit se přes Google' : 'Continue with Google'}
-</Button>
-<div className="relative my-4">
-  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border"/></div>
-  <div className="relative flex justify-center text-xs text-muted-foreground"><span className="bg-card px-2">{lang === 'cs' ? 'nebo' : 'or'}</span></div>
-</div>
             <form onSubmit={handleLogin} className="space-y-3">
               <Input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required className="rounded-xl" />
               <Input type="password" placeholder={lang === 'cs' ? 'Heslo' : 'Password'} value={password} onChange={e => setPassword(e.target.value)} required className="rounded-xl" />
@@ -89,6 +104,7 @@ export default function Login() {
               </button>
             </form>
           )}
+
           {mode === 'register' && (
             <form onSubmit={handleRegister} className="space-y-3">
               <Input placeholder={lang === 'cs' ? 'Jméno a příjmení' : 'Full name'} value={name} onChange={e => setName(e.target.value)} required className="rounded-xl" />
@@ -99,6 +115,7 @@ export default function Login() {
               </Button>
             </form>
           )}
+
           {mode === 'reset' && (
             <div>
               <h2 className="font-semibold mb-4">{lang === 'cs' ? 'Resetovat heslo' : 'Reset password'}</h2>
