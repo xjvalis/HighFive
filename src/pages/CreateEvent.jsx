@@ -19,10 +19,9 @@ export default function CreateEvent() {
   const navigate = useNavigate();
   const { lang } = useContext(LanguageContext);
   const tr = useT();
-  const { user, profile, updateProfile, loading } = useCurrentUser();
-  if (!user && !loading) { navigate('/login'); return null; }
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+const { user, profile, updateProfile, loading: userLoading } = useCurrentUser();
+if (!user && !userLoading) { navigate('/login'); return null; }
+const [loading, setLoading] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [form, setForm] = useState({ title:'',description:'',category:'',location:'',latitude:null,longitude:null,date:'',max_capacity:'',image_url:'',age_min:'',age_max:'',gender_recommendation:'Everyone' });
