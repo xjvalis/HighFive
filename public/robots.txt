@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /?category=*
+Disallow: /admin
+Disallow: /messages
+Disallow: /profile
+
+Sitemap: https://highfive.app/sitemap.xml

@@ -1,0 +1,62 @@
+{
+  "name": "Report",
+  "type": "object",
+  "properties": {
+    "target_id": {
+      "type": "string"
+    },
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "event",
+        "comment",
+        "user"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    },
+    "reporter_email": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "reviewed",
+        "dismissed"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "target_id",
+    "target_type",
+    "reason"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": {
+          "$exists": true
+        }
+      },
+      "data.reporter_email": "{{user.email}}"
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "name": "Event",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Sport",
+        "Board Games",
+        "Hangout",
+        "Culture",
+        "Movies",
+        "Music",
+        "Gaming",
+        "Food",
+        "Creative",
+        "Tech",
+        "Outdoors",
+        "Study",
+        "Wellness",
+        "Nightlife",
+        "Other"
+      ]
+    },
+    "location": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "max_capacity": {
+      "type": "number"
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "waitlist": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "organizer_name": {
+      "type": "string"
+    },
+    "organizer_email": {
+      "type": "string"
+    },
+    "organizer_avatar": {
+      "type": "string"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_approved": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_reported": {
+      "type": "boolean",
+      "default": false
+    },
+    "report_reason": {
+      "type": "string"
+    },
+    "comments_count": {
+      "type": "number",
+      "default": 0
+    },
+    "favorites_count": {
+      "type": "number",
+      "default": 0
+    },
+    "age_min": {
+      "type": "number"
+    },
+    "age_max": {
+      "type": "number"
+    },
+    "gender_recommendation": {
+      "type": "string",
+      "enum": [
+        "Everyone",
+        "M",
+        "F",
+        "M+F"
+      ],
+      "default": "Everyone"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "date",
+    "location"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.is_approved": true
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

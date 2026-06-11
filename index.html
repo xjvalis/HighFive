@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://base44.com/logo_v2.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>HighFive - Objevuj Events, Najdi Přátele a Bavit se</title>
+    <meta name="description" content="HighFive je platforma pro hledání eventů, přátel a zábavu. Spojuj se s lidmi na základě tvých zájmů - kultura, sport, gaming, hudba, jídlo a mnoho dalšího." />
+    <meta name="keywords" content="eventy, přátelé, koníčky, kultura, zábava, sport, gaming, hudba, jídlo, sraz, komunita" />
+    <meta name="author" content="HighFive" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://highfive.app/" />
+    
+    <!-- Structured Data (Schema.org) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "HighFive",
+      "description": "Platforma pro hledání eventů a přátel na základě zájmů",
+      "url": "https://highfive.app",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://highfive.app/?category={category}"
+        },
+        "query-input": "required name=category"
+      }
+    }
+    </script>
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="HighFive - Objevuj Events a Přátele" />
+    <meta property="og:description" content="Najdi nové přátele a zábavné eventy na základě tvých zájmů. Kultura, sport, gaming, hudba a mnoho dalších kategorií." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&h=630&fit=crop" />
+    <meta property="og:url" content="https://highfive.app/" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="HighFive - Objevuj Events a Přátele" />
+    <meta name="twitter:description" content="Najdi nové přátele a zábavné eventy na základě tvých zájmů." />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&h=630&fit=crop" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
