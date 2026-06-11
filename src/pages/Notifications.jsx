@@ -13,8 +13,8 @@ const TYPE_ICONS = { event_reminder:'⏰', event_updated:'✏️', new_participa
 
 export default function Notifications() {
   const tr = useT();
-  const { user, loading } = useCurrentUser();
-  if (!user && !loading) { navigate('/login'); return null; }
+  const { user, loading: userLoading } = useCurrentUser();
+  if (!user && !userLoading) { navigate('/login'); return null; }
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
