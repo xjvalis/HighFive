@@ -10,6 +10,7 @@ import { CATEGORIES } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { useLanguage, LANGUAGES } from "@/lib/language";
 import { useT } from "@/lib/i18n";
+import { haptic } from "@/lib/haptics";
 import { getCategoryLabel } from "@/lib/categories";
 
 function LangSwitcher() {

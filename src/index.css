@@ -26,7 +26,6 @@
     --input: 220 15% 90%;
     --ring: 255 60% 60%;
     --radius: 0.75rem;
-
     --cream: 40 40% 97%;
     --peach: 25 90% 88%;
     --lavender: 255 60% 90%;
@@ -34,7 +33,6 @@
     --sky: 200 70% 88%;
     --blush: 350 70% 90%;
     --lemon: 50 90% 88%;
-
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 20% 14%;
     --sidebar-primary: 255 60% 60%;
@@ -79,25 +77,77 @@
   }
   body {
     @apply bg-background text-foreground font-inter;
+    /* Disable iOS bounce overscroll */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
   }
   h1, h2, h3, h4, h5 {
     @apply font-grotesk;
   }
-}
-/* Mobile tap target improvements */
-@media (max-width: 1024px) {
-  button, a, [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
+
+  /* Disable text selection globally — native app feel */
+  * {
+    -webkit-user-select: none;
+    user-select: none;
   }
-  
-  /* Fix Safari 100vh issue */
+  /* Re-enable text selection for inputs and editable content */
+  input, textarea, [contenteditable], p, span.selectable {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Remove tap highlight on iOS */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* iOS safe areas */
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+@layer utilities {
+  /* Safe bottom padding for bottom nav */
+  .pb-safe {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+  .bottom-safe {
+    bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Fix Safari 100vh */
+  .h-screen-safe {
+    height: 100dvh;
+  }
   .min-h-screen {
     min-height: 100dvh;
   }
-  
-  /* Safe area for iPhone notch */
-  .fixed.bottom-0 {
-    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Mobile tap targets */
+@media (max-width: 1024px) {
+  button, a[href], [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* Buttons that are purely icons can be smaller */
+  .icon-btn {
+    min-height: 36px;
+    min-width: 36px;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbars on mobile but keep functionality */
+@media (max-width: 1024px) {
+  ::-webkit-scrollbar {
+    display: none;
   }
 }

@@ -17,7 +17,7 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background">
       <NotificationEngineRunner />
       <TopNav />
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-14 pb-20 xl:pb-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-14 pb-safe xl:pb-6">
         <div className="flex gap-5 py-4 sm:py-6">
           {/* Left sidebar — desktop only */}
           <aside className="hidden xl:block w-56 flex-shrink-0">
@@ -27,7 +27,7 @@ export default function AppLayout() {
           </aside>
 
           {/* Main content */}
-          <main className="flex-1 min-w-0">
+          <main className="flex-1 min-w-0 overflow-x-hidden">
             <Outlet />
           </main>
 

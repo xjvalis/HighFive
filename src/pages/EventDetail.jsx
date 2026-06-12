@@ -137,7 +137,7 @@ export default function EventDetail() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <button onClick={()=>navigate(-1)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors"><ArrowLeft className="w-4 h-4"/>{tr.createBack}</button>
+      <button onClick={()=>{ if (window.history.length > 1) navigate(-1); else navigate('/'); }} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors"><ArrowLeft className="w-4 h-4"/>{tr.createBack}</button>
 
       <div className="bg-card rounded-2xl border border-border/60 shadow-sm overflow-hidden">
         {event.image_url && <div className="h-56 overflow-hidden"><img src={event.image_url} alt={event.title} className="w-full h-full object-cover"/></div>}
