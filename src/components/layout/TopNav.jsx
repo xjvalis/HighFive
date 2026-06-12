@@ -15,38 +15,18 @@ import { getCategoryLabel } from "@/lib/categories";
 
 function LangSwitcher() {
   const { lang, setLang } = useLanguage();
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const current = LANGUAGES.find(l => l.code === lang) || LANGUAGES[0];
-
   return (
-    <div className="relative" ref={ref}>
-      <button onClick={() => setOpen(o => !o)} className="flex items-center gap-1 px-2 py-1.5 rounded-xl hover:bg-secondary transition-colors text-sm font-medium">
-        <span>{current.flag}</span>
-        <span className="hidden sm:inline text-xs">{current.code.toUpperCase()}</span>
-      </button>
-      {open && (
-        <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden z-50 min-w-[120px]">
-          {LANGUAGES.map(l => (
-            <button key={l.code} onClick={() => { setLang(l.code); setOpen(false); }}
-              className={cn("flex items-center gap-2.5 w-full px-3 py-2 text-sm hover:bg-secondary transition-colors", lang === l.code && "bg-secondary font-medium")}>
-              <span className="text-base">{l.flag}</span>{l.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    <button
+      onClick={() => setLang(lang === 'cs' ? 'en' : 'cs')}
+      className="px-2.5 py-1.5 rounded-xl hover:bg-secondary transition-colors text-xs font-semibold text-muted-foreground hover:text-foreground"
+      title={lang === 'cs' ? 'Switch to English' : 'Přepnout na češtinu'}
+    >
+      {lang === 'cs' ? 'CZ' : 'EN'}
+    </button>
   );
 }
 
-function MobileDrawer({ open, onClose, tr, lang }) {
+function MobileDrawer({ open, onClose, tr, lang, profile }) {
   const navigate = (path) => { window.location.href = path; onClose(); };
   return (
     <>
@@ -67,7 +47,7 @@ function MobileDrawer({ open, onClose, tr, lang }) {
             { icon: Calendar, label: tr.myEvents, path: "/my-events" },
             { icon: Bell, label: tr.notifications, path: "/notifications" },
             { icon: User, label: tr.profile, path: "/profile" },
-            { icon: Shield, label: tr.moderation, path: "/admin" },
+            ...(profile?.is_admin || profile?.is_moderator ? [{ icon: Shield, label: tr.moderation, path: "/admin" },] : []),
           ].map(({ icon: Icon, label, path }) => (
             <Link key={path} to={path} onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-secondary transition-colors">
               <Icon className="w-4 h-4 text-muted-foreground" />{label}
@@ -103,7 +83,7 @@ export default function TopNav() {
 
   return (
     <>
-      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} tr={tr} lang={lang} />
+      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} tr={tr} lang={lang} profile={profile} />
       <nav className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border h-14">
         <div className="h-full flex items-center px-4 gap-3 max-w-7xl mx-auto">
           <div className="xl:hidden flex items-center gap-2">

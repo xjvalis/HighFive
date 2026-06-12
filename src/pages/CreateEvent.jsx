@@ -80,7 +80,7 @@ export default function CreateEvent() {
     try {
       const eventData = {
         ...form,
-        max_capacity: form.max_capacity ? parseInt(form.max_capacity) : null,
+        max_capacity: form.max_capacity === 'unlimited' ? null : (form.max_capacity ? parseInt(form.max_capacity) : null),
         age_min: form.age_min ? parseInt(form.age_min) : null,
         age_max: form.age_max ? parseInt(form.age_max) : null,
         end_time: form.end_time || null,
@@ -114,13 +114,13 @@ export default function CreateEvent() {
 
           {/* Title */}
           <div>
-            <Label className="text-sm font-medium mb-1.5 block">{tr.createFieldTitle}</Label>
+            <Label className="text-sm font-medium mb-1.5 block">{tr.createFieldTitle} <span className="text-red-500">*</span></Label>
             <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder={tr.createFieldTitlePlaceholder} required className="rounded-xl"/>
           </div>
 
           {/* Category */}
           <div>
-            <Label className="text-sm font-medium mb-2 block">{tr.createFieldCategory}</Label>
+            <Label className="text-sm font-medium mb-2 block">{tr.createFieldCategory} <span className="text-red-500">*</span></Label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map(cat => (
                 <button key={cat.name} type="button" onClick={() => setForm(f => ({ ...f, category: cat.name }))}
@@ -133,20 +133,20 @@ export default function CreateEvent() {
 
           {/* Description */}
           <div>
-            <Label className="text-sm font-medium mb-1.5 block">{tr.createFieldDescription}</Label>
+            <Label className="text-sm font-medium mb-1.5 block">{tr.createFieldDescription} <span className="text-red-500">*</span></Label>
             <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder={tr.createFieldDescriptionPlaceholder} className="rounded-xl resize-none min-h-[100px]"/>
           </div>
 
           {/* Location */}
           <div>
-            <Label className="text-sm font-medium mb-1.5 block">{tr.createFieldLocation}</Label>
+            <Label className="text-sm font-medium mb-1.5 block">{tr.createFieldLocation} <span className="text-red-500">*</span></Label>
             <LocationAutocomplete value={form.location} onChange={({ location, latitude, longitude }) => setForm(f => ({ ...f, location, latitude, longitude }))} placeholder={tr.createFieldLocationPlaceholder}/>
           </div>
 
           {/* Date & End time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-sm font-medium mb-1.5 block">{tr.createFieldDate}</Label>
+              <Label className="text-sm font-medium mb-1.5 block">{tr.createFieldDate} <span className="text-red-500">*</span></Label>
               <DateTimePicker
                 value={form.date}
                 onChange={handleDateChange}
@@ -170,8 +170,47 @@ export default function CreateEvent() {
 
           {/* Capacity */}
           <div>
-            <Label className="text-sm font-medium mb-1.5 block">{tr.createFieldCapacity}</Label>
-            <Input type="number" value={form.max_capacity} onChange={e => setForm(f => ({ ...f, max_capacity: e.target.value }))} placeholder={tr.createFieldCapacityPlaceholder} min="2" className="rounded-xl"/>
+            <Label className="text-sm font-medium mb-1.5 block">{tr.createFieldCapacity} <span className="text-red-500">*</span></Label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                value={form.max_capacity === 'unlimited' ? '' : form.max_capacity}
+                onChange={e => setForm(f => ({ ...f, max_capacity: e.target.value }))}
+                placeholder={tr.createFieldCapacityPlaceholder || (lang === 'cs' ? 'Počet lidí' : 'Number of people')}
+                min="2"
+                disabled={form.max_capacity === 'unlimited'}
+                required={form.max_capacity !== 'unlimited'}
+                className="rounded-xl flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, max_capacity: f.max_capacity === 'unlimited' ? '' : 'unlimited' }))}
+                className={cn('px-3 rounded-xl text-sm font-medium border transition-all flex-shrink-0', form.max_capacity === 'unlimited' ? 'bg-primary text-primary-foreground border-transparent' : 'border-border text-muted-foreground hover:bg-secondary')}
+              >
+                ∞ {lang === 'cs' ? 'Neomezeno' : 'Unlimited'}
+              </button>
+            </div>
+          </div>
+
+          {/* Age & Gender recommendations */}
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label className="text-sm font-medium mb-1.5 block">{lang === 'cs' ? 'Min. věk' : 'Min. age'}</Label>
+              <Input type="number" min="13" max="100" value={form.age_min || ''} onChange={e => setForm(f => ({ ...f, age_min: e.target.value }))} placeholder="18" className="rounded-xl"/>
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-1.5 block">{lang === 'cs' ? 'Max. věk' : 'Max. age'}</Label>
+              <Input type="number" min="13" max="120" value={form.age_max || ''} onChange={e => setForm(f => ({ ...f, age_max: e.target.value }))} placeholder="99" className="rounded-xl"/>
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-1.5 block">{lang === 'cs' ? 'Pro koho' : 'For whom'}</Label>
+              <select value={form.gender_recommendation || 'Everyone'} onChange={e => setForm(f => ({ ...f, gender_recommendation: e.target.value }))} className="w-full h-9 rounded-xl border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                <option value="Everyone">{lang === 'cs' ? 'Všichni' : 'Everyone'}</option>
+                <option value="Male">{lang === 'cs' ? 'Muži' : 'Men'}</option>
+                <option value="Female">{lang === 'cs' ? 'Ženy' : 'Women'}</option>
+                <option value="Non-binary">Non-binary</option>
+              </select>
+            </div>
           </div>
 
           {/* Cover image */}
@@ -190,7 +229,7 @@ export default function CreateEvent() {
             )}
           </div>
 
-          <Button type="submit" disabled={loading || !form.title || !form.category || !form.location || !form.date} className="w-full rounded-xl py-3 font-semibold text-base gap-2">
+          <Button type="submit" disabled={loading || !form.title || !form.category || !form.location || !form.date || !form.description} className="w-full rounded-xl py-3 font-semibold text-base gap-2">
             {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : '🙌'} {loading ? tr.createPosting : tr.createPostBtn}
           </Button>
         </form>

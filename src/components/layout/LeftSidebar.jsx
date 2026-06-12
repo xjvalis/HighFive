@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Home, TrendingUp, Star, Calendar, Shield, ChevronDown, ChevronUp, MessageCircle } from "lucide-react";
 import { CATEGORIES, getCategoryLabel } from "@/lib/categories";
 import { cn } from "@/lib/utils";
+import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { useT } from "@/lib/i18n";
 import { LanguageContext } from "@/lib/language";
 import { useUnreadDMs } from "@/hooks/useUnreadDMs";
@@ -10,6 +11,7 @@ import { useUnreadDMs } from "@/hooks/useUnreadDMs";
 const VISIBLE_COUNT = 5;
 
 export default function LeftSidebar() {
+  const { profile } = useCurrentUser();
   const tr = useT();
   const { lang } = useContext(LanguageContext);
   const location = useLocation();
@@ -88,13 +90,13 @@ export default function LeftSidebar() {
       </div>
 
       {/* Admin link */}
-      <Link
+      {(profile?.is_admin || profile?.is_moderator) && <Link
         to="/admin"
         className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:bg-secondary transition-all"
       >
         <Shield className="w-3 h-3" />
         {tr.moderation}
-      </Link>
+      </Link>}
     </div>
   );
 }
