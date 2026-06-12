@@ -42,6 +42,26 @@ export function useNotificationEngine(user) {
       .subscribe();
     channelsRef.current.push(chatCh);
 
-    return () => { channelsRef.current.forEach(c => supabase.removeChannel(c)); channelsRef.current = []; };
+    // Past event notifications
+    checkPastEvents();
+    const pastInterval = setInterval(checkPastEvents, 60 * 60 * 1000);
+
+    async function checkPastEvents() {
+      if (!user?.email) return;
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+      const { data: pastEvents } = await supabase.from('events').select('id, title, participants, organizer_email').lt('date', yesterday).gte('date', twoDaysAgo);
+      if (!pastEvents?.length) return;
+      for (const event of pastEvents) {
+        const isP = event.participants?.includes(user.email);
+        const isO = event.organizer_email === user.email;
+        if (!isP && !isO) continue;
+        const { data: existing } = await supabase.from('notifications').select('id').eq('user_id', user.id).eq('event_id', event.id).eq('type', 'event_past').maybeSingle();
+        if (existing) continue;
+        await supabase.from('notifications').insert({ user_id: user.id, user_email: user.email, type: 'event_past', title: `🗓️ ${event.title}`, body: 'Tato akce již proběhla. Najdeš ji v sekci Proběhlé v Mých akcích.', event_id: event.id, is_read: false });
+      }
+    }
+
+    return () => { channelsRef.current.forEach(c => supabase.removeChannel(c)); channelsRef.current = []; clearInterval(pastInterval); };
   }, [user?.id, user?.email]);
 }

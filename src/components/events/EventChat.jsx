@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { useT } from '@/lib/i18n';
 import { toast } from 'sonner';
 
-export default function EventChat({ event, user, profile }) {
+export default function EventChat({ event, user, profile, readOnly = false }) {
   const tr = useT();
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState('');
@@ -18,7 +18,7 @@ export default function EventChat({ event, user, profile }) {
 
   const isJoined = user && event?.participants?.includes(user.email);
   const isOrganizer = user && event?.organizer_email === user.email;
-  const canChat = isJoined || isOrganizer;
+  const canChat = readOnly || isJoined || isOrganizer;
   const eventDate = event?.date ? new Date(event.date) : null;
   const archiveDate = eventDate ? new Date(eventDate.getTime() + 3*24*60*60*1000) : null;
   const isArchived = archiveDate && new Date() > archiveDate;
@@ -68,7 +68,7 @@ export default function EventChat({ event, user, profile }) {
         ))}
         <div ref={bottomRef}/>
       </div>
-      {!isArchived&&<div className="flex gap-2 p-3 border-t border-border/60">
+      {!isArchived&&!readOnly&&<div className="flex gap-2 p-3 border-t border-border/60">
         <Input value={newMsg} onChange={e=>setNewMsg(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}} placeholder={tr.chatPlaceholder} className="rounded-xl text-sm h-9"/>
         <Button onClick={sendMessage} size="sm" className="rounded-xl px-3 h-9"><Send className="w-3.5 h-3.5"/></Button>
       </div>}

@@ -44,7 +44,8 @@ export default function Home() {
     setLoading(true);
     const sortField = sort === 'personalized' || sort === '-created_date' ? 'created_at' : sort === 'date' ? 'date' : sort === '-favorites_count' ? 'favorites_count' : 'created_at';
     const ascending = sort === 'date';
-    let q = supabase.from('events').select('*').eq('is_approved', true).order(sortField, { ascending }).limit(100);
+    const now = new Date().toISOString();
+    let q = supabase.from('events').select('*').eq('is_approved', true).gte('date', new Date(Date.now() - 24*60*60*1000).toISOString()).order(sortField, { ascending }).limit(100);
     if (activeCategory) q = q.eq('category', activeCategory);
     if (filters.location) q = q.ilike('location', `%${filters.location}%`);
     if (filters.date) { const d = new Date(filters.date); q = q.gte('date', d.toISOString().split('T')[0]).lt('date', new Date(d.getTime()+86400000).toISOString().split('T')[0]); }
