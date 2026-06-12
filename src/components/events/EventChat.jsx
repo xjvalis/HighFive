@@ -58,7 +58,7 @@ export default function EventChat({ event, user, profile, readOnly = false }) {
         :messages.length===0?<p className="text-xs text-muted-foreground text-center py-8">{tr.chatEmpty}</p>
         :messages.map(msg=>(
           <div key={msg.id} className={`flex gap-2 ${msg.author_email===user?.email?'flex-row-reverse':''}`}>
-            <div className="w-7 h-7 rounded-full bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold flex-shrink-0">{msg.author_name?.[0]?.toUpperCase()||'?'}</div>
+            <div className="w-7 h-7 rounded-full bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold">{msg.author_name?.[0]?.toUpperCase()||'?'}</div>
             <div className={`max-w-[75%] ${msg.author_email===user?.email?'items-end':'items-start'} flex flex-col`}>
               {msg.author_email!==user?.email&&<span className="text-[10px] text-muted-foreground mb-0.5 ml-1">{msg.author_name}</span>}
               <div className={`px-3 py-1.5 rounded-2xl text-sm leading-relaxed ${msg.author_email===user?.email?'bg-primary text-primary-foreground rounded-tr-sm':'bg-card border border-border/60 rounded-tl-sm'}`}>{msg.content}</div>

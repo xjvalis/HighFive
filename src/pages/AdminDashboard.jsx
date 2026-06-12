@@ -10,6 +10,7 @@ import { getCategoryLabel } from '@/lib/categories';
 import { LanguageContext } from '@/lib/language';
 import { toast } from 'sonner';
 import EditEventModal from '@/components/events/EditEventModal';
+import SendDMModal from '@/components/messages/SendDMModal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 export default function AdminDashboard() {
@@ -24,6 +25,7 @@ export default function AdminDashboard() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [suspendConfirm, setSuspendConfirm] = useState(null);
   const [banConfirm, setBanConfirm] = useState(null);
+  const [sendDM, setSendDM] = useState(null); // { email, name, event }
 
   const isAdmin = profile?.is_admin;
   const isModerator = profile?.is_moderator;
@@ -60,6 +62,17 @@ export default function AdminDashboard() {
   const suspendEvent = async () => {
     if (!suspendConfirm) return;
     await supabase.from('events').update({ is_approved: false, is_suspended: true }).eq('id', suspendConfirm.id);
+    // Notify organizer
+    const { data: orgProfile } = await supabase.from('user_profiles').select('user_id').eq('user_email', suspendConfirm.organizer_email).maybeSingle();
+    if (orgProfile) {
+      await supabase.from('notifications').insert({
+        user_id: orgProfile.user_id, user_email: suspendConfirm.organizer_email,
+        type: 'event_updated',
+        title: `⚠️ ${lang === 'cs' ? 'Tvá událost byla pozastavena' : 'Your event was suspended'}: ${suspendConfirm.title}`,
+        body: lang === 'cs' ? 'Moderátor pozastavil tvou událost. Uprav ji a odešli znovu ke schválení.' : 'A moderator suspended your event. Please edit it and resubmit for approval.',
+        event_id: suspendConfirm.id, is_read: false,
+      });
+    }
     setEvents(prev => prev.filter(e => e.id !== suspendConfirm.id));
     setReports(prev => prev.map(r => r.target_id === suspendConfirm.id ? { ...r, status: 'suspended' } : r));
     setSuspendConfirm(null);
@@ -141,6 +154,9 @@ export default function AdminDashboard() {
                 <Button size="sm" variant="outline" onClick={() => setSuspendConfirm(e)} className="rounded-xl gap-1 h-8 border-orange-200 text-orange-600 hover:bg-orange-50">
                   <PauseCircle className="w-3 h-3"/>{lang === 'cs' ? 'Pozastavit' : 'Suspend'}
                 </Button>
+                <Button size="sm" variant="outline" onClick={() => setSendDM({ email: e.organizer_email, name: e.organizer_name || e.organizer_email, event: e })} className="rounded-xl gap-1 h-8">
+                  💬 {lang === 'cs' ? 'Napsat' : 'Message'}
+                </Button>
                 <Button size="sm" variant="destructive" onClick={() => setDeleteConfirm(e)} className="rounded-xl gap-1 h-8">
                   <Trash2 className="w-3 h-3"/>{lang === 'cs' ? 'Smazat' : 'Delete'}
                 </Button>
@@ -199,6 +215,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {sendDM && <SendDMModal open={!!sendDM} onClose={() => setSendDM(null)} toEmail={sendDM.email} toName={sendDM.name} fromUser={user} fromProfile={profile} event={sendDM.event}/>}
       {editEvent && <EditEventModal event={editEvent} open={!!editEvent} onClose={() => setEditEvent(null)} onSaved={updated => { setEditEvent(null); toast.success(lang === 'cs' ? 'Událost upravena' : 'Event updated'); }}/>}
       <ConfirmDialog open={!!deleteConfirm} onConfirm={deleteEvent} onCancel={() => setDeleteConfirm(null)} title={lang === 'cs' ? 'Smazat událost?' : 'Delete event?'} description={lang === 'cs' ? 'Tato akce je nevratná.' : 'This action cannot be undone.'} confirmLabel={lang === 'cs' ? 'Smazat' : 'Delete'} destructive/>
       <ConfirmDialog open={!!suspendConfirm} onConfirm={suspendEvent} onCancel={() => setSuspendConfirm(null)} title={lang === 'cs' ? 'Pozastavit událost?' : 'Suspend event?'} description={lang === 'cs' ? 'Událost bude skryta z feedu dokud autor neudělá změny.' : 'Event will be hidden until the organizer makes changes.'} confirmLabel={lang === 'cs' ? 'Pozastavit' : 'Suspend'}/>

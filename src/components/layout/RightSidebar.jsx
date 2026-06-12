@@ -14,8 +14,8 @@ export default function RightSidebar() {
   const [recentEvents, setRecentEvents] = useState([]);
 
   useEffect(() => {
-    supabase.from('events').select('*').eq('is_approved',true).order('comments_count',{ascending:false}).limit(5).then(({data})=>setHotEvents(data||[]));
-    supabase.from('events').select('*').eq('is_approved',true).order('created_at',{ascending:false}).limit(5).then(({data})=>setRecentEvents(data||[]));
+    supabase.from('events').select('*').eq('is_approved',true).gt('date',new Date().toISOString()).order('comments_count',{ascending:false}).limit(5).then(({data})=>setHotEvents(data||[]));
+    supabase.from('events').select('*').eq('is_approved',true).gt('date',new Date().toISOString()).order('created_at',{ascending:false}).limit(5).then(({data})=>setRecentEvents(data||[]));
 
     const ch = supabase.channel('sidebar-events')
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'events'},p=>setRecentEvents(prev=>[p.new,...prev].slice(0,5)))

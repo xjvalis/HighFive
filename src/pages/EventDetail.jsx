@@ -217,7 +217,12 @@ export default function EventDetail() {
       <div className="mt-5 bg-card rounded-2xl border border-border/60 shadow-sm p-5">
         <h2 className="font-grotesk font-semibold text-base mb-4">{tr.detailDiscussion} ({comments.length})</h2>
         {user && <div className="flex gap-3 mb-5">
-          <div className="w-8 h-8 rounded-full bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold flex-shrink-0">{user.email?.[0]?.toUpperCase()}</div>
+          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold">
+            {profile?.avatar_url
+              ? <img src={profile.avatar_url} alt={profile.display_name} className="w-full h-full object-cover"/>
+              : <span>{(profile?.display_name||user.email)?.[0]?.toUpperCase()}</span>
+            }
+          </div>
           <div className="flex-1">
             <Textarea value={newComment} onChange={e=>setNewComment(e.target.value)} placeholder={tr.detailCommentPlaceholder} className="resize-none text-sm rounded-xl border-border/60 min-h-[80px]"/>
             <div className="flex justify-end mt-2">
@@ -230,7 +235,7 @@ export default function EventDetail() {
         <div className="space-y-4">
           {comments.map(c=>(
             <div key={c.id} className="flex gap-3">
-              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-peach flex items-center justify-center text-orange-700 text-xs font-bold">
+              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-peach flex items-center justify-center text-orange-700 text-xs font-bold cursor-pointer hover:ring-2 hover:ring-primary transition-all" title={c.author_name}>
                 {c.author_avatar?<img src={c.author_avatar} alt={c.author_name} className="w-full h-full object-cover"/>:(c.author_name?.[0]||'?')}
               </div>
               <div className="flex-1">
