@@ -10,33 +10,17 @@ const STYLES = [
   { bg: "bg-teal-50", border: "border-teal-100", text: "text-teal-600", emoji: "💬" },
 ];
 
-export default function FeedMotivation({ events, index }) {
+export default function FeedMotivation({ stats, index }) {
   const tr = useT();
   const [entry, setEntry] = useState(null);
 
   useEffect(() => {
-    if (!events?.length) return;
-
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-
-    const todayEvents = events.filter(e => {
-      const d = new Date(e.date);
-      return d >= todayStart && d < todayEnd;
-    });
-
-    const totalParticipants = events.reduce((sum, e) => sum + (e.participants?.length || 0), 0);
-    const activePeople = Math.max(5, Math.round(totalParticipants * 0.15));
-    const newToday = Math.max(3, Math.round(events.length * 0.08));
-    const firstTimers = Math.max(2, Math.round(activePeople * 0.35));
-
-    const messages = tr.motivationMessages(todayEvents.length, activePeople, newToday, firstTimers);
+    const { todayCount = 0, activePeople = 0, newToday = 0, firstTimers = 0 } = stats || {};
+    const messages = tr.motivationMessages(todayCount, activePeople, newToday, firstTimers);
     const idx = (index || 0) % messages.length;
     const styleIdx = (index || 0) % STYLES.length;
-
     setEntry({ msg: messages[idx], style: STYLES[styleIdx] });
-  }, [events, index, tr]);
+  }, [stats, index, tr]);
 
   if (!entry) return null;
   const { msg, style } = entry;
