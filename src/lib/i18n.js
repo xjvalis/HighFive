@@ -21,6 +21,12 @@ export const translations = {
     sortNew: "New",
     sortPopular: "Popular",
     sortUpcoming: "Upcoming",
+    sortRightNow: "Right Now",
+    sortHappeningNow: "🔴 Happening now",
+    endTime: "Ends at",
+    createFieldEndTime: "End time",
+    createFieldEndTimeHint: "When does the event end? (max 24h)",
+
     noEventsYet: "No events yet",
     noEventsFirstPost: "Be the first to post something!",
 
@@ -279,6 +285,12 @@ export const translations = {
     sortNew: "Nové",
     sortPopular: "Populární",
     sortUpcoming: "Nadcházející",
+    sortRightNow: "Právě teď",
+    sortHappeningNow: "🔴 Probíhá",
+    endTime: "Končí v",
+    createFieldEndTime: "Konec akce",
+    createFieldEndTimeHint: "Kdy akce končí? (max 24h)",
+
     noEventsYet: "Zatím žádné události",
     noEventsFirstPost: "Buď první, kdo něco přidá!",
 

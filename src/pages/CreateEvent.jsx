@@ -24,7 +24,7 @@ if (!user && !userLoading) { navigate('/login'); return null; }
 const [loading, setLoading] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [form, setForm] = useState({ title:'',description:'',category:'',location:'',latitude:null,longitude:null,date:'',max_capacity:'',image_url:'',age_min:'',age_max:'',gender_recommendation:'Everyone' });
+  const [form, setForm] = useState({ title:'',description:'',category:'',location:'',latitude:null,longitude:null,date:'',end_time:'',max_capacity:'',image_url:'',age_min:'',age_max:'',gender_recommendation:'Everyone' });
 
   const canCreate = () => {
     if (!profile) return true;
@@ -47,7 +47,7 @@ const [loading, setLoading] = useState(false);
     e.preventDefault(); if (!user) return;
     setLoading(true);
     try {
-      const eventData = { ...form, max_capacity:form.max_capacity?parseInt(form.max_capacity):null, age_min:form.age_min?parseInt(form.age_min):null, age_max:form.age_max?parseInt(form.age_max):null };
+      const eventData = { ...form, max_capacity:form.max_capacity?parseInt(form.max_capacity):null, age_min:form.age_min?parseInt(form.age_min):null, age_max:form.age_max?parseInt(form.age_max):null, end_time: form.end_time || null };
       const {data,error}=await supabase.functions.invoke('create-event',{body:{eventData}});
       if (error||data?.error==='monthly_limit_reached') { setShowPremium(true); return; }
       if (data?.event) navigate(`/event/${data.event.id}`);
@@ -80,7 +80,27 @@ const [loading, setLoading] = useState(false);
           <div><Label className="text-sm font-medium mb-1.5 block">{tr.createFieldDescription}</Label><Textarea value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder={tr.createFieldDescriptionPlaceholder} className="rounded-xl resize-none min-h-[100px]"/></div>
           <div className="grid grid-cols-2 gap-4">
             <div><Label className="text-sm font-medium mb-1.5 block">{tr.createFieldLocation}</Label><LocationAutocomplete value={form.location} onChange={({location,latitude,longitude})=>setForm(f=>({...f,location,latitude,longitude}))} placeholder={tr.createFieldLocationPlaceholder}/></div>
-            <div><Label className="text-sm font-medium mb-1.5 block">{tr.createFieldDate}</Label><Input type="datetime-local" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} required className="rounded-xl"/></div>
+            <div><Label className="text-sm font-medium mb-1.5 block">{tr.createFieldDate}</Label><Input type="datetime-local" value={form.date} onChange={e=>{
+              setForm(f=>({...f,date:e.target.value}));
+              // Auto-set end_time to 2h after start
+              if (e.target.value) {
+                const start = new Date(e.target.value);
+                const end = new Date(start.getTime() + 2*60*60*1000);
+                const pad = n => String(n).padStart(2,'0');
+                const endStr = `${end.getFullYear()}-${pad(end.getMonth()+1)}-${pad(end.getDate())}T${pad(end.getHours())}:${pad(end.getMinutes())}`;
+                setForm(f=>({...f,date:e.target.value,end_time:endStr}));
+              }
+            }} required className="rounded-xl"/></div>
+            <div><Label className="text-sm font-medium mb-1.5 block">{tr.createFieldEndTime || 'Konec akce'} <span className="text-muted-foreground font-normal text-xs">(max 24h)</span></Label><Input type="datetime-local" value={form.end_time} onChange={e=>{
+              if (form.date) {
+                const start = new Date(form.date);
+                const end = new Date(e.target.value);
+                const diffH = (end - start) / (1000*60*60);
+                if (diffH > 24) { alert(tr.createFieldEndTimeHint || 'Maximální délka akce je 24 hodin'); return; }
+                if (diffH < 0) { alert('Konec akce musí být po začátku'); return; }
+              }
+              setForm(f=>({...f,end_time:e.target.value}));
+            }} className="rounded-xl"/></div>
           </div>
           <div><Label className="text-sm font-medium mb-1.5 block">{tr.createFieldCapacity}</Label><Input type="number" value={form.max_capacity} onChange={e=>setForm(f=>({...f,max_capacity:e.target.value}))} placeholder={tr.createFieldCapacityPlaceholder} min="2" className="rounded-xl"/></div>
           <div>

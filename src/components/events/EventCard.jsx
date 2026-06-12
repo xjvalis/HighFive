@@ -17,6 +17,10 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
   const cat = getCategoryStyle(event.category);
   const participantCount = event.participants?.length || 0;
   const isFull = event.max_capacity && participantCount >= event.max_capacity;
+  const now = new Date();
+  const startTime = event.date ? new Date(event.date) : null;
+  const endTime = event.end_time ? new Date(event.end_time) : (startTime ? new Date(startTime.getTime() + 2*60*60*1000) : null);
+  const isHappeningNow = startTime && endTime && now >= startTime && now <= endTime;
 
   return (
     <motion.div
@@ -47,6 +51,12 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
               {cat.emoji} {getCategoryLabel(event.category, lang)}
             </span>
 
+            {isHappeningNow && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-semibold flex items-center gap-0.5 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
+                {tr.sortHappeningNow || '🔴 Právě teď'}
+              </span>
+            )}
             {isFull && (
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground font-medium">{tr.full}</span>
             )}

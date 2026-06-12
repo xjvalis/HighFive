@@ -76,26 +76,33 @@ export default function MyEvents() {
 
   useEffect(() => {
     if (!user) return;
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const cutoff = new Date().toISOString(); // Events past their start time are candidates for archiving
 
     Promise.all([
       // Active created events
-      supabase.from('events').select('*').eq('organizer_email', user.email).gte('date', cutoff).order('date', { ascending: false }),
+      supabase.from('events').select('*').eq('organizer_email', user.email).order('date', { ascending: false }),
       // Past created events
-      supabase.from('events').select('*').eq('organizer_email', user.email).lt('date', cutoff).order('date', { ascending: false }).limit(20),
+      Promise.resolve({ data: [] }), // past created handled client-side
       // Active joined events
       profile?.joined_events?.length
-        ? supabase.from('events').select('*').in('id', profile.joined_events).neq('organizer_email', user.email).gte('date', cutoff).order('date', { ascending: true })
+        ? supabase.from('events').select('*').in('id', profile.joined_events).neq('organizer_email', user.email).order('date', { ascending: true })
         : Promise.resolve({ data: [] }),
       // Past joined events
       profile?.joined_events?.length
-        ? supabase.from('events').select('*').in('id', profile.joined_events).neq('organizer_email', user.email).lt('date', cutoff).order('date', { ascending: false }).limit(20)
+        ? Promise.resolve({ data: [] }) // past joined handled client-side
         : Promise.resolve({ data: [] }),
-    ]).then(([{ data: mine }, { data: pastMine }, { data: joinedData }, { data: pastJoinedData }]) => {
-      setCreated(mine || []);
-      setPastCreated(pastMine || []);
-      setJoined(joinedData || []);
-      setPastJoined(pastJoinedData || []);
+    ]).then(([{ data: allMine }, _unused1, { data: allJoined }, _unused2]) => {
+      const now = new Date();
+      const isActive = (e) => {
+        const end = e.end_time ? new Date(e.end_time) : new Date(new Date(e.date).getTime() + 2*60*60*1000);
+        return end > now;
+      };
+      const allMyEvents = allMine || [];
+      const allJoinedEvents = allJoined || [];
+      setCreated(allMyEvents.filter(isActive));
+      setPastCreated(allMyEvents.filter(e => !isActive(e)));
+      setJoined(allJoinedEvents.filter(isActive));
+      setPastJoined(allJoinedEvents.filter(e => !isActive(e)));
       setLoadingData(false);
     });
   }, [user?.id, profile?.joined_events?.length]);

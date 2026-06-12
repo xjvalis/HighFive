@@ -8,6 +8,8 @@ import LocationPicker from '@/components/events/LocationPicker';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
+import { useContext } from 'react';
+import { LanguageContext } from '@/lib/language';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { Map, List, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -19,12 +21,13 @@ function haversineKm(lat1,lng1,lat2,lng2){const R=6371;const dLat=(lat2-lat1)*Ma
 
 export default function Home() {
   const tr = useT();
+  const { lang } = useContext(LanguageContext);
   const { user, profile, updateProfile, loading: profileLoading } = useCurrentUser();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPremium, setShowPremium] = useState(false);
   const [premiumBannerDismissed, setPremiumBannerDismissed] = useState(() => sessionStorage.getItem('hf_premium_banner_dismissed') === '1');
-  const [sort, setSort] = useState('personalized');
+  const [sort, setSort] = useState('forYou');
   const [filters, setFilters] = useState({ date: '', location: '', maxPeople: '', paid: '' });
   const [showMap, setShowMap] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
@@ -42,10 +45,39 @@ export default function Home() {
 
   const loadEvents = useCallback(async () => {
     setLoading(true);
-    const sortField = sort === 'personalized' || sort === '-created_date' ? 'created_at' : sort === 'date' ? 'date' : sort === '-favorites_count' ? 'favorites_count' : 'created_at';
-    const ascending = sort === 'date';
-    const now = new Date().toISOString();
-    let q = supabase.from('events').select('*').eq('is_approved', true).gte('date', new Date(Date.now() - 24*60*60*1000).toISOString()).order(sortField, { ascending }).limit(100);
+    const nowTs = new Date();
+    const nowIso = nowTs.toISOString();
+
+    let q;
+    if (sort === 'rightNow') {
+      // Events happening right now: started but not ended
+      q = supabase.from('events').select('*').eq('is_approved', true)
+        .lte('date', nowIso)
+        .order('date', { ascending: true })
+        .limit(50);
+    } else if (sort === 'upcoming') {
+      // Future events sorted by date ascending, no personalization
+      q = supabase.from('events').select('*').eq('is_approved', true)
+        .gt('date', nowIso)
+        .order('date', { ascending: true })
+        .limit(100);
+    } else if (sort === 'popular') {
+      q = supabase.from('events').select('*').eq('is_approved', true)
+        .gt('date', nowIso)
+        .order('favorites_count', { ascending: false })
+        .limit(100);
+    } else if (sort === 'new') {
+      q = supabase.from('events').select('*').eq('is_approved', true)
+        .gt('date', nowIso)
+        .order('created_at', { ascending: false })
+        .limit(100);
+    } else {
+      // forYou - future events only
+      q = supabase.from('events').select('*').eq('is_approved', true)
+        .gt('date', nowIso)
+        .order('date', { ascending: true })
+        .limit(100);
+    }
     if (activeCategory) q = q.eq('category', activeCategory);
     if (filters.location) q = q.ilike('location', `%${filters.location}%`);
     if (filters.date) { const d = new Date(filters.date); q = q.gte('date', d.toISOString().split('T')[0]).lt('date', new Date(d.getTime()+86400000).toISOString().split('T')[0]); }
@@ -53,11 +85,35 @@ export default function Home() {
     const { data } = await q;
     setEvents(data || []);
     setLoading(false);
-  }, [sort, activeCategory, filters]);
+  }, [sort, activeCategory, filters, userLocation?.lat, userLocation?.lng]);
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
 
-  const filteredEvents = userLocation ? events.filter(e => !e.latitude || !e.longitude || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius) : events;
+  const filteredEvents = (() => {
+    let evts = userLocation ? events.filter(e => !e.latitude || !e.longitude || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius) : events;
+
+    if (sort === 'rightNow') {
+      // Filter to only truly happening now (end_time not passed)
+      const now = new Date();
+      evts = evts.filter(e => {
+        const end = e.end_time ? new Date(e.end_time) : new Date(new Date(e.date).getTime() + 2*60*60*1000);
+        return now <= end;
+      });
+    }
+
+    if (sort === 'forYou' && profile?.favorite_categories?.length) {
+      // Sort: preferred categories first, then by date
+      const favCats = new Set(profile.favorite_categories);
+      evts = [...evts].sort((a, b) => {
+        const aFav = favCats.has(a.category) ? 0 : 1;
+        const bFav = favCats.has(b.category) ? 0 : 1;
+        if (aFav !== bFav) return aFav - bFav;
+        return new Date(a.date) - new Date(b.date);
+      });
+    }
+
+    return evts;
+  })();
   const mapEvents = events.filter(e => e.latitude && e.longitude && (!userLocation || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius));
 
   const profileWithCategories = profile ? { ...profile, joined_categories: [...new Set(events.filter(e => e.participants?.includes(user?.email)).map(e => e.category).filter(Boolean))] } : profile;
@@ -106,8 +162,16 @@ export default function Home() {
           </div>
         </div>
         {!showMap && <div className="flex gap-1 bg-secondary rounded-xl p-1 overflow-x-auto no-scrollbar">
-          {[{value:'personalized',label:tr.sortForYou},{value:'-created_date',label:tr.sortNew},{value:'-favorites_count',label:tr.sortPopular},{value:'date',label:tr.sortUpcoming}].map(opt=>(
-            <button key={opt.value} onClick={()=>setSort(opt.value)} className={cn('flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',sort===opt.value?'bg-card shadow-sm':'text-muted-foreground')}>{opt.label}</button>
+          {[
+            {value:'forYou', label: tr.sortForYou},
+            {value:'upcoming', label: tr.sortUpcoming},
+            {value:'rightNow', label: tr.sortRightNow || 'Právě teď'},
+            {value:'popular', label: tr.sortPopular},
+            {value:'new', label: tr.sortNew},
+          ].map(opt=>(
+            <button key={opt.value} onClick={()=>setSort(opt.value)} className={cn('flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',sort===opt.value?'bg-card shadow-sm':'text-muted-foreground')}>
+              {opt.value === 'rightNow' && sort === 'rightNow' ? <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block animate-pulse"></span>{opt.label}</span> : opt.label}
+            </button>
           ))}
         </div>}
       </div>
@@ -140,7 +204,15 @@ export default function Home() {
       ) : filteredEvents.length===0 ? (
         <div className="text-center py-16"><p className="text-4xl mb-3">🙌</p><p className="font-grotesk font-semibold">{tr.noEventsYet}</p><p className="text-sm text-muted-foreground mt-1">{tr.noEventsFirstPost}</p></div>
       ) : (
-        <FeedList events={filteredEvents} user={user} profile={profileWithCategories} onJoin={handleJoin} onFavorite={handleFavorite} isPersonalized={sort==='personalized'}/>
+        {sort === 'rightNow' && filteredEvents.length === 0 && !loading ? (
+          <div className="text-center py-16">
+            <p className="text-4xl mb-3">🔴</p>
+            <p className="font-grotesk font-semibold">{tr.sortRightNow || 'Právě teď'}</p>
+            <p className="text-sm text-muted-foreground mt-1">{lang === 'cs' ? 'Právě teď neprobíhají žádné akce.' : 'No events happening right now.'}</p>
+          </div>
+        ) : (
+          <FeedList events={filteredEvents} user={user} profile={profileWithCategories} onJoin={handleJoin} onFavorite={handleFavorite} isPersonalized={sort==='forYou'}/>
+        )}
       )}
 
       <PremiumModal open={showPremium} onClose={()=>setShowPremium(false)} profile={profile} onUpgrade={u=>updateProfile(u)}/>
