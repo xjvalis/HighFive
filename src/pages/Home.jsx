@@ -32,6 +32,7 @@ export default function Home() {
   const [showMap, setShowMap] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [radius, setRadius] = useState(20);
+  const [feedStats, setFeedStats] = useState({ todayCount: 0, activePeople: 0, newToday: 0, firstTimers: 0 });
   const favRef = useRef(new Set());
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -43,36 +44,63 @@ export default function Home() {
     if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => setUserLocation({ lat: p.coords.latitude, lng: p.coords.longitude }), () => {});
   }, []);
 
+  // Load real stats for FeedMotivation
+  useEffect(() => {
+    const loadStats = async () => {
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+
+      const [
+        { count: todayCount },
+        { count: newToday },
+        { data: todayEvents },
+        { count: totalUsers },
+      ] = await Promise.all([
+        // Events happening today
+        supabase.from('events').select('id', { count: 'exact', head: true }).eq('is_approved', true).gte('date', todayStart).lt('date', todayEnd),
+        // New events created today
+        supabase.from('events').select('id', { count: 'exact', head: true }).eq('is_approved', true).gte('created_at', todayStart),
+        // Today's events to count participants
+        supabase.from('events').select('participants').eq('is_approved', true).gte('date', todayStart).lt('date', todayEnd),
+        // Total active users (profiles created in last 30 days = "new")
+        supabase.from('user_profiles').select('id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+      ]);
+
+      // Count unique participants in today's events
+      const participantSet = new Set();
+      (todayEvents || []).forEach(e => (e.participants || []).forEach(p => participantSet.add(p)));
+      const activePeople = participantSet.size;
+
+      // First timers = rough estimate: users who joined in last 7 days
+      const { count: firstTimers } = await supabase.from('user_profiles').select('id', { count: 'exact', head: true })
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+
+      setFeedStats({
+        todayCount: todayCount || 0,
+        activePeople: activePeople || 0,
+        newToday: newToday || 0,
+        firstTimers: firstTimers || 0,
+      });
+    };
+    loadStats();
+  }, []);
+
   const loadEvents = useCallback(async () => {
     setLoading(true);
     const nowIso = new Date().toISOString();
 
     let q;
     if (sort === 'rightNow') {
-      q = supabase.from('events').select('*').eq('is_approved', true)
-        .lte('date', nowIso)
-        .order('date', { ascending: true })
-        .limit(50);
+      q = supabase.from('events').select('*').eq('is_approved', true).lte('date', nowIso).order('date', { ascending: true }).limit(50);
     } else if (sort === 'upcoming') {
-      q = supabase.from('events').select('*').eq('is_approved', true)
-        .gt('date', nowIso)
-        .order('date', { ascending: true })
-        .limit(100);
+      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('date', { ascending: true }).limit(100);
     } else if (sort === 'popular') {
-      q = supabase.from('events').select('*').eq('is_approved', true)
-        .gt('date', nowIso)
-        .order('favorites_count', { ascending: false })
-        .limit(100);
+      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('favorites_count', { ascending: false }).limit(100);
     } else if (sort === 'new') {
-      q = supabase.from('events').select('*').eq('is_approved', true)
-        .gt('date', nowIso)
-        .order('created_at', { ascending: false })
-        .limit(100);
+      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('created_at', { ascending: false }).limit(100);
     } else {
-      q = supabase.from('events').select('*').eq('is_approved', true)
-        .gt('date', nowIso)
-        .order('date', { ascending: true })
-        .limit(100);
+      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('date', { ascending: true }).limit(100);
     }
 
     if (activeCategory) q = q.eq('category', activeCategory);
@@ -89,7 +117,6 @@ export default function Home() {
 
   const filteredEvents = (() => {
     let evts = userLocation ? events.filter(e => !e.latitude || !e.longitude || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius) : events;
-
     if (sort === 'rightNow') {
       const now = new Date();
       evts = evts.filter(e => {
@@ -97,7 +124,6 @@ export default function Home() {
         return now <= end;
       });
     }
-
     if (sort === 'forYou' && profile?.favorite_categories?.length) {
       const favCats = new Set(profile.favorite_categories);
       evts = [...evts].sort((a, b) => {
@@ -107,7 +133,6 @@ export default function Home() {
         return new Date(a.date) - new Date(b.date);
       });
     }
-
     return evts;
   })();
 
@@ -159,19 +184,15 @@ export default function Home() {
         </div>
       );
     }
-
     if (sort === 'rightNow' && filteredEvents.length === 0) {
       return (
         <div className="text-center py-16">
           <p className="text-4xl mb-3">🔴</p>
           <p className="font-grotesk font-semibold">{tr.sortRightNow || 'Právě teď'}</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            {lang === 'cs' ? 'Právě teď neprobíhají žádné akce.' : 'No events happening right now.'}
-          </p>
+          <p className="text-sm text-muted-foreground mt-1">{lang === 'cs' ? 'Právě teď neprobíhají žádné akce.' : 'No events happening right now.'}</p>
         </div>
       );
     }
-
     if (filteredEvents.length === 0) {
       return (
         <div className="text-center py-16">
@@ -181,9 +202,16 @@ export default function Home() {
         </div>
       );
     }
-
     return (
-      <FeedList events={filteredEvents} user={user} profile={profileWithCategories} onJoin={handleJoin} onFavorite={handleFavorite} isPersonalized={sort==='forYou'}/>
+      <FeedList
+        events={filteredEvents}
+        user={user}
+        profile={profileWithCategories}
+        onJoin={handleJoin}
+        onFavorite={handleFavorite}
+        isPersonalized={sort==='forYou'}
+        feedStats={feedStats}
+      />
     );
   };
 
@@ -194,17 +222,12 @@ export default function Home() {
           <h1 className="font-grotesk font-bold text-lg sm:text-xl">{activeCategory || tr.whatsHappening}</h1>
           <div className="flex items-center gap-2">
             <div className="flex items-center bg-secondary rounded-xl p-0.5">
-              <button onClick={()=>setShowMap(false)} className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all',!showMap?'bg-card shadow-sm':'text-muted-foreground')}>
-                <List className="w-3.5 h-3.5"/>{tr.viewList}
-              </button>
-              <button onClick={()=>setShowMap(true)} className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all',showMap?'bg-card shadow-sm':'text-muted-foreground')}>
-                <Map className="w-3.5 h-3.5"/>{tr.viewMap}
-              </button>
+              <button onClick={()=>setShowMap(false)} className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all',!showMap?'bg-card shadow-sm':'text-muted-foreground')}><List className="w-3.5 h-3.5"/>{tr.viewList}</button>
+              <button onClick={()=>setShowMap(true)} className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all',showMap?'bg-card shadow-sm':'text-muted-foreground')}><Map className="w-3.5 h-3.5"/>{tr.viewMap}</button>
             </div>
             <EventFilter filters={filters} onChange={setFilters}/>
           </div>
         </div>
-
         {!showMap && (
           <div className="flex gap-1 bg-secondary rounded-xl p-1 overflow-x-auto no-scrollbar">
             {[
@@ -214,11 +237,7 @@ export default function Home() {
               { value: 'popular', label: tr.sortPopular },
               { value: 'new', label: tr.sortNew },
             ].map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => setSort(opt.value)}
-                className={cn('flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all', sort === opt.value ? 'bg-card shadow-sm' : 'text-muted-foreground')}
-              >
+              <button key={opt.value} onClick={() => setSort(opt.value)} className={cn('flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all', sort === opt.value ? 'bg-card shadow-sm' : 'text-muted-foreground')}>
                 {opt.value === 'rightNow' ? (
                   <span className="flex items-center gap-1">
                     <span className={cn("w-1.5 h-1.5 rounded-full bg-red-500 inline-block", sort === 'rightNow' && "animate-pulse")}></span>
@@ -239,21 +258,15 @@ export default function Home() {
           <div className="mb-4 flex items-center justify-between gap-2 bg-violet-50/50 border border-violet-200/60 rounded-2xl px-4 py-2.5">
             <button className="flex-1 text-left" onClick={()=>setShowPremium(true)}>
               <span className="text-sm font-medium text-violet-700">
-                {remaining<=0 ? 'Vyčerpal/a jsi limit 3 přihlášení · Upgraduj na Plus →' : remaining<=1 ? `Zbývá ${remaining} ze 3 přihlášení · Upgraduj na Plus →` : 'Získej neomezené přihlašování — Plus od 100 Kč/měs'}
+                {remaining<=0?'Vyčerpal/a jsi limit 3 přihlášení · Upgraduj na Plus →':remaining<=1?`Zbývá ${remaining} ze 3 přihlášení · Upgraduj na Plus →`:'Získej neomezené přihlašování — Plus od 100 Kč/měs'}
               </span>
             </button>
-            <button onClick={()=>{setPremiumBannerDismissed(true);sessionStorage.setItem('hf_premium_banner_dismissed','1');}} className="text-muted-foreground p-1">
-              <X className="w-3.5 h-3.5"/>
-            </button>
+            <button onClick={()=>{setPremiumBannerDismissed(true);sessionStorage.setItem('hf_premium_banner_dismissed','1');}} className="text-muted-foreground p-1"><X className="w-3.5 h-3.5"/></button>
           </div>
         );
       })()}
 
-      {(showMap || userLocation) && (
-        <div className="mb-4">
-          <LocationPicker userLocation={userLocation} radius={radius} onLocationChange={setUserLocation} onRadiusChange={setRadius}/>
-        </div>
-      )}
+      {(showMap || userLocation) && <div className="mb-4"><LocationPicker userLocation={userLocation} radius={radius} onLocationChange={setUserLocation} onRadiusChange={setRadius}/></div>}
 
       {showMap ? (
         <div>
@@ -262,9 +275,7 @@ export default function Home() {
           </Suspense>
           {mapEvents.length === 0 && !loading && <p className="text-center text-sm text-muted-foreground mt-4">{tr.mapNoCoords}</p>}
         </div>
-      ) : (
-        renderFeed()
-      )}
+      ) : renderFeed()}
 
       <PremiumModal open={showPremium} onClose={()=>setShowPremium(false)} profile={profile} onUpgrade={u=>updateProfile(u)}/>
     </div>
