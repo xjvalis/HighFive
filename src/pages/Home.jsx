@@ -204,7 +204,7 @@ export default function Home() {
       ) : filteredEvents.length===0 ? (
         <div className="text-center py-16"><p className="text-4xl mb-3">🙌</p><p className="font-grotesk font-semibold">{tr.noEventsYet}</p><p className="text-sm text-muted-foreground mt-1">{tr.noEventsFirstPost}</p></div>
       ) : (
-        {sort === 'rightNow' && filteredEvents.length === 0 && !loading ? (
+        ) : sort === 'rightNow' && filteredEvents.length === 0 && !loading ? (
           <div className="text-center py-16">
             <p className="text-4xl mb-3">🔴</p>
             <p className="font-grotesk font-semibold">{tr.sortRightNow || 'Právě teď'}</p>
