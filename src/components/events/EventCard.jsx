@@ -18,7 +18,6 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
   const cat = getCategoryStyle(event.category);
   const participantCount = event.participants?.length || 0;
   const isFull = event.max_capacity && participantCount >= event.max_capacity;
-  const isOnWaitlist = false; // passed from parent if needed
   const now = new Date();
   const startTime = event.date ? new Date(event.date) : null;
   const endTime = event.end_time ? new Date(event.end_time) : (startTime ? new Date(startTime.getTime() + 2*60*60*1000) : null);
@@ -29,8 +28,11 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
     e.stopPropagation();
     if (joining) return;
     setJoining(true);
-    await onJoin?.(event);
-    setJoining(false);
+    try {
+      await onJoin?.(event);
+    } finally {
+      setJoining(false);
+    }
   };
 
   const handleFavoriteClick = (e) => {
@@ -44,15 +46,17 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
     navigate(`/event/${event.id}`);
   };
 
-  const getJoinLabel = () => {
+  const getJoinContent = () => {
     if (joining) return <Loader2 className="w-3.5 h-3.5 animate-spin"/>;
-    if (isJoined) return hoveringJoin ? "✕" : "✓";
-    if (isFull) return "📋";
-    return "🙌";
+    if (isJoined) return <span>{hoveringJoin ? "✕" : "✓"}</span>;
+    if (isFull) return <span>📋</span>;
+    return <span>{lang === 'cs' ? 'Jdu!' : "I'm in!"}</span>;
   };
 
   const getJoinStyle = () => {
-    if (isJoined) return hoveringJoin ? "bg-red-50 text-red-600" : "bg-mint text-emerald-700";
+    if (isJoined) return hoveringJoin
+      ? "bg-red-50 text-red-600 border border-red-200"
+      : "bg-mint text-emerald-700";
     if (isFull) return "bg-secondary text-muted-foreground hover:bg-orange-50 hover:text-orange-600";
     return "bg-primary text-primary-foreground hover:bg-primary/90";
   };
@@ -132,14 +136,14 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
                 onClick={handleJoinClick}
                 onMouseEnter={() => setHoveringJoin(true)}
                 onMouseLeave={() => setHoveringJoin(false)}
-                whileTap={{ scale: 0.92 }}
+                whileTap={{ scale: 0.9 }}
                 disabled={joining}
                 className={cn(
-                  "flex items-center justify-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-semibold transition-all duration-200 min-w-[36px]",
+                  "flex items-center justify-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-semibold transition-all duration-200 min-w-[40px]",
                   getJoinStyle()
                 )}
               >
-                {getJoinLabel()}
+                {getJoinContent()}
               </motion.button>
             </div>
           </div>
