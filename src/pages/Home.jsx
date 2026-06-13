@@ -41,7 +41,6 @@ export default function Home() {
   const [feedStats, setFeedStats] = useState({ todayCount: 0, activePeople: 0, newToday: 0, firstTimers: 0 });
   const favRef = useRef(new Set());
   const bottomRef = useRef(null);
-  const refreshing = usePullToRefresh(loadEvents);
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const activeCategory = params.get('category');
@@ -102,6 +101,9 @@ export default function Home() {
   }, [buildQuery]);
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
+
+  // Pull-to-refresh — must be after loadEvents is defined
+  const refreshing = usePullToRefresh(loadEvents);
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
