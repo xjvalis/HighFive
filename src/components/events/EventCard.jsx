@@ -49,7 +49,7 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
   const getJoinContent = () => {
     if (joining) return <Loader2 className="w-3.5 h-3.5 animate-spin"/>;
     if (isJoined) return <span>{hoveringJoin ? "✕" : "✓"}</span>;
-    if (isFull) return <span>📋</span>;
+    if (isFull) return <span>✌️</span>;
     return <span>{lang === 'cs' ? 'Jdu!' : "I'm in!"}</span>;
   };
 
