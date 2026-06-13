@@ -9,20 +9,17 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    // Klient s auth uživatele
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL'),
       Deno.env.get('SUPABASE_ANON_KEY'),
       { global: { headers: { Authorization: req.headers.get('Authorization') } } }
     );
 
-    // Service role klient pro privilegované operace
     const serviceClient = createClient(
       Deno.env.get('SUPABASE_URL'),
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     );
 
-    // Ověř uživatele
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
@@ -33,7 +30,6 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Missing event_id or action' }), { status: 400, headers: corsHeaders });
     }
 
-    // Načti event
     const { data: event, error: eventError } = await serviceClient
       .from('events')
       .select('*')
@@ -56,7 +52,6 @@ Deno.serve(async (req) => {
         .single();
       updatedEvent = data;
 
-      // Odstraň z joined_events v profilu
       const { data: profile } = await serviceClient
         .from('user_profiles')
         .select('joined_events')
@@ -90,7 +85,6 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: 'Event is full' }), { status: 400, headers: corsHeaders });
       }
 
-      // Zkontroluj free limit
       const { data: profile } = await serviceClient
         .from('user_profiles')
         .select('*')
@@ -113,7 +107,6 @@ Deno.serve(async (req) => {
       const { data } = await serviceClient.from('events').update({ participants }).eq('id', event_id).select().single();
       updatedEvent = data;
 
-      // Přidej do joined_events v profilu + aktualizuj počítadlo
       if (profile) {
         const joined = [...(profile.joined_events || [])];
         if (!joined.includes(event_id)) joined.push(event_id);
@@ -130,26 +123,31 @@ Deno.serve(async (req) => {
         }).eq('user_id', user.id);
       }
 
-      // Notifikace organizátorovi
+      // Notifikace organizátorovi — try/catch místo .catch()
       if (event.organizer_id) {
-        const { data: orgProfile } = await serviceClient
-          .from('user_profiles')
-          .select('user_id')
-          .eq('user_email', event.organizer_email)
-          .single();
+        try {
+          const { data: orgProfile } = await serviceClient
+            .from('user_profiles')
+            .select('user_id')
+            .eq('user_email', event.organizer_email)
+            .single();
 
-        if (orgProfile) {
-          await serviceClient.from('notifications').insert({
-            user_id: orgProfile.user_id,
-            user_email: event.organizer_email,
-            type: 'new_participant',
-            title: `🙌 ${profile?.display_name || user.email} se přidal/a na: ${event.title}`,
-            body: 'Nový účastník na tvé akci.',
-            event_id: event_id,
-            is_read: false,
-          }).catch(() => {});
+          if (orgProfile) {
+            await serviceClient.from('notifications').insert({
+              user_id: orgProfile.user_id,
+              user_email: event.organizer_email,
+              type: 'new_participant',
+              title: `🙌 ${profile?.display_name || user.email} se přidal/a na: ${event.title}`,
+              body: 'Nový účastník na tvé akci.',
+              event_id: event_id,
+              is_read: false,
+            });
+          }
+        } catch (_) {
+          // Notifikace není kritická, ignoruj chybu
         }
       }
+
     } else {
       return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400, headers: corsHeaders });
     }
