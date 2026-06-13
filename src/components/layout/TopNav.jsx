@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
-import { useLanguage, LANGUAGES } from "@/lib/language";
+import { useLanguage } from "@/lib/language";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import NotificationBell from "@/components/layout/NotificationBell";
 import { supabase } from "@/lib/supabaseClient";

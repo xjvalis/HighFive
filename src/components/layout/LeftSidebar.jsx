@@ -1,12 +1,11 @@
 import { useState, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, TrendingUp, Star, Calendar, Shield, ChevronDown, ChevronUp, MessageCircle } from "lucide-react";
+import { Home, TrendingUp, Star, Calendar, Shield, ChevronDown, ChevronUp } from "lucide-react";
 import { CATEGORIES, getCategoryLabel } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { useT } from "@/lib/i18n";
 import { LanguageContext } from "@/lib/language";
-import { useUnreadDMs } from "@/hooks/useUnreadDMs";
 
 const VISIBLE_COUNT = 5;
 
@@ -18,15 +17,13 @@ export default function LeftSidebar() {
   const params = new URLSearchParams(location.search);
   const activeCategory = params.get("category");
   const [expanded, setExpanded] = useState(false);
-  const unreadDMs = useUnreadDMs();
 
   const navItems = [
     { icon: Home, label: tr.home, path: "/" },
     { icon: TrendingUp, label: tr.trending, path: "/trending" },
     { icon: Star, label: tr.favorites, path: "/favorites" },
     { icon: Calendar, label: tr.myEvents, path: "/my-events" },
-    { icon: MessageCircle, label: tr.messages, path: "/messages" },
-  ];
+];
 
   const visibleCategories = expanded ? CATEGORIES : CATEGORIES.slice(0, VISIBLE_COUNT);
 
@@ -48,10 +45,7 @@ export default function LeftSidebar() {
             >
               <span className="relative">
                 <Icon className="w-4 h-4" />
-                {path === "/messages" && unreadDMs > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                    {unreadDMs > 9 ? "9+" : unreadDMs}
-                  </span>
+</span>
                 )}
               </span>
               {label}
