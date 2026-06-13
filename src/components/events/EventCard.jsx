@@ -64,7 +64,7 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
     }
     if (isFull) return "bg-secondary text-muted-foreground border border-border hover:bg-orange-50 hover:text-orange-600";
     // Not joined — outlined primary (fialový rámeček, průhledné pozadí)
-    return "bg-transparent text-primary border-2 border-primary hover:bg-primary hover:text-primary-foreground";
+    return "bg-primary text-primary-foreground hover:bg-primary/90";
   };
 
   return (
