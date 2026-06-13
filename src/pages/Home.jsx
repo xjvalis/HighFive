@@ -11,11 +11,13 @@ import { useT } from '@/lib/i18n';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
 import { usePageMeta } from '@/hooks/usePageMeta';
-import { Map, List, X } from 'lucide-react';
+import { Map, List, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import PremiumModal from '@/components/premium/PremiumModal';
 import { lazy, Suspense } from 'react';
 const EventMap = lazy(() => import('@/components/events/EventMap'));
+
+const PAGE_SIZE = 15;
 
 function haversineKm(lat1,lng1,lat2,lng2){const R=6371;const dLat=(lat2-lat1)*Math.PI/180;const dLng=(lng2-lng1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
 
@@ -25,6 +27,9 @@ export default function Home() {
   const { user, profile, updateProfile, loading: profileLoading } = useCurrentUser();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
   const [showPremium, setShowPremium] = useState(false);
   const [premiumBannerDismissed, setPremiumBannerDismissed] = useState(() => sessionStorage.getItem('hf_premium_banner_dismissed') === '1');
   const [sort, setSort] = useState('forYou');
@@ -34,6 +39,7 @@ export default function Home() {
   const [radius, setRadius] = useState(20);
   const [feedStats, setFeedStats] = useState({ todayCount: 0, activePeople: 0, newToday: 0, firstTimers: 0 });
   const favRef = useRef(new Set());
+  const bottomRef = useRef(null);
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const activeCategory = params.get('category');
@@ -44,94 +50,89 @@ export default function Home() {
     if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => setUserLocation({ lat: p.coords.latitude, lng: p.coords.longitude }), () => {});
   }, []);
 
-  // Load real stats for FeedMotivation
+  // Real stats for FeedMotivation
   useEffect(() => {
     const loadStats = async () => {
       const now = new Date();
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
       const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
-
-      const [
-        { count: todayCount },
-        { count: newToday },
-        { data: todayEvents },
-        { count: totalUsers },
-      ] = await Promise.all([
-        // Events happening today
+      const [{ count: todayCount }, { count: newToday }, { data: todayEvents }, { count: firstTimers }] = await Promise.all([
         supabase.from('events').select('id', { count: 'exact', head: true }).eq('is_approved', true).gte('date', todayStart).lt('date', todayEnd),
-        // New events created today
         supabase.from('events').select('id', { count: 'exact', head: true }).eq('is_approved', true).gte('created_at', todayStart),
-        // Today's events to count participants
         supabase.from('events').select('participants').eq('is_approved', true).gte('date', todayStart).lt('date', todayEnd),
-        // Total active users (profiles created in last 30 days = "new")
-        supabase.from('user_profiles').select('id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        supabase.from('user_profiles').select('id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString()),
       ]);
-
-      // Count unique participants in today's events
       const participantSet = new Set();
       (todayEvents || []).forEach(e => (e.participants || []).forEach(p => participantSet.add(p)));
-      const activePeople = participantSet.size;
-
-      // First timers = rough estimate: users who joined in last 7 days
-      const { count: firstTimers } = await supabase.from('user_profiles').select('id', { count: 'exact', head: true })
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
-
-      setFeedStats({
-        todayCount: todayCount || 0,
-        activePeople: activePeople || 0,
-        newToday: newToday || 0,
-        firstTimers: firstTimers || 0,
-      });
+      setFeedStats({ todayCount: todayCount || 0, activePeople: participantSet.size || 0, newToday: newToday || 0, firstTimers: firstTimers || 0 });
     };
     loadStats();
   }, []);
 
-  const loadEvents = useCallback(async () => {
-    setLoading(true);
+  const buildQuery = useCallback((offset = 0) => {
     const nowIso = new Date().toISOString();
-
     let q;
     if (sort === 'rightNow') {
-      q = supabase.from('events').select('*').eq('is_approved', true).lte('date', nowIso).order('date', { ascending: true }).limit(50);
+      q = supabase.from('events').select('*').eq('is_approved', true).lte('date', nowIso).order('date', { ascending: true });
     } else if (sort === 'upcoming') {
-      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('date', { ascending: true }).limit(100);
+      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('date', { ascending: true });
     } else if (sort === 'popular') {
-      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('favorites_count', { ascending: false }).limit(100);
+      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('favorites_count', { ascending: false });
     } else if (sort === 'new') {
-      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('created_at', { ascending: false }).limit(100);
+      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('created_at', { ascending: false });
     } else {
-      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('date', { ascending: true }).limit(100);
+      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('date', { ascending: true });
     }
-
     if (activeCategory) q = q.eq('category', activeCategory);
     if (filters.location) q = q.ilike('location', `%${filters.location}%`);
     if (filters.date) { const d = new Date(filters.date); q = q.gte('date', d.toISOString().split('T')[0]).lt('date', new Date(d.getTime()+86400000).toISOString().split('T')[0]); }
     if (filters.maxPeople) q = q.lte('max_capacity', Number(filters.maxPeople));
+    return q.range(offset, offset + PAGE_SIZE - 1);
+  }, [sort, activeCategory, filters]);
 
-    const { data } = await q;
+  // Initial load
+  const loadEvents = useCallback(async () => {
+    setLoading(true);
+    setPage(0);
+    setHasMore(true);
+    const { data } = await buildQuery(0);
     setEvents(data || []);
+    setHasMore((data || []).length === PAGE_SIZE);
     setLoading(false);
-  }, [sort, activeCategory, filters, userLocation?.lat, userLocation?.lng]);
+  }, [buildQuery]);
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
+
+  // Load more on scroll
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    const { data } = await buildQuery(nextPage * PAGE_SIZE);
+    setEvents(prev => [...prev, ...(data || [])]);
+    setHasMore((data || []).length === PAGE_SIZE);
+    setPage(nextPage);
+    setLoadingMore(false);
+  }, [loadingMore, hasMore, page, buildQuery]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) loadMore();
+    }, { threshold: 0.1 });
+    if (bottomRef.current) observer.observe(bottomRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loading, loadMore]);
 
   const filteredEvents = (() => {
     let evts = userLocation ? events.filter(e => !e.latitude || !e.longitude || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius) : events;
     if (sort === 'rightNow') {
       const now = new Date();
-      evts = evts.filter(e => {
-        const end = e.end_time ? new Date(e.end_time) : new Date(new Date(e.date).getTime() + 2*60*60*1000);
-        return now <= end;
-      });
+      evts = evts.filter(e => { const end = e.end_time ? new Date(e.end_time) : new Date(new Date(e.date).getTime() + 2*60*60*1000); return now <= end; });
     }
     if (sort === 'forYou' && profile?.favorite_categories?.length) {
       const favCats = new Set(profile.favorite_categories);
-      evts = [...evts].sort((a, b) => {
-        const aFav = favCats.has(a.category) ? 0 : 1;
-        const bFav = favCats.has(b.category) ? 0 : 1;
-        if (aFav !== bFav) return aFav - bFav;
-        return new Date(a.date) - new Date(b.date);
-      });
+      evts = [...evts].sort((a, b) => { const aF = favCats.has(a.category) ? 0 : 1; const bF = favCats.has(b.category) ? 0 : 1; if (aF !== bF) return aF - bF; return new Date(a.date) - new Date(b.date); });
     }
     return evts;
   })();
@@ -140,7 +141,7 @@ export default function Home() {
   const profileWithCategories = profile ? { ...profile, joined_categories: [...new Set(events.filter(e => e.participants?.includes(user?.email)).map(e => e.category).filter(Boolean))] } : profile;
 
   const handleJoin = async (event) => {
-    if (!user) { toast.info('Přihlas se pro přidání na event.'); return; }
+    if (!user) { toast.info(lang === 'cs' ? 'Přihlas se pro přidání na event.' : 'Sign in to join events.'); return; }
     const isJoined = event.participants?.includes(user.email);
     const isOnWaitlist = event.waitlist?.includes(user.email);
     const isFull = event.max_capacity && (event.participants?.length || 0) >= event.max_capacity;
@@ -169,49 +170,55 @@ export default function Home() {
     } finally { favRef.current.delete(event.id); }
   };
 
+  // Sort tabs — new order, Right Now at end
+  const SORT_TABS = [
+    { value: 'forYou', label: tr.sortForYou },
+    { value: 'popular', label: tr.sortPopular },
+    { value: 'new', label: tr.sortNew },
+    { value: 'upcoming', label: tr.sortUpcoming },
+    { value: 'rightNow', label: tr.sortRightNow || 'Právě teď' },
+  ];
+
   const renderFeed = () => {
-    if (loading) {
-      return (
-        <div className="space-y-3">
-          {[1,2,3,4].map(i=>(
-            <div key={i} className="bg-card rounded-2xl p-4 border border-border/60">
-              <Skeleton className="h-4 w-24 mb-3"/>
-              <Skeleton className="h-5 w-3/4 mb-2"/>
-              <Skeleton className="h-4 w-full mb-1"/>
-              <Skeleton className="h-4 w-1/2"/>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    if (sort === 'rightNow' && filteredEvents.length === 0) {
-      return (
-        <div className="text-center py-16">
-          <p className="text-4xl mb-3">🔴</p>
-          <p className="font-grotesk font-semibold">{tr.sortRightNow || 'Právě teď'}</p>
-          <p className="text-sm text-muted-foreground mt-1">{lang === 'cs' ? 'Právě teď neprobíhají žádné akce.' : 'No events happening right now.'}</p>
-        </div>
-      );
-    }
-    if (filteredEvents.length === 0) {
-      return (
-        <div className="text-center py-16">
-          <p className="text-4xl mb-3">🙌</p>
-          <p className="font-grotesk font-semibold">{tr.noEventsYet}</p>
-          <p className="text-sm text-muted-foreground mt-1">{tr.noEventsFirstPost}</p>
-        </div>
-      );
-    }
+    if (loading) return (
+      <div className="space-y-3">
+        {[1,2,3].map(i => (
+          <div key={i} className="bg-card rounded-2xl p-4 border border-border/60">
+            <Skeleton className="h-4 w-24 mb-3"/><Skeleton className="h-5 w-3/4 mb-2"/><Skeleton className="h-4 w-full mb-1"/><Skeleton className="h-4 w-1/2"/>
+          </div>
+        ))}
+      </div>
+    );
+    if (sort === 'rightNow' && filteredEvents.length === 0) return (
+      <div className="text-center py-16">
+        <p className="text-4xl mb-3">🔴</p>
+        <p className="font-grotesk font-semibold">{tr.sortRightNow || 'Právě teď'}</p>
+        <p className="text-sm text-muted-foreground mt-1">{lang === 'cs' ? 'Právě teď neprobíhají žádné akce.' : 'No events happening right now.'}</p>
+      </div>
+    );
+    if (filteredEvents.length === 0) return (
+      <div className="text-center py-16">
+        <p className="text-4xl mb-3">🙌</p>
+        <p className="font-grotesk font-semibold">{tr.noEventsYet}</p>
+        <p className="text-sm text-muted-foreground mt-1">{tr.noEventsFirstPost}</p>
+      </div>
+    );
     return (
-      <FeedList
-        events={filteredEvents}
-        user={user}
-        profile={profileWithCategories}
-        onJoin={handleJoin}
-        onFavorite={handleFavorite}
-        isPersonalized={sort==='forYou'}
-        feedStats={feedStats}
-      />
+      <>
+        <FeedList events={filteredEvents} user={user} profile={profileWithCategories} onJoin={handleJoin} onFavorite={handleFavorite} isPersonalized={sort==='forYou'} feedStats={feedStats}/>
+        {/* Infinite scroll trigger */}
+        <div ref={bottomRef} className="h-4"/>
+        {loadingMore && (
+          <div className="flex justify-center py-4">
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground"/>
+          </div>
+        )}
+        {!hasMore && filteredEvents.length > PAGE_SIZE && (
+          <p className="text-center text-xs text-muted-foreground py-4">
+            {lang === 'cs' ? 'Zobrazeny všechny události' : 'All events loaded'}
+          </p>
+        )}
+      </>
     );
   };
 
@@ -228,19 +235,14 @@ export default function Home() {
             <EventFilter filters={filters} onChange={setFilters}/>
           </div>
         </div>
+
         {!showMap && (
           <div className="flex gap-1 bg-secondary rounded-xl p-1 overflow-x-auto no-scrollbar">
-            {[
-              { value: 'forYou', label: tr.sortForYou },
-              { value: 'upcoming', label: tr.sortUpcoming },
-              { value: 'rightNow', label: tr.sortRightNow || 'Právě teď' },
-              { value: 'popular', label: tr.sortPopular },
-              { value: 'new', label: tr.sortNew },
-            ].map(opt => (
-              <button key={opt.value} onClick={() => setSort(opt.value)} className={cn('flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all', sort === opt.value ? 'bg-card shadow-sm' : 'text-muted-foreground')}>
+            {SORT_TABS.map(opt => (
+              <button key={opt.value} onClick={() => { setSort(opt.value); setEvents([]); }} className={cn('flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all', sort === opt.value ? 'bg-card shadow-sm' : 'text-muted-foreground')}>
                 {opt.value === 'rightNow' ? (
                   <span className="flex items-center gap-1">
-                    <span className={cn("w-1.5 h-1.5 rounded-full bg-red-500 inline-block", sort === 'rightNow' && "animate-pulse")}></span>
+                    <span className={cn("w-1.5 h-1.5 rounded-full bg-rose-500 inline-block", sort === 'rightNow' && "animate-pulse")}></span>
                     {opt.label}
                   </span>
                 ) : opt.label}
