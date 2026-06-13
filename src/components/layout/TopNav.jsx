@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Plus, Menu, X, Bell, Shield, Home, TrendingUp, Star, Calendar, User, Loader2 } from "lucide-react";
+import { Search, Plus, Menu, X, Home, TrendingUp, Star, Calendar, User, Shield, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -9,7 +9,7 @@ import { useLanguage } from "@/lib/language";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import NotificationBell from "@/components/layout/NotificationBell";
 import { supabase } from "@/lib/supabaseClient";
-import { getCategoryStyle, getCategoryLabel } from "@/lib/categories";
+import { getCategoryStyle } from "@/lib/categories";
 import { format } from "date-fns";
 import { useContext } from "react";
 import { LanguageContext } from "@/lib/language";
@@ -20,7 +20,6 @@ function LangSwitcher() {
     <button
       onClick={() => setLang(lang === 'cs' ? 'en' : 'cs')}
       className="px-2.5 py-1.5 rounded-xl hover:bg-secondary transition-colors text-xs font-semibold text-muted-foreground hover:text-foreground"
-      title={lang === 'cs' ? 'Switch to English' : 'Přepnout na češtinu'}
     >
       {lang === 'cs' ? 'CZ' : 'EN'}
     </button>
@@ -53,11 +52,11 @@ function SearchBar() {
       .select('id, title, category, location, date')
       .eq('is_approved', true)
       .gt('date', new Date().toISOString())
-      .or(`title.ilike.%${q}%,location.ilike.%${q}%,description.ilike.%${q}%,category.ilike.%${q}%`)
+      .or(`title.ilike.%${q}%,location.ilike.%${q}%,category.ilike.%${q}%`)
       .order('date', { ascending: true })
       .limit(6);
     setResults(data || []);
-    setOpen(true);
+    setOpen((data || []).length > 0);
     setLoading(false);
   }, []);
 
@@ -86,12 +85,12 @@ function SearchBar() {
       <form onSubmit={handleSubmit}>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"/>
-          {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 animate-spin text-muted-foreground"/>}
-          {!loading && query && (
-            <button type="button" onClick={() => { setQuery(''); setResults([]); setOpen(false); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-              <X className="w-3.5 h-3.5"/>
-            </button>
-          )}
+          {loading
+            ? <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 animate-spin text-muted-foreground"/>
+            : query
+              ? <button type="button" onClick={() => { setQuery(''); setResults([]); setOpen(false); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5"/></button>
+              : null
+          }
           <Input
             value={query}
             onChange={handleInput}
@@ -109,9 +108,7 @@ function SearchBar() {
             return (
               <button key={event.id} onClick={() => handleSelect(event)}
                 className="flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-secondary transition-colors border-b border-border/40 last:border-0">
-                <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0", cat.color)}>
-                  {cat.emoji}
-                </span>
+                <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0", cat.color)}>{cat.emoji}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{event.title}</p>
                   <p className="text-xs text-muted-foreground truncate">{event.location} · {event.date ? format(new Date(event.date), 'EEE d MMM') : ''}</p>
@@ -122,7 +119,7 @@ function SearchBar() {
           <button onClick={() => { setOpen(false); navigate(`/?search=${encodeURIComponent(query)}`); }}
             className="flex items-center gap-2 w-full px-4 py-2.5 text-xs text-primary font-medium hover:bg-secondary transition-colors">
             <Search className="w-3.5 h-3.5"/>
-            {lang === 'cs' ? `Zobrazit všechny výsledky pro "${query}"` : `See all results for "${query}"`}
+            {lang === 'cs' ? `Všechny výsledky pro "${query}"` : `See all results for "${query}"`}
           </button>
         </div>
       )}
@@ -188,13 +185,14 @@ export default function TopNav() {
       <header className="fixed top-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-md border-b border-border/60 h-14"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-4 h-full flex items-center gap-3">
+
           {/* Hamburger — mobile only */}
-          <button onClick={() => setDrawerOpen(true)} className="xl:hidden p-2 -ml-1 rounded-xl hover:bg-secondary transition-colors">
+          <button onClick={() => setDrawerOpen(true)} className="xl:hidden p-2 -ml-1 rounded-xl hover:bg-secondary transition-colors flex-shrink-0">
             <Menu className="w-5 h-5"/>
           </button>
 
-          {/* Logo */}
-          <Link to="/" className="font-grotesk font-bold text-base flex-shrink-0 hidden sm:block">
+          {/* Logo — always visible */}
+          <Link to="/" className="font-grotesk font-bold text-base flex-shrink-0">
             HighFive 🙏
           </Link>
 
@@ -206,14 +204,14 @@ export default function TopNav() {
             <LangSwitcher/>
             <NotificationBell/>
             {user ? (
-              <Button variant="ghost" size="icon" className="hidden xl:flex rounded-full w-9 h-9 p-0" onClick={() => navigate('/profile')}>
+              <button className="rounded-full w-9 h-9 p-0 flex items-center justify-center hover:opacity-80 transition-opacity" onClick={() => navigate('/profile')}>
                 {profile?.avatar_url
                   ? <img src={profile.avatar_url} alt="avatar" className="w-8 h-8 rounded-full object-cover"/>
                   : <div className="w-8 h-8 rounded-full bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold">{user.email?.[0]?.toUpperCase()}</div>
                 }
-              </Button>
+              </button>
             ) : (
-              <Button size="sm" className="hidden xl:flex rounded-xl px-4 h-8 text-xs" onClick={() => navigate('/login')}>
+              <Button size="sm" className="rounded-xl px-4 h-8 text-xs" onClick={() => navigate('/login')}>
                 {tr.login}
               </Button>
             )}
