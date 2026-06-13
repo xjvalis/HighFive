@@ -81,7 +81,7 @@ function SearchBar() {
   };
 
   return (
-    <div ref={containerRef} className="relative flex-1 max-w-md">
+    <div ref={containerRef} className="relative flex-1">
       <form onSubmit={handleSubmit}>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"/>
@@ -102,7 +102,7 @@ function SearchBar() {
       </form>
 
       {open && results.length > 0 && (
-        <div className="absolute left-0 top-full mt-1.5 z-50 bg-card border border-border rounded-2xl shadow-xl overflow-hidden w-full">
+        <div className="absolute left-0 top-full mt-1.5 z-50 bg-card border border-border rounded-2xl shadow-xl overflow-hidden w-full min-w-[320px]">
           {results.map(event => {
             const cat = getCategoryStyle(event.category);
             return (
@@ -127,7 +127,7 @@ function SearchBar() {
   );
 }
 
-function MobileDrawer({ open, onClose, tr, lang, profile }) {
+function MobileDrawer({ open, onClose, tr, profile }) {
   const { user } = useCurrentUser();
   const nav = (path) => { window.location.href = path; onClose(); };
 
@@ -175,7 +175,6 @@ function MobileDrawer({ open, onClose, tr, lang, profile }) {
 
 export default function TopNav() {
   const tr = useT();
-  const { lang } = useContext(LanguageContext);
   const navigate = useNavigate();
   const { user, profile } = useCurrentUser();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -184,27 +183,35 @@ export default function TopNav() {
     <>
       <header className="fixed top-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-md border-b border-border/60 h-14"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 h-full flex items-center gap-3">
+        <div className="max-w-7xl mx-auto px-4 h-full flex items-center gap-3">
 
           {/* Hamburger — mobile only */}
-          <button onClick={() => setDrawerOpen(true)} className="xl:hidden p-2 -ml-1 rounded-xl hover:bg-secondary transition-colors flex-shrink-0">
+          <button onClick={() => setDrawerOpen(true)} className="xl:hidden p-1.5 rounded-xl hover:bg-secondary transition-colors flex-shrink-0">
             <Menu className="w-5 h-5"/>
           </button>
 
-          {/* Logo — always visible */}
-          <Link to="/" className="font-grotesk font-bold text-base flex-shrink-0">
-            HighFive 🙏
+          {/* Logo */}
+          <Link to="/" className="font-grotesk font-bold text-base flex-shrink-0 flex items-center gap-1.5">
+            <span>HighFive</span>
+            <span>🙏</span>
           </Link>
 
-          {/* Search */}
-          <SearchBar/>
+          {/* Search — centered, takes available space */}
+          <div className="flex-1 flex justify-center px-4">
+            <div className="w-full max-w-lg">
+              <SearchBar/>
+            </div>
+          </div>
 
           {/* Right actions */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <LangSwitcher/>
             <NotificationBell/>
             {user ? (
-              <button className="rounded-full w-9 h-9 p-0 flex items-center justify-center hover:opacity-80 transition-opacity" onClick={() => navigate('/profile')}>
+              <button
+                className="flex items-center justify-center w-9 h-9 rounded-full hover:opacity-80 transition-opacity"
+                onClick={() => navigate('/profile')}
+              >
                 {profile?.avatar_url
                   ? <img src={profile.avatar_url} alt="avatar" className="w-8 h-8 rounded-full object-cover"/>
                   : <div className="w-8 h-8 rounded-full bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold">{user.email?.[0]?.toUpperCase()}</div>
@@ -215,14 +222,17 @@ export default function TopNav() {
                 {tr.login}
               </Button>
             )}
-            <button onClick={() => navigate(user ? '/create' : '/login')} className="hidden xl:flex items-center justify-center w-8 h-8 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+            <button
+              onClick={() => navigate(user ? '/create' : '/login')}
+              className="w-8 h-8 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center"
+            >
               <Plus className="w-4 h-4"/>
             </button>
           </div>
         </div>
       </header>
 
-      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} tr={tr} lang={lang} profile={profile}/>
+      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} tr={tr} profile={profile}/>
     </>
   );
 }
