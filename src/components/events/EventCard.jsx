@@ -48,17 +48,23 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
 
   const getJoinContent = () => {
     if (joining) return <Loader2 className="w-3.5 h-3.5 animate-spin"/>;
-    if (isJoined) return <span>{hoveringJoin ? "✕" : "✓"}</span>;
-    if (isFull) return <span>✌️</span>;
-    return <span>{lang === 'cs' ? 'Jdu!' : "I'm in!"}</span>;
+    if (isJoined) {
+      if (hoveringJoin) return <span>{lang === 'cs' ? 'Odhlásit' : 'Leave'}</span>;
+      return <><span>✓</span><span>{lang === 'cs' ? 'Jdu!' : 'Going!'}</span></>;
+    }
+    if (isFull) return <span>📋</span>;
+    // Not joined — ✌️ only, outlined primary button
+    return <span>✌️</span>;
   };
 
   const getJoinStyle = () => {
-    if (isJoined) return hoveringJoin
-      ? "bg-red-50 text-red-600 border border-red-200"
-      : "bg-mint text-emerald-700";
-    if (isFull) return "bg-secondary text-muted-foreground hover:bg-orange-50 hover:text-orange-600";
-    return "bg-primary text-primary-foreground hover:bg-primary/90";
+    if (isJoined) {
+      if (hoveringJoin) return "bg-red-50 text-red-600 border border-red-300";
+      return "bg-mint text-emerald-700 border border-transparent";
+    }
+    if (isFull) return "bg-secondary text-muted-foreground border border-border hover:bg-orange-50 hover:text-orange-600";
+    // Not joined — outlined primary (fialový rámeček, průhledné pozadí)
+    return "bg-transparent text-primary border-2 border-primary hover:bg-primary hover:text-primary-foreground";
   };
 
   return (
@@ -139,7 +145,7 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
                 whileTap={{ scale: 0.9 }}
                 disabled={joining}
                 className={cn(
-                  "flex items-center justify-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-semibold transition-all duration-200 min-w-[40px]",
+                  "flex items-center justify-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-semibold transition-all duration-200 min-w-[36px]",
                   getJoinStyle()
                 )}
               >
