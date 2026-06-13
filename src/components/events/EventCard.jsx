@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { MapPin, Clock, Users, MessageCircle, Star } from "lucide-react";
+import { MapPin, Clock, Users, MessageCircle, Star, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { getCategoryStyle, getCategoryLabel } from "@/lib/categories";
 import { cn } from "@/lib/utils";
@@ -13,19 +13,24 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
   const tr = useT();
   const { lang } = useContext(LanguageContext);
   const [hoveringJoin, setHoveringJoin] = useState(false);
+  const [joining, setJoining] = useState(false);
   const navigate = useNavigate();
   const cat = getCategoryStyle(event.category);
   const participantCount = event.participants?.length || 0;
   const isFull = event.max_capacity && participantCount >= event.max_capacity;
+  const isOnWaitlist = false; // passed from parent if needed
   const now = new Date();
   const startTime = event.date ? new Date(event.date) : null;
   const endTime = event.end_time ? new Date(event.end_time) : (startTime ? new Date(startTime.getTime() + 2*60*60*1000) : null);
   const isHappeningNow = startTime && endTime && now >= startTime && now <= endTime;
 
-  const handleJoinClick = (e) => {
+  const handleJoinClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    onJoin?.(event);
+    if (joining) return;
+    setJoining(true);
+    await onJoin?.(event);
+    setJoining(false);
   };
 
   const handleFavoriteClick = (e) => {
@@ -35,9 +40,21 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
   };
 
   const handleCardClick = (e) => {
-    // Don't navigate if clicking a button inside the card
     if (e.target.closest('button') || e.target.closest('a')) return;
     navigate(`/event/${event.id}`);
+  };
+
+  const getJoinLabel = () => {
+    if (joining) return <Loader2 className="w-3.5 h-3.5 animate-spin"/>;
+    if (isJoined) return hoveringJoin ? "✕" : "✓";
+    if (isFull) return "📋";
+    return "🙌";
+  };
+
+  const getJoinStyle = () => {
+    if (isJoined) return hoveringJoin ? "bg-red-50 text-red-600" : "bg-mint text-emerald-700";
+    if (isFull) return "bg-secondary text-muted-foreground hover:bg-orange-50 hover:text-orange-600";
+    return "bg-primary text-primary-foreground hover:bg-primary/90";
   };
 
   return (
@@ -62,9 +79,9 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
               {cat.emoji} {getCategoryLabel(event.category, lang)}
             </span>
             {isHappeningNow && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-semibold flex items-center gap-0.5 animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
-                {tr.sortHappeningNow || '🔴 Právě teď'}
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 font-semibold flex items-center gap-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block animate-pulse"></span>
+                {lang === 'cs' ? 'Právě teď' : 'Right Now'}
               </span>
             )}
             {isFull && !isJoined && (
@@ -111,26 +128,19 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
                 <Star className={cn("w-3.5 h-3.5", isFavorited && "fill-yellow-500")}/>
               </button>
 
-              <button
+              <motion.button
                 onClick={handleJoinClick}
                 onMouseEnter={() => setHoveringJoin(true)}
                 onMouseLeave={() => setHoveringJoin(false)}
-                title={isJoined ? tr.leave : (isFull ? tr.joinWaitlist : tr.join)}
+                whileTap={{ scale: 0.92 }}
+                disabled={joining}
                 className={cn(
-                  "flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-semibold transition-all duration-200",
-                  isJoined
-                    ? hoveringJoin ? "bg-red-50 text-red-600" : "bg-mint text-emerald-700"
-                    : isFull
-                      ? "bg-secondary text-muted-foreground hover:bg-orange-50 hover:text-orange-600"
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  "flex items-center justify-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-semibold transition-all duration-200 min-w-[36px]",
+                  getJoinStyle()
                 )}
               >
-                <span>
-                  {isJoined
-                    ? (hoveringJoin ? "✕" : "✓")
-                    : isFull ? "📋" : "🙌"}
-                </span>
-              </button>
+                {getJoinLabel()}
+              </motion.button>
             </div>
           </div>
         </div>
