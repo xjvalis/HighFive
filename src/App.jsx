@@ -16,7 +16,6 @@ import Trending from '@/pages/Trending';
 import MyEvents from '@/pages/MyEvents';
 import AdminDashboard from '@/pages/AdminDashboard';
 import Notifications from '@/pages/Notifications';
-import Messages from '@/pages/Messages';
 
 // App is always accessible — login is only required for specific actions
 export default function App() {
@@ -35,7 +34,6 @@ export default function App() {
                 <Route path="/create" element={<CreateEvent />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/notifications" element={<Notifications />} />
-                <Route path="/messages" element={<Messages />} />
                 <Route path="/admin" element={<AdminDashboard />} />
               </Route>
               <Route path="/login" element={<Login />} />

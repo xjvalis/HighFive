@@ -1,8 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, TrendingUp, MessageCircle, Plus, User } from "lucide-react";
+import { Home, TrendingUp, Star, Plus, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
-import { useUnreadDMs } from "@/hooks/useUnreadDMs";
+
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { haptic } from "@/lib/haptics";
 
@@ -10,14 +10,13 @@ export default function MobileBottomNav() {
   const tr = useT();
   const location = useLocation();
   const navigate = useNavigate();
-  const unreadDMs = useUnreadDMs();
   const { user, profile } = useCurrentUser();
 
   const tabs = [
     { icon: Home, label: tr.home, path: "/" },
     { icon: TrendingUp, label: tr.trending, path: "/trending" },
     null, // center FAB
-    { icon: MessageCircle, label: tr.messages, path: "/messages" },
+    { icon: Star, label: tr.favorites, path: "/favorites" },
     { icon: User, label: tr.profile, path: user ? "/profile" : "/login" },
   ];
 
@@ -72,11 +71,7 @@ export default function MobileBottomNav() {
                 ) : (
                   <Icon className={cn("w-6 h-6 transition-transform", active && "scale-110")} />
                 )}
-                {path === "/messages" && unreadDMs > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5">
-                    {unreadDMs > 9 ? "9+" : unreadDMs}
-                  </span>
-                )}
+
               </span>
               {active && <span className="absolute bottom-1 w-1 h-1 rounded-full bg-primary" />}
             </Link>

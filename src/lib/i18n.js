@@ -4,7 +4,7 @@ import { LanguageContext } from "./language";
 export const translations = {
   en: {
     home: "Home",
-    trending: "Trending",
+    trending: "Popular",
     favorites: "Favorites",
     myEvents: "My Events",
     notifications: "Notifications",
@@ -35,13 +35,13 @@ export const translations = {
     mapNoCoords: "No events with location data in this area.",
     locationFilterActive: (n) => `Showing ${n} events within radius`,
 
-    trendingTitle: "🔥 Trending",
-    trendingSubtitle: "Most favorited events right now",
-    nothingTrending: "Nothing trending yet",
+    trendingTitle: "🔥 Popular",
+    trendingSubtitle: "Most loved events right now",
+    nothingTrending: "Nothing popular yet",
 
-    favoritesTitle: "Favorites",
-    favoritesSubtitle: "Events you've starred ⭐",
-    noFavorites: "No favorites yet",
+    favoritesTitle: "Your picks",
+    favoritesSubtitle: "Events you want to remember or attend",
+    noFavorites: "No picks yet",
     noFavoritesHint: "Star events you're interested in",
 
     notificationsTitle: "Notifications",
@@ -268,7 +268,7 @@ export const translations = {
 
   cs: {
     home: "Domů",
-    trending: "Trendy",
+    trending: "Populární",
     favorites: "Oblíbené",
     myEvents: "Moje události",
     notifications: "Oznámení",

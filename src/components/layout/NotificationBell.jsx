@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
 
-const TYPE_ICONS = { event_reminder:'⏰', event_updated:'✏️', new_participant:'🙌', waitlist_promoted:'🎉', new_report:'🚩', new_message:'💬', new_chat_message:'💬', event_past:'🗓️' };
+const TYPE_ICONS = { event_suspended: '⚠️', event_reminder:'⏰', event_updated:'✏️', new_participant:'🙌', waitlist_promoted:'🎉', new_report:'🚩', new_message:'💬', new_chat_message:'💬', event_past:'🗓️' };
 
 export default function NotificationBell() {
   const tr = useT();

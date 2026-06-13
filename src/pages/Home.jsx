@@ -15,6 +15,7 @@ import { Map, List, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import PremiumModal from '@/components/premium/PremiumModal';
 import { lazy, Suspense } from 'react';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 const EventMap = lazy(() => import('@/components/events/EventMap'));
 
 const PAGE_SIZE = 15;
@@ -40,6 +41,7 @@ export default function Home() {
   const [feedStats, setFeedStats] = useState({ todayCount: 0, activePeople: 0, newToday: 0, firstTimers: 0 });
   const favRef = useRef(new Set());
   const bottomRef = useRef(null);
+  const refreshing = usePullToRefresh(loadEvents);
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const activeCategory = params.get('category');
@@ -218,6 +220,12 @@ export default function Home() {
 
   return (
     <div>
+      {/* Pull-to-refresh indicator */}
+      {refreshing && (
+        <div className="flex justify-center py-3">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+        </div>
+      )}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-3">
           <h1 className="font-grotesk font-bold text-lg sm:text-xl">{activeCategory || tr.whatsHappening}</h1>
