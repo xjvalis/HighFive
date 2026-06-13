@@ -23,7 +23,7 @@ export default function LeftSidebar() {
     { icon: TrendingUp, label: tr.trending, path: "/trending" },
     { icon: Star, label: tr.favorites, path: "/favorites" },
     { icon: Calendar, label: tr.myEvents, path: "/my-events" },
-];
+  ];
 
   const visibleCategories = expanded ? CATEGORIES : CATEGORIES.slice(0, VISIBLE_COUNT);
 
@@ -43,11 +43,7 @@ export default function LeftSidebar() {
                   : "text-foreground hover:bg-secondary"
               )}
             >
-              <span className="relative">
-                <Icon className="w-4 h-4" />
-</span>
-                )}
-              </span>
+              <Icon className="w-4 h-4" />
               {label}
             </Link>
           ))}
@@ -83,14 +79,16 @@ export default function LeftSidebar() {
         </button>
       </div>
 
-      {/* Admin link */}
-      {(profile?.is_admin || profile?.is_moderator) && <Link
-        to="/admin"
-        className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:bg-secondary transition-all"
-      >
-        <Shield className="w-3 h-3" />
-        {tr.moderation}
-      </Link>}
+      {/* Admin/Moderator link */}
+      {(profile?.is_admin || profile?.is_moderator) && (
+        <Link
+          to="/admin"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:bg-secondary transition-all"
+        >
+          <Shield className="w-3 h-3" />
+          {tr.moderation}
+        </Link>
+      )}
     </div>
   );
 }
