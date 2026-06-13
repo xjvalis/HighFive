@@ -50,7 +50,6 @@ export default function Home() {
     if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => setUserLocation({ lat: p.coords.latitude, lng: p.coords.longitude }), () => {});
   }, []);
 
-  // Real stats for FeedMotivation
   useEffect(() => {
     const loadStats = async () => {
       const now = new Date();
@@ -90,7 +89,6 @@ export default function Home() {
     return q.range(offset, offset + PAGE_SIZE - 1);
   }, [sort, activeCategory, filters]);
 
-  // Initial load
   const loadEvents = useCallback(async () => {
     setLoading(true);
     setPage(0);
@@ -103,7 +101,6 @@ export default function Home() {
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
 
-  // Load more on scroll
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
@@ -115,7 +112,6 @@ export default function Home() {
     setLoadingMore(false);
   }, [loadingMore, hasMore, page, buildQuery]);
 
-  // Infinite scroll observer
   useEffect(() => {
     const observer = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) loadMore();
@@ -140,8 +136,12 @@ export default function Home() {
   const mapEvents = events.filter(e => e.latitude && e.longitude && (!userLocation || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius));
   const profileWithCategories = profile ? { ...profile, joined_categories: [...new Set(events.filter(e => e.participants?.includes(user?.email)).map(e => e.category).filter(Boolean))] } : profile;
 
+  // KEY FIX: handleJoin must return a Promise so EventCard knows when it's done
   const handleJoin = async (event) => {
-    if (!user) { toast.info(lang === 'cs' ? 'Přihlas se pro přidání na event.' : 'Sign in to join events.'); return; }
+    if (!user) {
+      toast.info(lang === 'cs' ? 'Přihlas se pro přidání na event.' : 'Sign in to join events.');
+      return;
+    }
     const isJoined = event.participants?.includes(user.email);
     const isOnWaitlist = event.waitlist?.includes(user.email);
     const isFull = event.max_capacity && (event.participants?.length || 0) >= event.max_capacity;
@@ -155,7 +155,11 @@ export default function Home() {
     }
     const action = isJoined ? 'leave' : isOnWaitlist ? 'leave_waitlist' : isFull ? 'join_waitlist' : 'join';
     const { data, error } = await supabase.functions.invoke('join-event', { body: { event_id: event.id, action } });
-    if (!error && data?.event) setEvents(prev => prev.map(e => e.id === event.id ? data.event : e));
+    if (!error && data?.event) {
+      setEvents(prev => prev.map(e => e.id === event.id ? data.event : e));
+    }
+    // Return so EventCard's setJoining(false) fires AFTER state update
+    return data;
   };
 
   const handleFavorite = async (event) => {
@@ -170,7 +174,6 @@ export default function Home() {
     } finally { favRef.current.delete(event.id); }
   };
 
-  // Sort tabs — new order, Right Now at end
   const SORT_TABS = [
     { value: 'forYou', label: tr.sortForYou },
     { value: 'popular', label: tr.sortPopular },
@@ -206,18 +209,9 @@ export default function Home() {
     return (
       <>
         <FeedList events={filteredEvents} user={user} profile={profileWithCategories} onJoin={handleJoin} onFavorite={handleFavorite} isPersonalized={sort==='forYou'} feedStats={feedStats}/>
-        {/* Infinite scroll trigger */}
         <div ref={bottomRef} className="h-4"/>
-        {loadingMore && (
-          <div className="flex justify-center py-4">
-            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground"/>
-          </div>
-        )}
-        {!hasMore && filteredEvents.length > PAGE_SIZE && (
-          <p className="text-center text-xs text-muted-foreground py-4">
-            {lang === 'cs' ? 'Zobrazeny všechny události' : 'All events loaded'}
-          </p>
-        )}
+        {loadingMore && <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground"/></div>}
+        {!hasMore && filteredEvents.length >= PAGE_SIZE && <p className="text-center text-xs text-muted-foreground py-4">{lang === 'cs' ? 'Zobrazeny všechny události' : 'All events loaded'}</p>}
       </>
     );
   };
@@ -235,7 +229,6 @@ export default function Home() {
             <EventFilter filters={filters} onChange={setFilters}/>
           </div>
         </div>
-
         {!showMap && (
           <div className="flex gap-1 bg-secondary rounded-xl p-1 overflow-x-auto no-scrollbar">
             {SORT_TABS.map(opt => (
