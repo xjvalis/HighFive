@@ -168,6 +168,7 @@ export default function ShareEventButton({ event }) {
   const [copied, setCopied] = useState(false);
 
   const eventUrl = `${window.location.origin}/event/${event.id}`;
+  const ogUrl = `${window.location.origin}/api/event-og?id=${event.id}`;
   const shareText = `🙌 ${event.title}\n📍 ${event.location || ""}\n📅 ${format(new Date(event.date), "d. M. yyyy · HH:mm")}\n\n${eventUrl}`;
 
   const handleOpen = async () => {
@@ -207,14 +208,14 @@ export default function ShareEventButton({ event }) {
       emoji: "📘",
       bg: "bg-blue-50 hover:bg-blue-100",
       text: "text-blue-700",
-      action: () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}`, "_blank"),
+      action: () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(ogUrl)}`, "_blank"),
     },
     {
       label: "X / Twitter",
       emoji: "🐦",
       bg: "bg-slate-50 hover:bg-slate-100",
       text: "text-slate-700",
-      action: () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`, "_blank"),
+      action: () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(ogUrl)}`, "_blank"),
     },
     {
       label: "Instagram",
