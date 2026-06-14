@@ -339,7 +339,7 @@ export const translations = {
       `${newToday} nových událostí dnes`,
       `${firstTimers} lidí jde dnes poprvé s HighFive`,
       `Dnes se koná ${todayCount || "pár"} událostí`,
-      `Žádný tlak - jen lidi, co chtějí něco zažít`,
+      `Žádný tlak — jen lidi, co si chtějí něco zažít`,
       `Většina lidí tady měla před první událostí stejný pocit`,
     ],
 
