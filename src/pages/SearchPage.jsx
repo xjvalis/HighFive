@@ -105,8 +105,8 @@ export default function SearchPage({ onClose }) {
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
       {/* Search input bar */}
-      <div className="flex items-center gap-2 px-3 py-3 border-b border-border flex-shrink-0">
-        <div className="flex-1 relative">
+      <div className="flex items-center gap-2 px-3 py-3 border-b border-border flex-shrink-0 w-full">
+        <div className="relative" style={{flex: "1 1 0", minWidth: 0}}>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"/>
           <input
             ref={inputRef}
@@ -129,7 +129,7 @@ export default function SearchPage({ onClose }) {
         </div>
         <button
           onClick={onClose}
-          className="text-sm font-medium text-primary px-2 py-1 flex-shrink-0 min-w-[52px] text-right"
+          className="text-sm font-medium text-primary pl-2 py-1 flex-shrink-0 whitespace-nowrap"
         >
           {lang === 'cs' ? 'Zrušit' : 'Cancel'}
         </button>
