@@ -1,8 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, TrendingUp, Star, Plus, User } from "lucide-react";
+import { Home, TrendingUp, Calendar, Plus, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
-
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { haptic } from "@/lib/haptics";
 
@@ -16,7 +15,7 @@ export default function MobileBottomNav() {
     { icon: Home, label: tr.home, path: "/" },
     { icon: TrendingUp, label: tr.trending, path: "/trending" },
     null, // center FAB
-    { icon: Star, label: tr.favorites, path: "/favorites" },
+    { icon: Calendar, label: tr.myEvents, path: "/my-events" },
     { icon: User, label: tr.profile, path: user ? "/profile" : "/login" },
   ];
 
@@ -42,8 +41,10 @@ export default function MobileBottomNav() {
           }
 
           const { icon: Icon, label, path } = tab;
-          const active = location.pathname === path || (path === "/profile" && location.pathname === "/profile");
           const isProfile = path === "/profile" || path === "/login";
+          const active = isProfile
+            ? location.pathname === "/profile"
+            : location.pathname === path;
 
           return (
             <Link
@@ -59,21 +60,16 @@ export default function MobileBottomNav() {
             >
               <span className="relative">
                 {isProfile && profile?.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt="avatar"
-                    className={cn("w-6 h-6 rounded-full object-cover", active && "ring-2 ring-primary")}
-                  />
+                  <img src={profile.avatar_url} alt="avatar" className={cn("w-6 h-6 rounded-full object-cover", active && "ring-2 ring-primary")}/>
                 ) : isProfile && profile?.display_name ? (
                   <div className={cn("w-6 h-6 rounded-full bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold", active && "ring-2 ring-primary")}>
                     {profile.display_name[0].toUpperCase()}
                   </div>
                 ) : (
-                  <Icon className={cn("w-6 h-6 transition-transform", active && "scale-110")} />
+                  <Icon className={cn("w-6 h-6 transition-transform", active && "scale-110")}/>
                 )}
-
               </span>
-              {active && <span className="absolute bottom-1 w-1 h-1 rounded-full bg-primary" />}
+              {active && <span className="absolute bottom-1 w-1 h-1 rounded-full bg-primary"/>}
             </Link>
           );
         })}
