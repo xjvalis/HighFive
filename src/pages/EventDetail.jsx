@@ -199,7 +199,7 @@ export default function EventDetail() {
             <motion.button animate={joinAnim?{scale:[1,1.2,0.95,1.05,1]}:{}} onClick={handleJoin} disabled={joiningEvent}
               className={cn('flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all disabled:opacity-70',
                 isJoined?'bg-mint text-emerald-700 hover:bg-red-50 hover:text-red-600':isOnWaitlist?'bg-lemon text-yellow-700 hover:bg-red-50 hover:text-red-600':isFull?'bg-secondary text-muted-foreground hover:bg-orange-50 hover:text-orange-700':'bg-primary text-primary-foreground hover:bg-primary/90')}>
-              {joiningEvent?<Loader2 className="w-4 h-4 animate-spin"/>:<><span className="text-lg">{isJoined?'✓':isOnWaitlist?'⏳':isFull?'📋':'🙌'}</span>{isJoined?(lang==='cs'?'Jdu! (odhlásit)':'Going! (leave)'):isOnWaitlist?(lang==='cs'?'Na čekačce (odhlásit)':'On waitlist (leave)'):isFull?(lang==='cs'?'Přidat na čekačku':'Join waitlist'):(lang==='cs'?'Jdu na to!':"I'm in!")}</>}
+              {joiningEvent?<Loader2 className="w-4 h-4 animate-spin"/>:<><span className="text-lg">{isJoined?'✓':isOnWaitlist?'⏳':isFull?'📋':'🙌'}</span>{isJoined?(lang==='cs'?'Jdu! (odhlásit)':'Going! (leave)'):isOnWaitlist?(lang==='cs'?'Na čekačce (odhlásit)':'On waitlist (leave)'):isFull?(lang==='cs'?'Přidat na čekačku':'Join waitlist'):(lang==='cs'?'Chci jít!':"I'm in!")}</>}
             </motion.button>
             <Button variant="outline" size="icon" className="rounded-2xl w-12 h-12" onClick={()=>setReportOpen(true)}><Flag className="w-4 h-4 text-muted-foreground"/></Button>
           </div>
