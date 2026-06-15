@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import { useT } from '@/lib/i18n';
@@ -240,6 +241,34 @@ export default function Profile() {
         <p className="text-xs text-muted-foreground mb-3">
           {lang === 'cs' ? 'Smazání účtu je nevratné. Všechna tvoje data budou odstraněna.' : 'Account deletion is irreversible. All your data will be removed.'}
         </p>
+
+        {/* Reliability reset - Premium only */}
+        {(profile?.is_premium || ['plus','creator'].includes(profile?.subscription_plan)) && (profile?.noshow_count || 0) > 0 && (
+          <div className="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
+            <p className="text-xs font-medium text-amber-800 mb-1">
+              {lang === 'cs' ? `Tvé skóre spolehlivosti: ${profile?.reliability_score ?? 100}/100` : `Your reliability score: ${profile?.reliability_score ?? 100}/100`}
+            </p>
+            <p className="text-xs text-amber-700 mb-2">
+              {lang === 'cs' ? 'Chceš reset? Napiš moderátorovi — jako Premium uživatel na to máš nárok.' : 'Want a reset? Message a moderator — as a Premium user you are eligible.'}
+            </p>
+            <button
+              onClick={async () => {
+                await supabase.from('notifications').insert({
+                  user_id: 'db2e3632-d8ea-4c04-a5c2-c0119b883ac6',
+                  user_email: 'xjvalis@gmail.com',
+                  type: 'reliability_reset_request',
+                  title: `🔄 ${lang === 'cs' ? 'Žádost o reset spolehlivosti' : 'Reliability reset request'}`,
+                  body: `${profile?.display_name || user.email} (${user.email}) ${lang === 'cs' ? 'žádá o reset skóre spolehlivosti.' : 'requests a reliability score reset.'}`,
+                  is_read: false,
+                });
+                toast.success(lang === 'cs' ? 'Žádost odeslána moderátorovi' : 'Request sent to moderator');
+              }}
+              className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-amber-600 transition-colors"
+            >
+              {lang === 'cs' ? 'Požádat o reset' : 'Request reset'}
+            </button>
+          </div>
+        )}
         <Button variant="outline" size="sm" onClick={() => setShowDeleteConfirm(true)} className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 gap-2">
           <Trash2 className="w-3.5 h-3.5"/>
           {lang === 'cs' ? 'Smazat účet' : 'Delete account'}

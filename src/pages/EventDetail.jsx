@@ -53,8 +53,8 @@ export default function EventDetail() {
     supabase.from('events').select('*').eq('id', id).single().then(({data}) => {
       setEvent(data);
       if (data?.participants?.length) {
-        supabase.from('user_profiles').select('user_email,display_name,avatar_url,subscription_plan,is_premium,is_verified')
-          .in('user_email', data.participants.slice(0,12))
+        supabase.from('user_profiles').select('user_email,display_name,avatar_url,subscription_plan,is_premium,is_verified,reliability_score,noshow_count')
+          .in('user_email', data.participants)
           .then(({data:pp}) => { const m={}; (pp||[]).forEach(p => m[p.user_email]=p); setParticipantProfiles(m); });
       }
     });

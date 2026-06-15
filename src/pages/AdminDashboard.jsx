@@ -112,6 +112,28 @@ export default function AdminDashboard() {
     toast.success(lang === 'cs' ? 'Uživatel zablokován' : 'User banned');
   };
 
+  const resetReliability = async (notif) => {
+    // Extract email from notification body
+    const emailMatch = notif.body?.match(/\(([^)]+@[^)]+)\)/);
+    const email = emailMatch?.[1];
+    if (!email) return;
+    await supabase.from('user_profiles').update({ reliability_score: 100, noshow_count: 0 }).eq('user_email', email);
+    await supabase.from('notifications').update({ status: 'resolved' }).eq('id', notif.id);
+    // Notify user
+    const { data: userProfile } = await supabase.from('user_profiles').select('user_id').eq('user_email', email).maybeSingle();
+    if (userProfile) {
+      await supabase.from('notifications').insert({
+        user_id: userProfile.user_id, user_email: email,
+        type: 'reliability_reset_done',
+        title: lang === 'cs' ? '✅ Tvé skóre spolehlivosti bylo resetováno' : '✅ Your reliability score was reset',
+        body: lang === 'cs' ? 'Moderátor ti resetoval skóre spolehlivosti. Čistý štít!' : 'A moderator reset your reliability score. Fresh start!',
+        is_read: false,
+      });
+    }
+    setReports(prev => prev.filter(r => r.id !== notif.id));
+    toast.success(lang === 'cs' ? 'Skóre resetováno' : 'Score reset');
+  };
+
   const resolveReport = async (report) => {
     await supabase.from('reports').update({ status: 'resolved' }).eq('id', report.id);
     setReports(prev => prev.filter(r => r.id !== report.id));
