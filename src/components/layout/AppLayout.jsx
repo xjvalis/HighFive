@@ -34,17 +34,14 @@ export default function AppLayout() {
           </aside>
         </div>
       </div>
-
-      {/* Feedback button */}
       
         href="mailto:xjvalis+highfive@gmail.com?subject=HighFive feedback"
         className="fixed bottom-20 right-4 xl:bottom-6 z-50 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg flex items-center justify-center transition-colors"
-        style={{ width: '44px', height: '44px' }}
+        style={{ width: "44px", height: "44px" }}
         title="Poslat feedback"
       >
         💬
       </a>
-
       <MobileBottomNav />
     </div>
   );
