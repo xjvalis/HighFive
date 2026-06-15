@@ -42,7 +42,7 @@ export default function EventFilter({ filters, onChange }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-2 bg-card border border-border rounded-2xl shadow-lg z-30 p-4 w-64 space-y-3">
+        <div className="absolute right-0 top-full mt-2 bg-card border border-border rounded-2xl shadow-lg z-30 p-4 w-64 space-y-3">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-semibold text-foreground">{tr.filterTitle}</span>
             <button onClick={clear} className="text-[11px] text-muted-foreground hover:text-foreground transition-colors">{tr.clearAll}</button>

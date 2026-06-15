@@ -232,15 +232,15 @@ export default function Home() {
         <div className="flex items-center justify-between mb-2">
           <h1 className="font-grotesk font-bold text-lg sm:text-xl">{activeCategory || tr.whatsHappening}</h1>
           <div className="flex items-center gap-2">
-            <div className="flex items-center bg-secondary rounded-xl p-0.5">
-              <button onClick={()=>setShowMap(false)} className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all',!showMap?'bg-card shadow-sm':'text-muted-foreground')}><List className="w-3.5 h-3.5"/>{tr.viewList}</button>
-              <button onClick={()=>setShowMap(true)} className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all',showMap?'bg-card shadow-sm':'text-muted-foreground')}><Map className="w-3.5 h-3.5"/>{tr.viewMap}</button>
+            <div className="flex items-center bg-secondary rounded-lg p-0.5">
+              <button onClick={()=>setShowMap(false)} className={cn('flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-all',!showMap?'bg-card shadow-sm':'text-muted-foreground')}><List className="w-3 h-3"/>{tr.viewList}</button>
+              <button onClick={()=>setShowMap(true)} className={cn('flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-all',showMap?'bg-card shadow-sm':'text-muted-foreground')}><Map className="w-3 h-3"/>{tr.viewMap}</button>
             </div>
             <EventFilter filters={filters} onChange={setFilters}/>
           </div>
         </div>
         {!showMap && (
-          <div className="flex gap-0.5 bg-secondary rounded-xl p-0.5 overflow-x-auto no-scrollbar">
+          <div className="flex gap-0.5 bg-secondary/80 rounded-lg p-0.5 overflow-x-auto no-scrollbar">
             {SORT_TABS.map(opt => (
               <button key={opt.value} onClick={() => { setSort(opt.value); setEvents([]); }} className={cn('flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium transition-all', sort === opt.value ? 'bg-card shadow-sm' : 'text-muted-foreground')}>
                 {opt.value === 'rightNow' ? (

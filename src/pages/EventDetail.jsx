@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import EventChat from '@/components/events/EventChat';
+import AttendanceMarker from '@/components/events/AttendanceMarker';
 import WaitlistSection from '@/components/events/WaitlistSection';
 import ReportModal from '@/components/events/ReportModal';
 import PremiumModal from '@/components/premium/PremiumModal';
@@ -212,6 +213,7 @@ export default function EventDetail() {
         </div>
       </div>
 
+      <AttendanceMarker event={event} onMarked={() => {}}/>
       <EventChat event={event} user={user} profile={profile}/>
 
       <div className="mt-5 bg-card rounded-2xl border border-border/60 shadow-sm p-5">
