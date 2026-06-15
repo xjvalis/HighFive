@@ -160,7 +160,7 @@ function MobileDrawer({ open, onClose, tr, lang, profile }) {
           ))}
           <div className="pt-3 pb-1">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-1">{tr.categories || 'Kategorie'}</p>
-            {CATEGORIES.slice(0, 8).map(cat => (
+            {CATEGORIES.map(cat => (
               <button key={cat.name} onClick={() => nav(`/?category=${encodeURIComponent(cat.name)}`)}
                 className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm hover:bg-secondary transition-colors text-left">
                 <span className="text-base">{cat.emoji}</span>
@@ -200,7 +200,7 @@ export default function TopNav() {
         <div className="max-w-7xl mx-auto px-4 h-full flex items-center gap-3">
 
           {/* Hamburger — mobile only */}
-          <button onClick={() => setDrawerOpen(true)} className="xl:hidden p-1.5 -ml-1 rounded-xl hover:bg-secondary transition-colors flex-shrink-0">
+          <button onClick={() => setDrawerOpen(true)} className="xl:hidden p-2.5 -ml-2 rounded-xl hover:bg-secondary transition-colors flex-shrink-0">
             <Menu className="w-5 h-5"/>
           </button>
 

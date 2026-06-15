@@ -23,8 +23,9 @@ export default function EventFilter({ filters, onChange }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(o => !o)}
+        style={{height:'28px'}}
         className={cn(
-          "flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-md sm:rounded-xl border text-[11px] font-medium transition-all",
+          "flex items-center gap-1 px-2.5 rounded-lg border text-xs font-medium transition-all",
           open || activeCount > 0
             ? "bg-lavender border-violet-200 text-violet-700"
             : "bg-card border-border text-muted-foreground hover:bg-secondary"
