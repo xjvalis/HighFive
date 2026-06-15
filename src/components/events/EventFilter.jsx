@@ -24,7 +24,7 @@ export default function EventFilter({ filters, onChange }) {
       <button
         onClick={() => setOpen(o => !o)}
         className={cn(
-          "flex items-center gap-1 px-1.5 py-0.5 sm:px-3 sm:py-1.5 rounded-md sm:rounded-xl border text-xs font-medium transition-all",
+          "flex items-center gap-1 px-1.5 h-6 sm:h-auto sm:px-3 sm:py-1.5 rounded-md sm:rounded-xl border text-xs font-medium transition-all",
           open || activeCount > 0
             ? "bg-lavender border-violet-200 text-violet-700"
             : "bg-card border-border text-muted-foreground hover:bg-secondary"
