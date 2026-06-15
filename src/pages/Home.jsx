@@ -225,7 +225,7 @@ export default function Home() {
         <div className="flex items-center justify-between mb-1.5">
           <h1 className="font-grotesk font-bold text-base sm:text-lg">{activeCategory || tr.whatsHappening}</h1>
           <div className="flex items-center gap-1.5">
-            <div className="flex items-center bg-secondary rounded-md sm:rounded-xl p-px sm:p-0.5">
+            <div className="flex items-center h-7 sm:h-auto bg-secondary rounded-md sm:rounded-xl p-px sm:p-0.5">
               <button onClick={()=>setShowMap(false)} className={cn('flex items-center gap-1 px-1.5 h-6 sm:h-auto sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-all',!showMap?'bg-card shadow-sm':'text-muted-foreground')}><List className="w-3 h-3"/>{tr.viewList}</button>
               <button onClick={()=>setShowMap(true)} className={cn('flex items-center gap-1 px-1.5 h-6 sm:h-auto sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-all',showMap?'bg-card shadow-sm':'text-muted-foreground')}><Map className="w-3 h-3"/>{tr.viewMap}</button>
             </div>
@@ -233,7 +233,7 @@ export default function Home() {
           </div>
         </div>
         {!showMap && (
-          <div className="flex gap-0.5 bg-secondary/80 rounded-md sm:rounded-xl p-px sm:p-0.5 overflow-x-auto no-scrollbar">
+          <div className="flex gap-0.5 h-7 sm:h-auto bg-secondary/80 rounded-md sm:rounded-xl p-px sm:p-0.5 overflow-x-auto no-scrollbar">
             {SORT_TABS.map(opt => (
               <button key={opt.value} onClick={() => { setSort(opt.value); setEvents([]); }} className={cn('flex-shrink-0 px-2 h-6 sm:h-auto sm:px-3 sm:py-1.5 rounded-md text-xs font-medium transition-all', sort === opt.value ? 'bg-card shadow-sm' : 'text-muted-foreground')}>
                 {opt.value === 'rightNow' ? (
