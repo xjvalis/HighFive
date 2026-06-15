@@ -6,6 +6,8 @@ import MobileBottomNav from "./MobileBottomNav";
 import FeedbackModal from "./FeedbackModal";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { useNotificationEngine } from "@/hooks/useNotificationEngine";
+import { useState } from "react";
+import { MessageSquare } from "lucide-react";
 
 function NotificationEngineRunner() {
   const { user, profile } = useCurrentUser();
@@ -14,6 +16,8 @@ function NotificationEngineRunner() {
 }
 
 export default function AppLayout() {
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
       <NotificationEngineRunner />
@@ -35,7 +39,19 @@ export default function AppLayout() {
           </aside>
         </div>
       </div>
-      <FeedbackModal />
+
+      {/* Floating feedback button — desktop only */}
+      <button
+        onClick={() => setFeedbackOpen(true)}
+        className="hidden xl:flex fixed bottom-6 right-4 z-50 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg items-center justify-center transition-colors"
+        style={{ width: "44px", height: "44px" }}
+        title="Poslat feedback"
+      >
+        <MessageSquare size={20} />
+      </button>
+
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+
       <MobileBottomNav />
     </div>
   );

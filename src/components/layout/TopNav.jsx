@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Plus, Menu, X, Home, TrendingUp, Star, Calendar, User, Shield, Loader2 } from "lucide-react";
+import { Search, Plus, Menu, X, Home, TrendingUp, Star, Calendar, User, Shield, Loader2, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { useT } from "@/lib/i18n";
 import { useLanguage } from "@/lib/language";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import NotificationBell from "@/components/layout/NotificationBell";
+import FeedbackModal from "@/components/layout/FeedbackModal";
 import { supabase } from "@/lib/supabaseClient";
 import { getCategoryStyle, CATEGORIES, getCategoryLabel } from "@/lib/categories";
 import { format } from "date-fns";
@@ -129,7 +130,7 @@ function DesktopSearch() {
   );
 }
 
-function MobileDrawer({ open, onClose, tr, lang, profile }) {
+function MobileDrawer({ open, onClose, tr, lang, profile, onFeedback }) {
   const { user } = useCurrentUser();
   const nav = (path) => { window.location.href = path; onClose(); };
 
@@ -169,17 +170,22 @@ function MobileDrawer({ open, onClose, tr, lang, profile }) {
             ))}
           </div>
         </nav>
-        {user ? (
-          <div className="p-3 border-t border-border">
+        <div className="p-3 border-t border-border space-y-0.5">
+          {user ? (
             <button onClick={() => nav('/profile')} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-secondary transition-colors">
               <User className="w-5 h-5 text-muted-foreground"/>{tr.profile}
             </button>
-          </div>
-        ) : (
-          <div className="p-3 border-t border-border">
+          ) : (
             <Button className="w-full rounded-xl" onClick={() => nav('/login')}>{tr.login}</Button>
-          </div>
-        )}
+          )}
+          <button
+            onClick={() => { onClose(); onFeedback(); }}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-secondary transition-colors text-muted-foreground"
+          >
+            <MessageSquare className="w-5 h-5"/>
+            {lang === 'cs' ? 'Poslat feedback' : 'Send feedback'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -192,6 +198,7 @@ export default function TopNav() {
   const { user, profile } = useCurrentUser();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   return (
     <>
@@ -259,7 +266,16 @@ export default function TopNav() {
         </div>
       </header>
 
-      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} tr={tr} lang={lang} profile={profile}/>
+      <MobileDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        tr={tr}
+        lang={lang}
+        profile={profile}
+        onFeedback={() => setFeedbackOpen(true)}
+      />
+
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
 
       {/* Mobile search fullscreen */}
       {searchOpen && <SearchPage onClose={() => setSearchOpen(false)}/>}
