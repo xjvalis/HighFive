@@ -17,7 +17,6 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background">
       <NotificationEngineRunner />
       <TopNav />
-      {/* pt-14 = TopNav height, py-2 = tight vertical padding on mobile */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-14 pb-safe xl:pb-4">
         <div className="flex gap-5 py-2 sm:py-4">
           <aside className="hidden xl:block w-56 flex-shrink-0">
@@ -35,6 +34,17 @@ export default function AppLayout() {
           </aside>
         </div>
       </div>
+
+      {/* Feedback button */}
+      
+        href="mailto:xjvalis+highfive@gmail.com?subject=HighFive feedback"
+        className="fixed bottom-20 right-4 xl:bottom-6 z-50 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg flex items-center justify-center transition-colors"
+        style={{ width: '44px', height: '44px' }}
+        title="Poslat feedback"
+      >
+        💬
+      </a>
+
       <MobileBottomNav />
     </div>
   );
