@@ -113,11 +113,11 @@ export default function LocationPicker({ userLocation, radius, onLocationChange,
   const RADIUS_OPTIONS = [5, 10, 20, 50, 100];
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-3 space-y-2.5">
+    <div className="bg-card border border-border rounded-xl p-2 space-y-1.5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-          <MapPin className="w-4 h-4 text-primary" />
+        <div className="flex items-center gap-1 text-xs font-medium text-foreground">
+          <MapPin className="w-3.5 h-3.5 text-primary" />
           <span>
             {userLocation
               ? (locationLabel || tr.currentLocation)
@@ -156,7 +156,7 @@ export default function LocationPicker({ userLocation, radius, onLocationChange,
       )}
 
       {/* Address input with autocomplete */}
-      <div className="flex gap-2" ref={wrapperRef}>
+      <div className="flex gap-1.5" ref={wrapperRef}>
         <div className="flex-1 relative">
           <Input
             value={address}
@@ -164,7 +164,7 @@ export default function LocationPicker({ userLocation, radius, onLocationChange,
             onKeyDown={e => e.key === "Enter" && handleGeocode()}
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
             placeholder={tr.addressPlaceholder}
-            className="h-8 text-sm"
+            className="h-7 text-xs"
           />
           {showSuggestions && (
             <ul className="absolute z-50 top-full mt-1 left-0 right-0 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
@@ -186,7 +186,7 @@ export default function LocationPicker({ userLocation, radius, onLocationChange,
           variant="outline"
           onClick={handleGeocode}
           disabled={geocoding || !address.trim()}
-          className="h-8 px-3 text-xs"
+          className="h-7 px-2.5 text-xs"
         >
           {geocoding ? <Loader2 className="w-3 h-3 animate-spin" /> : tr.find}
         </Button>
@@ -196,7 +196,7 @@ export default function LocationPicker({ userLocation, radius, onLocationChange,
           onClick={handleGeolocate}
           disabled={geolocating}
           title={tr.currentLocation}
-          className="h-8 px-2"
+          className="h-7 px-2"
         >
           {geolocating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Navigation className="w-3 h-3" />}
         </Button>
