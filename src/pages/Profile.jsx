@@ -12,12 +12,21 @@ import { CATEGORIES, getCategoryLabel } from '@/lib/categories';
 import { cn } from '@/lib/utils';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
-import { LogOut, Check, Crown, BadgeCheck, Bell, Camera, Loader2, Trash2 } from 'lucide-react';
+import { LogOut, Check, BadgeCheck, Bell, Camera, Loader2, Trash2 } from 'lucide-react';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import EventCard from '@/components/events/EventCard';
 import PremiumModal from '@/components/premium/PremiumModal';
 import BadgesSection from '@/components/profile/BadgesSection';
 import ProfileHint from '@/components/profile/ProfileHint';
+
+function ReliabilityBadge({ score, noshowCount, lang }) {
+  if (score === null || score === undefined || noshowCount === 0) {
+    return <span className="text-xs bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full font-medium">{lang === 'cs' ? 'Nováček' : 'New'}</span>;
+  }
+  if (score >= 80) return <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">✓ {lang === 'cs' ? 'Spolehlivý' : 'Reliable'}</span>;
+  if (score >= 40) return <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">~ {lang === 'cs' ? 'Občas chybí' : 'Sometimes absent'}</span>;
+  return <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">✕ {lang === 'cs' ? 'Často chybí' : 'Often absent'}</span>;
+}
 
 export default function Profile() {
   const tr = useT();
@@ -103,10 +112,12 @@ export default function Profile() {
               </div>
             </label>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="font-grotesk font-bold text-xl">{profile?.display_name || user.email}</h1>
                 {profile?.is_verified && <BadgeCheck className="w-5 h-5 text-blue-500"/>}
                 {profile?.is_premium && <span className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full font-medium">Premium</span>}
+                {/* Reliability badge - always visible */}
+                <ReliabilityBadge score={profile?.reliability_score} noshowCount={profile?.noshow_count || 0} lang={lang}/>
               </div>
               <p className="text-sm text-muted-foreground">{user.email}</p>
               <p className="text-xs text-muted-foreground mt-1">{profile?.joined_events?.length || 0} {tr.eventsAttended} · {myEvents.length} {tr.eventsCreated}</p>
@@ -233,7 +244,7 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Danger zone — at the very bottom */}
+      {/* Danger zone */}
       <div className="bg-card rounded-2xl border border-red-100 shadow-sm p-5">
         <h3 className="font-grotesk font-semibold text-sm text-red-600 mb-1">
           {lang === 'cs' ? 'Nebezpečná zóna' : 'Danger zone'}
@@ -242,14 +253,14 @@ export default function Profile() {
           {lang === 'cs' ? 'Smazání účtu je nevratné. Všechna tvoje data budou odstraněna.' : 'Account deletion is irreversible. All your data will be removed.'}
         </p>
 
-        {/* Reliability reset - Premium only */}
+        {/* Reliability reset - Premium only, only if has noshows */}
         {(profile?.is_premium || ['plus','creator'].includes(profile?.subscription_plan)) && (profile?.noshow_count || 0) > 0 && (
           <div className="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
             <p className="text-xs font-medium text-amber-800 mb-1">
-              {lang === 'cs' ? `Tvé skóre spolehlivosti: ${profile?.reliability_score ?? 100}/100` : `Your reliability score: ${profile?.reliability_score ?? 100}/100`}
+              {lang === 'cs' ? `Skóre spolehlivosti: ${profile?.reliability_score ?? 100}/100` : `Reliability score: ${profile?.reliability_score ?? 100}/100`}
             </p>
             <p className="text-xs text-amber-700 mb-2">
-              {lang === 'cs' ? 'Chceš reset? Napiš moderátorovi — jako Premium uživatel na to máš nárok.' : 'Want a reset? Message a moderator — as a Premium user you are eligible.'}
+              {lang === 'cs' ? 'Jako Premium uživatel můžeš požádat o reset.' : 'As a Premium user you can request a reset.'}
             </p>
             <button
               onClick={async () => {
@@ -258,7 +269,7 @@ export default function Profile() {
                   user_email: 'xjvalis@gmail.com',
                   type: 'reliability_reset_request',
                   title: `🔄 ${lang === 'cs' ? 'Žádost o reset spolehlivosti' : 'Reliability reset request'}`,
-                  body: `${profile?.display_name || user.email} (${user.email}) ${lang === 'cs' ? 'žádá o reset skóre spolehlivosti.' : 'requests a reliability score reset.'}`,
+                  body: `${profile?.display_name || user.email} (${user.email}) ${lang === 'cs' ? 'žádá o reset.' : 'requests a reset.'}`,
                   is_read: false,
                 });
                 toast.success(lang === 'cs' ? 'Žádost odeslána moderátorovi' : 'Request sent to moderator');
@@ -269,6 +280,7 @@ export default function Profile() {
             </button>
           </div>
         )}
+
         <Button variant="outline" size="sm" onClick={() => setShowDeleteConfirm(true)} className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 gap-2">
           <Trash2 className="w-3.5 h-3.5"/>
           {lang === 'cs' ? 'Smazat účet' : 'Delete account'}
