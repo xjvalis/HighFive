@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
@@ -123,7 +123,7 @@ export default function Home() {
     return () => observer.disconnect();
   }, [hasMore, loadingMore, loading, loadMore]);
 
-  const filteredEvents = (() => {
+  const filteredEvents = useMemo(() => {
     let evts = userLocation ? events.filter(e => !e.latitude || !e.longitude || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius) : events;
     if (sort === 'rightNow') {
       const now = new Date();
@@ -131,13 +131,26 @@ export default function Home() {
     }
     if (sort === 'forYou' && profile?.favorite_categories?.length) {
       const favCats = new Set(profile.favorite_categories);
-      evts = [...evts].sort((a, b) => { const aF = favCats.has(a.category) ? 0 : 1; const bF = favCats.has(b.category) ? 0 : 1; if (aF !== bF) return aF - bF; return new Date(a.date) - new Date(b.date); });
+      // Only sort by category preference, keep original order otherwise (stable sort)
+      evts = [...evts].sort((a, b) => {
+        const aF = favCats.has(a.category) ? 0 : 1;
+        const bF = favCats.has(b.category) ? 0 : 1;
+        if (aF !== bF) return aF - bF;
+        return 0; // keep original order, don't re-sort by date
+      });
     }
     return evts;
-  })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events, sort, radius]);
+  // NOTE: intentionally excluding userLocation and profile.favorite_categories
+  // from deps to prevent list from jumping while user scrolls
 
   const mapEvents = events.filter(e => e.latitude && e.longitude && (!userLocation || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius));
-  const profileWithCategories = profile ? { ...profile, joined_categories: [...new Set(events.filter(e => e.participants?.includes(user?.email)).map(e => e.category).filter(Boolean))] } : profile;
+  const profileWithCategories = useMemo(() => {
+    if (!profile) return profile;
+    return { ...profile, joined_categories: [...new Set(events.filter(e => e.participants?.includes(user?.email)).map(e => e.category).filter(Boolean))] };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id, events.length]);
 
   const handleJoin = async (event) => {
     if (!user) { toast.info(lang === 'cs' ? 'Přihlas se pro přidání na event.' : 'Sign in to join events.'); return; }
