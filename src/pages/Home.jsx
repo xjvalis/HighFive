@@ -228,8 +228,8 @@ export default function Home() {
           <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
         </div>
       )}
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-3">
+      <div className="mb-3">
+        <div className="flex items-center justify-between mb-2">
           <h1 className="font-grotesk font-bold text-lg sm:text-xl">{activeCategory || tr.whatsHappening}</h1>
           <div className="flex items-center gap-2">
             <div className="flex items-center bg-secondary rounded-xl p-0.5">
@@ -240,9 +240,9 @@ export default function Home() {
           </div>
         </div>
         {!showMap && (
-          <div className="flex gap-1 bg-secondary rounded-xl p-1 overflow-x-auto no-scrollbar">
+          <div className="flex gap-0.5 bg-secondary rounded-xl p-0.5 overflow-x-auto no-scrollbar">
             {SORT_TABS.map(opt => (
-              <button key={opt.value} onClick={() => { setSort(opt.value); setEvents([]); }} className={cn('flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all', sort === opt.value ? 'bg-card shadow-sm' : 'text-muted-foreground')}>
+              <button key={opt.value} onClick={() => { setSort(opt.value); setEvents([]); }} className={cn('flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium transition-all', sort === opt.value ? 'bg-card shadow-sm' : 'text-muted-foreground')}>
                 {opt.value === 'rightNow' ? (
                   <span className="flex items-center gap-1">
                     <span className={cn("w-1.5 h-1.5 rounded-full bg-rose-500 inline-block", sort === 'rightNow' && "animate-pulse")}></span>
