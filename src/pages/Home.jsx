@@ -102,7 +102,6 @@ export default function Home() {
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
 
-  // Pull-to-refresh — must be after loadEvents is defined
   const refreshing = usePullToRefresh(loadEvents);
 
   const loadMore = useCallback(async () => {
@@ -140,12 +139,8 @@ export default function Home() {
   const mapEvents = events.filter(e => e.latitude && e.longitude && (!userLocation || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius));
   const profileWithCategories = profile ? { ...profile, joined_categories: [...new Set(events.filter(e => e.participants?.includes(user?.email)).map(e => e.category).filter(Boolean))] } : profile;
 
-  // KEY FIX: handleJoin must return a Promise so EventCard knows when it's done
   const handleJoin = async (event) => {
-    if (!user) {
-      toast.info(lang === 'cs' ? 'Přihlas se pro přidání na event.' : 'Sign in to join events.');
-      return;
-    }
+    if (!user) { toast.info(lang === 'cs' ? 'Přihlas se pro přidání na event.' : 'Sign in to join events.'); return; }
     const isJoined = event.participants?.includes(user.email);
     const isOnWaitlist = event.waitlist?.includes(user.email);
     const isFull = event.max_capacity && (event.participants?.length || 0) >= event.max_capacity;
@@ -159,10 +154,7 @@ export default function Home() {
     }
     const action = isJoined ? 'leave' : isOnWaitlist ? 'leave_waitlist' : isFull ? 'join_waitlist' : 'join';
     const { data, error } = await supabase.functions.invoke('join-event', { body: { event_id: event.id, action } });
-    if (!error && data?.event) {
-      setEvents(prev => prev.map(e => e.id === event.id ? data.event : e));
-    }
-    // Return so EventCard's setJoining(false) fires AFTER state update
+    if (!error && data?.event) setEvents(prev => prev.map(e => e.id === event.id ? data.event : e));
     return data;
   };
 
@@ -188,53 +180,54 @@ export default function Home() {
 
   const renderFeed = () => {
     if (loading) return (
-      <div className="space-y-3">
+      <div className="space-y-2">
         {[1,2,3].map(i => (
-          <div key={i} className="bg-card rounded-2xl p-4 border border-border/60">
-            <Skeleton className="h-4 w-24 mb-3"/><Skeleton className="h-5 w-3/4 mb-2"/><Skeleton className="h-4 w-full mb-1"/><Skeleton className="h-4 w-1/2"/>
+          <div key={i} className="bg-card rounded-2xl p-3 border border-border/60">
+            <Skeleton className="h-3 w-20 mb-2"/><Skeleton className="h-4 w-3/4 mb-1.5"/><Skeleton className="h-3 w-full mb-1"/><Skeleton className="h-3 w-1/2"/>
           </div>
         ))}
       </div>
     );
     if (sort === 'rightNow' && filteredEvents.length === 0) return (
-      <div className="text-center py-16">
-        <p className="text-4xl mb-3">🔴</p>
-        <p className="font-grotesk font-semibold">{tr.sortRightNow || 'Právě teď'}</p>
-        <p className="text-sm text-muted-foreground mt-1">{lang === 'cs' ? 'Právě teď neprobíhají žádné akce.' : 'No events happening right now.'}</p>
+      <div className="text-center py-10">
+        <p className="text-3xl mb-2">🔴</p>
+        <p className="font-grotesk font-semibold text-sm">{tr.sortRightNow || 'Právě teď'}</p>
+        <p className="text-xs text-muted-foreground mt-1">{lang === 'cs' ? 'Právě teď neprobíhají žádné akce.' : 'No events happening right now.'}</p>
       </div>
     );
     if (filteredEvents.length === 0) return (
-      <div className="text-center py-16">
-        <p className="text-4xl mb-3">🙌</p>
-        <p className="font-grotesk font-semibold">{tr.noEventsYet}</p>
-        <p className="text-sm text-muted-foreground mt-1">{tr.noEventsFirstPost}</p>
+      <div className="text-center py-10">
+        <p className="text-3xl mb-2">🙌</p>
+        <p className="font-grotesk font-semibold text-sm">{tr.noEventsYet}</p>
+        <p className="text-xs text-muted-foreground mt-1">{tr.noEventsFirstPost}</p>
       </div>
     );
     return (
       <>
         <FeedList events={filteredEvents} user={user} profile={profileWithCategories} onJoin={handleJoin} onFavorite={handleFavorite} isPersonalized={sort==='forYou'} feedStats={feedStats}/>
         <div ref={bottomRef} className="h-4"/>
-        {loadingMore && <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground"/></div>}
-        {!hasMore && filteredEvents.length >= PAGE_SIZE && <p className="text-center text-xs text-muted-foreground py-4">{lang === 'cs' ? 'Zobrazeny všechny události' : 'All events loaded'}</p>}
+        {loadingMore && <div className="flex justify-center py-3"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground"/></div>}
+        {!hasMore && filteredEvents.length >= PAGE_SIZE && <p className="text-center text-xs text-muted-foreground py-3">{lang === 'cs' ? 'Zobrazeny všechny události' : 'All events loaded'}</p>}
       </>
     );
   };
 
   return (
     <div>
-      {/* Pull-to-refresh indicator */}
       {refreshing && (
-        <div className="flex justify-center py-3">
-          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+        <div className="flex justify-center py-2">
+          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
         </div>
       )}
-      <div className="mb-3">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="font-grotesk font-bold text-lg sm:text-xl">{activeCategory || tr.whatsHappening}</h1>
-          <div className="flex items-center gap-2">
+
+      {/* Header — compact */}
+      <div className="mb-2">
+        <div className="flex items-center justify-between mb-1.5">
+          <h1 className="font-grotesk font-bold text-base sm:text-lg">{activeCategory || tr.whatsHappening}</h1>
+          <div className="flex items-center gap-1.5">
             <div className="flex items-center bg-secondary rounded-lg p-0.5">
-              <button onClick={()=>setShowMap(false)} className={cn('flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-all',!showMap?'bg-card shadow-sm':'text-muted-foreground')}><List className="w-3 h-3"/>{tr.viewList}</button>
-              <button onClick={()=>setShowMap(true)} className={cn('flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-all',showMap?'bg-card shadow-sm':'text-muted-foreground')}><Map className="w-3 h-3"/>{tr.viewMap}</button>
+              <button onClick={()=>setShowMap(false)} className={cn('flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium transition-all',!showMap?'bg-card shadow-sm':'text-muted-foreground')}><List className="w-3 h-3"/>{tr.viewList}</button>
+              <button onClick={()=>setShowMap(true)} className={cn('flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium transition-all',showMap?'bg-card shadow-sm':'text-muted-foreground')}><Map className="w-3 h-3"/>{tr.viewMap}</button>
             </div>
             <EventFilter filters={filters} onChange={setFilters}/>
           </div>
@@ -242,7 +235,7 @@ export default function Home() {
         {!showMap && (
           <div className="flex gap-0.5 bg-secondary/80 rounded-lg p-0.5 overflow-x-auto no-scrollbar">
             {SORT_TABS.map(opt => (
-              <button key={opt.value} onClick={() => { setSort(opt.value); setEvents([]); }} className={cn('flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium transition-all', sort === opt.value ? 'bg-card shadow-sm' : 'text-muted-foreground')}>
+              <button key={opt.value} onClick={() => { setSort(opt.value); setEvents([]); }} className={cn('flex-shrink-0 px-2.5 py-0.5 rounded-md text-xs font-medium transition-all', sort === opt.value ? 'bg-card shadow-sm' : 'text-muted-foreground')}>
                 {opt.value === 'rightNow' ? (
                   <span className="flex items-center gap-1">
                     <span className={cn("w-1.5 h-1.5 rounded-full bg-rose-500 inline-block", sort === 'rightNow' && "animate-pulse")}></span>
@@ -260,22 +253,22 @@ export default function Home() {
         const isNew=!reset||now.getFullYear()>reset.getFullYear()||now.getMonth()>reset.getMonth();
         const used=isNew?0:profile.monthly_join_count||0; const remaining=3-used;
         return (
-          <div className="mb-4 flex items-center justify-between gap-2 bg-violet-50/50 border border-violet-200/60 rounded-2xl px-4 py-2.5">
+          <div className="mb-2 flex items-center justify-between gap-2 bg-violet-50/50 border border-violet-200/60 rounded-xl px-3 py-2">
             <button className="flex-1 text-left" onClick={()=>setShowPremium(true)}>
-              <span className="text-sm font-medium text-violet-700">
-                {remaining<=0?'Vyčerpal/a jsi limit 3 přihlášení · Upgraduj na Plus →':remaining<=1?`Zbývá ${remaining} ze 3 přihlášení · Upgraduj na Plus →`:'Získej neomezené přihlašování — Plus od 100 Kč/měs'}
+              <span className="text-xs font-medium text-violet-700">
+                {remaining<=0?'Vyčerpal/a jsi limit 3 přihlášení · Upgraduj na Plus →':remaining<=1?`Zbývá ${remaining} ze 3 přihlášení · Upgraduj →`:'Získej neomezené přihlašování — Plus od 100 Kč/měs'}
               </span>
             </button>
-            <button onClick={()=>{setPremiumBannerDismissed(true);sessionStorage.setItem('hf_premium_banner_dismissed','1');}} className="text-muted-foreground p-1"><X className="w-3.5 h-3.5"/></button>
+            <button onClick={()=>{setPremiumBannerDismissed(true);sessionStorage.setItem('hf_premium_banner_dismissed','1');}} className="text-muted-foreground p-0.5"><X className="w-3 h-3"/></button>
           </div>
         );
       })()}
 
-      {(showMap || userLocation) && <div className="mb-4"><LocationPicker userLocation={userLocation} radius={radius} onLocationChange={setUserLocation} onRadiusChange={setRadius}/></div>}
+      {(showMap || userLocation) && <div className="mb-2"><LocationPicker userLocation={userLocation} radius={radius} onLocationChange={setUserLocation} onRadiusChange={setRadius}/></div>}
 
       {showMap ? (
         <div>
-          <Suspense fallback={<div className="w-full h-[500px] rounded-2xl bg-secondary animate-pulse flex items-center justify-center"><span className="text-muted-foreground text-sm">{tr.mapLoading}</span></div>}>
+          <Suspense fallback={<div className="w-full h-[400px] rounded-2xl bg-secondary animate-pulse flex items-center justify-center"><span className="text-muted-foreground text-sm">{tr.mapLoading}</span></div>}>
             <EventMap events={mapEvents} userLocation={userLocation} radius={radius}/>
           </Suspense>
           {mapEvents.length === 0 && !loading && <p className="text-center text-sm text-muted-foreground mt-4">{tr.mapNoCoords}</p>}
