@@ -131,19 +131,16 @@ export default function Home() {
     }
     if (sort === 'forYou' && profile?.favorite_categories?.length) {
       const favCats = new Set(profile.favorite_categories);
-      // Only sort by category preference, keep original order otherwise (stable sort)
       evts = [...evts].sort((a, b) => {
         const aF = favCats.has(a.category) ? 0 : 1;
         const bF = favCats.has(b.category) ? 0 : 1;
         if (aF !== bF) return aF - bF;
-        return 0; // keep original order, don't re-sort by date
+        return 0;
       });
     }
     return evts;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events, sort, radius]);
-  // NOTE: intentionally excluding userLocation and profile.favorite_categories
-  // from deps to prevent list from jumping while user scrolls
 
   const mapEvents = events.filter(e => e.latitude && e.longitude && (!userLocation || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius));
   const profileWithCategories = useMemo(() => {
@@ -226,7 +223,7 @@ export default function Home() {
   };
 
   return (
-    <div>
+    <div className="pt-2">
       {refreshing && (
         <div className="flex justify-center py-2">
           <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
