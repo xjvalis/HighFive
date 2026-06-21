@@ -201,10 +201,7 @@ export default function TopNav() {
 
   return (
     <>
-      <header
-        className="fixed top-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-md border-b border-border/60"
-        style={{ paddingTop: 'env(safe-area-inset-top)', height: 'calc(56px + env(safe-area-inset-top))' }}
-      >
+      <header className="fixed top-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-md border-b border-border/60 h-14">
         <div className="max-w-7xl mx-auto px-4 h-full flex items-center gap-3">
           <button onClick={() => setDrawerOpen(true)} className="xl:hidden p-2.5 -ml-2 rounded-xl hover:bg-secondary transition-colors flex-shrink-0">
             <Menu className="w-5 h-5"/>
