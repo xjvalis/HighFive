@@ -22,7 +22,10 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background">
       <NotificationEngineRunner />
       <TopNav />
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-16 xl:pb-4">
+      <div
+        className="max-w-7xl mx-auto px-3 sm:px-4 xl:pb-4"
+        style={{ paddingTop: 'calc(56px + env(safe-area-inset-top))' }}
+      >
         <div className="flex gap-5 py-2 sm:py-4">
           <aside className="hidden xl:block w-56 flex-shrink-0">
             <div className="sticky top-20 max-h-[calc(100vh-5rem)] overflow-y-auto no-scrollbar">
@@ -39,7 +42,6 @@ export default function AppLayout() {
           </aside>
         </div>
       </div>
-      {/* Floating feedback button — desktop only */}
       <button
         onClick={() => setFeedbackOpen(true)}
         className="hidden xl:flex fixed bottom-6 right-4 z-50 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg items-center justify-center transition-colors"
