@@ -16,9 +16,45 @@ import Trending from '@/pages/Trending';
 import MyEvents from '@/pages/MyEvents';
 import AdminDashboard from '@/pages/AdminDashboard';
 import Notifications from '@/pages/Notifications';
+import { useState, useEffect } from 'react';
 
-// App is always accessible — login is only required for specific actions
+function SplashScreen() {
+  return (
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      backgroundColor: '#ffffff',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999,
+    }}>
+      <img
+        src="/hands.png"
+        alt="HighFive"
+        style={{ width: '96px', height: '96px', objectFit: 'contain', marginBottom: '16px' }}
+      />
+      <h1 style={{ fontWeight: '700', fontSize: '24px', margin: '0 0 8px 0', color: '#1a1a1a' }}>
+        HighFive
+      </h1>
+      <p style={{ fontSize: '13px', color: '#888', textAlign: 'center', maxWidth: '240px', margin: 0, lineHeight: '1.5' }}>
+        Platforma pro hledání událostí a přátel na základě zájmů.
+      </p>
+    </div>
+  );
+}
+
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showSplash) return <SplashScreen />;
+
   return (
     <LanguageProvider>
       <CurrentUserProvider>
