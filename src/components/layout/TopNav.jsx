@@ -28,7 +28,6 @@ function LangSwitcher() {
   );
 }
 
-// Desktop search bar — only shown on xl screens
 function DesktopSearch() {
   const tr = useT();
   const { lang } = useContext(LanguageContext);
@@ -202,48 +201,30 @@ export default function TopNav() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-md border-b border-border/60 h-14"
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <header
+        className="fixed top-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-md border-b border-border/60"
+        style={{ paddingTop: 'env(safe-area-inset-top)', height: 'calc(56px + env(safe-area-inset-top))' }}
+      >
         <div className="max-w-7xl mx-auto px-4 h-full flex items-center gap-3">
-
-          {/* Hamburger — mobile only */}
           <button onClick={() => setDrawerOpen(true)} className="xl:hidden p-2.5 -ml-2 rounded-xl hover:bg-secondary transition-colors flex-shrink-0">
             <Menu className="w-5 h-5"/>
           </button>
-
-          {/* Logo */}
           <Link to="/" className="font-grotesk font-bold text-base flex-shrink-0 flex items-center gap-2">
             <img src="/hands.png" alt="HighFive" className="w-7 h-7 object-contain"/>
             <span>HighFive</span>
           </Link>
-
-          {/* Desktop search — hidden on mobile */}
           <div className="hidden xl:flex flex-1 justify-center">
             <DesktopSearch/>
           </div>
-
-          {/* Mobile: spacer */}
           <div className="flex-1 xl:hidden"/>
-
-          {/* Right actions */}
           <div className="flex items-center gap-1 flex-shrink-0">
-            {/* Mobile search button */}
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="xl:hidden p-2 rounded-xl hover:bg-secondary transition-colors"
-            >
+            <button onClick={() => setSearchOpen(true)} className="xl:hidden p-2 rounded-xl hover:bg-secondary transition-colors">
               <Search className="w-5 h-5 text-muted-foreground"/>
             </button>
-
             <LangSwitcher/>
             <NotificationBell/>
-
-            {/* Avatar — only on desktop (mobile has it in bottom nav) */}
             {user ? (
-              <button
-                className="hidden xl:flex items-center justify-center w-9 h-9 rounded-full hover:opacity-80 transition-opacity"
-                onClick={() => navigate('/profile')}
-              >
+              <button className="hidden xl:flex items-center justify-center w-9 h-9 rounded-full hover:opacity-80 transition-opacity" onClick={() => navigate('/profile')}>
                 {profile?.avatar_url
                   ? <img src={profile.avatar_url} alt="avatar" className="w-8 h-8 rounded-full object-cover"/>
                   : <div className="w-8 h-8 rounded-full bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold">{user.email?.[0]?.toUpperCase()}</div>
@@ -254,12 +235,7 @@ export default function TopNav() {
                 {tr.login}
               </Button>
             )}
-
-            {/* + button — desktop only */}
-            <button
-              onClick={() => navigate(user ? '/create' : '/login')}
-              className="hidden xl:flex items-center justify-center w-8 h-8 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-            >
+            <button onClick={() => navigate(user ? '/create' : '/login')} className="hidden xl:flex items-center justify-center w-8 h-8 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
               <Plus className="w-4 h-4"/>
             </button>
           </div>
@@ -277,7 +253,6 @@ export default function TopNav() {
 
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
 
-      {/* Mobile search fullscreen */}
       {searchOpen && <SearchPage onClose={() => setSearchOpen(false)}/>}
     </>
   );
