@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import { MapPin, Clock, Users, ArrowLeft, Star, Flag, Send, Crown, Pencil, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { cs } from 'date-fns/locale';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
@@ -158,7 +159,7 @@ export default function EventDetail() {
 
           <div className="grid grid-cols-2 gap-3 mb-5">
             <div className="bg-secondary/50 rounded-xl p-3"><p className="text-xs text-muted-foreground mb-1">{tr.detailLocation}</p><p className="text-sm font-medium">{event.location}</p></div>
-            <div className="bg-secondary/50 rounded-xl p-3"><p className="text-xs text-muted-foreground mb-1">{tr.detailDateTime}</p><p className="text-sm font-medium">{format(new Date(event.date),'EEE, MMM d · HH:mm')}</p></div>
+            <div className="bg-secondary/50 rounded-xl p-3"><p className="text-xs text-muted-foreground mb-1">{tr.detailDateTime}</p><p className="text-sm font-medium">{format(new Date(event.date),'EEEEEE d. MMM · HH:mm', { locale: cs })}</p></div>
             <div className="bg-secondary/50 rounded-xl p-3"><p className="text-xs text-muted-foreground mb-1">{tr.detailPeople}</p><p className="text-sm font-medium">{event.participants?.length||0}{event.max_capacity?`/${event.max_capacity}`:''} {tr.detailGoing}</p></div>
             <div className="bg-secondary/50 rounded-xl p-3"><p className="text-xs text-muted-foreground mb-1">{tr.detailOrganizer}</p><p className="text-sm font-medium">{event.organizer_name||tr.detailAnonymous}</p></div>
           </div>
@@ -243,7 +244,7 @@ export default function EventDetail() {
               <div className="flex-1">
                 <div className="flex items-baseline gap-2">
                   <span className="text-xs font-semibold">{c.author_name}</span>
-                  <span className="text-xs text-muted-foreground">{format(new Date(c.created_at),'MMM d, HH:mm')}</span>
+                  <span className="text-xs text-muted-foreground">{format(new Date(c.created_at),'d. MMM, HH:mm', { locale: cs })}</span>
                 </div>
                 <p className="text-sm text-foreground/80 mt-0.5 leading-relaxed">{c.content}</p>
               </div>
