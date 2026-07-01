@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +10,9 @@ import { LanguageContext } from '@/lib/language';
 
 export default function Login() {
   const { lang } = useContext(LanguageContext);
+  const navigate = useNavigate();
   const [mode, setMode] = useState('login');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('');h
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,8 +21,8 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault(); setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) toast.error(lang === 'cs' ? 'Špatný email nebo heslo.' : 'Invalid email or password.');
-    setLoading(false);
+    if (error) { toast.error(lang === 'cs' ? 'Špatný email nebo heslo.' : 'Invalid email or password.'); setLoading(false); }
+    else { navigate('/'); }
   };
 
   const handleRegister = async (e) => {
