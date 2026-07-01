@@ -61,9 +61,10 @@ export default function MobileBottomNav() {
               <span className="relative">
                 {isProfile && profile?.avatar_url ? (
                   <img src={profile.avatar_url} alt="avatar" className={cn("w-6 h-6 rounded-full object-cover", active && "ring-2 ring-primary")}/>
-                ) : isProfile && profile?.display_name ? (
-                  <div className={cn("w-6 h-6 rounded-full bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold", active && "ring-2 ring-primary")}>
-                    {profile.display_name[0].toUpperCase()}
+                ) : isProfile && user ? (
+  <div className={cn("w-6 h-6 rounded-full bg-lavender border border-violet-200 flex items-center justify-center", active && "ring-2 ring-primary")}>
+    <User className="w-3.5 h-3.5 text-violet-600"/>
+  </div>
                   </div>
                 ) : (
                   <Icon className={cn("w-6 h-6 transition-transform", active && "scale-110")}/>
