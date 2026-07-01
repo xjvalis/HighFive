@@ -224,7 +224,7 @@ export default function TopNav() {
               <button className="hidden xl:flex items-center justify-center w-9 h-9 rounded-full hover:opacity-80 transition-opacity" onClick={() => navigate('/profile')}>
                 {profile?.avatar_url
                   ? <img src={profile.avatar_url} alt="avatar" className="w-8 h-8 rounded-full object-cover"/>
-                  : <div className="w-8 h-8 rounded-full bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold">{user.email?.[0]?.toUpperCase()}</div>
+                  : <div className="w-8 h-8 rounded-full bg-lavender border-2 border-violet-200 flex items-center justify-center hover:bg-violet-100 transition-colors" title={lang === 'cs' ? 'Můj profil' : 'My profile'}><User className="w-4 h-4 text-violet-600"/></div>
                 }
               </button>
             ) : (
