@@ -51,8 +51,13 @@ export default function CreateEvent() {
   };
 
   const pad = n => String(n).padStart(2, '0');
-  const toLocalISO = (date) =>
-    `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  const toLocalISO = (date) => {
+    const off = -date.getTimezoneOffset();
+    const sign = off >= 0 ? '+' : '-';
+    const h = pad(Math.floor(Math.abs(off) / 60));
+    const m = pad(Math.abs(off) % 60);
+    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00${sign}${h}:${m}`;
+  };
 
   const handleDateChange = (val) => {
     if (!val) { setForm(f => ({ ...f, date: '', end_time: '' })); return; }
