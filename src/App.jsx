@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import AppLayout from '@/components/layout/AppLayout';
 import LanguageProvider from '@/lib/LanguageProvider';
-import { CurrentUserProvider } from '@/contexts/CurrentUserContext';
+import { CurrentUserProvider, useCurrentUser } from '@/contexts/CurrentUserContext';
 import Login from '@/pages/Login';
 import Home from '@/pages/Home';
 import EventDetail from '@/pages/EventDetail';
@@ -45,39 +45,53 @@ function SplashScreen() {
   );
 }
 
-export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
+const MIN_SPLASH_MS = 2000;
+const MAX_SPLASH_MS = 8000; // safety net so a hung auth/profile call can't strand users on the splash forever
+
+function AppContent() {
+  const { loading } = useCurrentUser();
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 2000);
-    return () => clearTimeout(timer);
+    const minTimer = setTimeout(() => setMinTimeElapsed(true), MIN_SPLASH_MS);
+    const maxTimer = setTimeout(() => setTimedOut(true), MAX_SPLASH_MS);
+    return () => { clearTimeout(minTimer); clearTimeout(maxTimer); };
   }, []);
+
+  const showSplash = !timedOut && (!minTimeElapsed || loading);
 
   if (showSplash) return <SplashScreen />;
 
   return (
+    <QueryClientProvider client={queryClientInstance}>
+      <Router>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/trending" element={<Trending />} />
+            <Route path="/event/:id" element={<EventDetail />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/my-events" element={<MyEvents />} />
+            <Route path="/create" element={<CreateEvent />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+          </Route>
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </Router>
+      <Toaster />
+    </QueryClientProvider>
+  );
+}
+
+export default function App() {
+  return (
     <LanguageProvider>
       <CurrentUserProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <Router>
-            <Routes>
-              <Route element={<AppLayout />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/trending" element={<Trending />} />
-                <Route path="/event/:id" element={<EventDetail />} />
-                <Route path="/favorites" element={<Favorites />} />
-                <Route path="/my-events" element={<MyEvents />} />
-                <Route path="/create" element={<CreateEvent />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/notifications" element={<Notifications />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-              </Route>
-              <Route path="/login" element={<Login />} />
-              <Route path="*" element={<PageNotFound />} />
-            </Routes>
-          </Router>
-          <Toaster />
-        </QueryClientProvider>
+        <AppContent />
       </CurrentUserProvider>
     </LanguageProvider>
   );
