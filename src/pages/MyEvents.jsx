@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { toast } from 'sonner';
-import { Clock, Archive } from 'lucide-react';
+import { Archive } from 'lucide-react';
 import EventChat from '@/components/events/EventChat';
 import { format } from 'date-fns';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
@@ -70,9 +70,11 @@ export default function MyEvents() {
   const [tab, setTab] = useState('going');
   const [leaveConfirm, setLeaveConfirm] = useState(null);
 
-  if (!user && !loading) { navigate('/login'); return null; }
-
   const now = new Date().toISOString();
+
+  useEffect(() => {
+    if (!user && !loading) navigate('/login');
+  }, [user, loading]);
 
   useEffect(() => {
     if (!user) return;
@@ -91,7 +93,12 @@ export default function MyEvents() {
       profile?.joined_events?.length
         ? Promise.resolve({ data: [] }) // past joined handled client-side
         : Promise.resolve({ data: [] }),
-    ]).then(([{ data: allMine }, _unused1, { data: allJoined }, _unused2]) => {
+    ]).then(([{ data: allMine, error: mineError }, _unused1, { data: allJoined, error: joinedError }, _unused2]) => {
+      if (mineError || joinedError) {
+        toast.error('Nepodařilo se načíst tvé události.');
+        setLoadingData(false);
+        return;
+      }
       const now = new Date();
       const isActive = (e) => {
         const end = e.end_time ? new Date(e.end_time) : new Date(new Date(e.date).getTime() + 2*60*60*1000);
@@ -103,6 +110,9 @@ export default function MyEvents() {
       setPastCreated(allMyEvents.filter(e => !isActive(e)));
       setJoined(allJoinedEvents.filter(isActive));
       setPastJoined(allJoinedEvents.filter(e => !isActive(e)));
+      setLoadingData(false);
+    }).catch(() => {
+      toast.error('Nepodařilo se načíst tvé události.');
       setLoadingData(false);
     });
   }, [user?.id, profile?.joined_events?.length]);
@@ -129,6 +139,8 @@ export default function MyEvents() {
     { key: 'hosting', label: `${tr.hosting} (${created.length})` },
     { key: 'past', label: `${tr.pastEvents || 'Proběhlé'} (${pastCount})` },
   ];
+
+  if (!user && !loading) return null;
 
   return (
     <div>

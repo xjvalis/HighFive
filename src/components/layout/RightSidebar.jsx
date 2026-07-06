@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
-import { Flame, Clock, Users, MessageCircle, Star } from 'lucide-react';
+import { Flame, Clock, Users, Star } from 'lucide-react';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
 import { format } from 'date-fns';
 import { useT } from '@/lib/i18n';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
+import { toast } from 'sonner';
 
 export default function RightSidebar() {
   const tr = useT();
@@ -22,14 +23,20 @@ export default function RightSidebar() {
       .order('hot_score', { ascending: false })
       .order('date', { ascending: true })
       .limit(5)
-      .then(({ data }) => setHotEvents(data || []));
+      .then(({ data, error }) => {
+        if (error) toast.error('Nepodařilo se načíst populární události.');
+        setHotEvents(data || []);
+      });
 
     supabase.from('events').select('*')
       .eq('is_approved', true)
       .gt('date', now)
       .order('created_at', { ascending: false })
       .limit(5)
-      .then(({ data }) => setRecentEvents(data || []));
+      .then(({ data, error }) => {
+        if (error) toast.error('Nepodařilo se načíst nové události.');
+        setRecentEvents(data || []);
+      });
 
     const ch = supabase.channel('sidebar-events')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events' },
@@ -39,7 +46,10 @@ export default function RightSidebar() {
           // Refresh hot events when any event updates (join, favorite, comment)
           supabase.from('events').select('*').eq('is_approved', true).gt('date', new Date().toISOString())
             .order('hot_score', { ascending: false }).limit(5)
-            .then(({ data }) => setHotEvents(data || []));
+            .then(({ data, error }) => {
+              if (error) return; // silent — background refresh, avoid noisy repeated toasts
+              setHotEvents(data || []);
+            });
         })
       .subscribe();
     return () => supabase.removeChannel(ch);

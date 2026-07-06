@@ -53,18 +53,22 @@ export default function Home() {
 
   useEffect(() => {
     const loadStats = async () => {
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
-      const [{ count: todayCount }, { count: newToday }, { data: todayEvents }, { count: firstTimers }] = await Promise.all([
-        supabase.from('events').select('id', { count: 'exact', head: true }).eq('is_approved', true).gte('date', todayStart).lt('date', todayEnd),
-        supabase.from('events').select('id', { count: 'exact', head: true }).eq('is_approved', true).gte('created_at', todayStart),
-        supabase.from('events').select('participants').eq('is_approved', true).gte('date', todayStart).lt('date', todayEnd),
-        supabase.from('user_profiles').select('id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString()),
-      ]);
-      const participantSet = new Set();
-      (todayEvents || []).forEach(e => (e.participants || []).forEach(p => participantSet.add(p)));
-      setFeedStats({ todayCount: todayCount || 0, activePeople: participantSet.size || 0, newToday: newToday || 0, firstTimers: firstTimers || 0 });
+      try {
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+        const [{ count: todayCount }, { count: newToday }, { data: todayEvents }, { count: firstTimers }] = await Promise.all([
+          supabase.from('events').select('id', { count: 'exact', head: true }).eq('is_approved', true).gte('date', todayStart).lt('date', todayEnd),
+          supabase.from('events').select('id', { count: 'exact', head: true }).eq('is_approved', true).gte('created_at', todayStart),
+          supabase.from('events').select('participants').eq('is_approved', true).gte('date', todayStart).lt('date', todayEnd),
+          supabase.from('user_profiles').select('id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString()),
+        ]);
+        const participantSet = new Set();
+        (todayEvents || []).forEach(e => (e.participants || []).forEach(p => participantSet.add(p)));
+        setFeedStats({ todayCount: todayCount || 0, activePeople: participantSet.size || 0, newToday: newToday || 0, firstTimers: firstTimers || 0 });
+      } catch {
+        // Stats are non-critical; fail silently without disrupting the feed
+      }
     };
     loadStats();
   }, []);
@@ -94,10 +98,14 @@ export default function Home() {
     setLoading(true);
     setPage(0);
     setHasMore(true);
-    const { data } = await buildQuery(0);
-    setEvents(data || []);
-    setHasMore((data || []).length === PAGE_SIZE);
-    setLoading(false);
+    try {
+      const { data, error } = await buildQuery(0);
+      if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se načíst události.' : 'Failed to load events.'); return; }
+      setEvents(data || []);
+      setHasMore((data || []).length === PAGE_SIZE);
+    } finally {
+      setLoading(false);
+    }
   }, [buildQuery]);
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
@@ -107,12 +115,16 @@ export default function Home() {
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
-    const nextPage = page + 1;
-    const { data } = await buildQuery(nextPage * PAGE_SIZE);
-    setEvents(prev => [...prev, ...(data || [])]);
-    setHasMore((data || []).length === PAGE_SIZE);
-    setPage(nextPage);
-    setLoadingMore(false);
+    try {
+      const nextPage = page + 1;
+      const { data, error } = await buildQuery(nextPage * PAGE_SIZE);
+      if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se načíst další události.' : 'Failed to load more events.'); return; }
+      setEvents(prev => [...prev, ...(data || [])]);
+      setHasMore((data || []).length === PAGE_SIZE);
+      setPage(nextPage);
+    } finally {
+      setLoadingMore(false);
+    }
   }, [loadingMore, hasMore, page, buildQuery]);
 
   useEffect(() => {
@@ -139,14 +151,14 @@ export default function Home() {
       });
     }
     return evts;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events, sort, radius]);
 
   const mapEvents = events.filter(e => e.latitude && e.longitude && (!userLocation || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius));
   const profileWithCategories = useMemo(() => {
     if (!profile) return profile;
     return { ...profile, joined_categories: [...new Set(events.filter(e => e.participants?.includes(user?.email)).map(e => e.category).filter(Boolean))] };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id, events.length]);
 
   const handleJoin = async (event) => {
@@ -164,7 +176,8 @@ export default function Home() {
     }
     const action = isJoined ? 'leave' : isOnWaitlist ? 'leave_waitlist' : isFull ? 'join_waitlist' : 'join';
     const { data, error } = await supabase.functions.invoke('join-event', { body: { event_id: event.id, action } });
-    if (!error && data?.event) setEvents(prev => prev.map(e => e.id === event.id ? data.event : e));
+    if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.'); return data; }
+    if (data?.event) setEvents(prev => prev.map(e => e.id === event.id ? data.event : e));
     return data;
   };
 
@@ -176,7 +189,10 @@ export default function Home() {
       const isFav = (profile.favorited_events||[]).includes(event.id);
       const updated = isFav ? (profile.favorited_events||[]).filter(i=>i!==event.id) : [...(profile.favorited_events||[]),event.id];
       await updateProfile({ favorited_events: updated });
-      supabase.from('events').update({ favorites_count: Math.max(0,(event.favorites_count||0)+(isFav?-1:1)) }).eq('id',event.id).then(()=>{});
+      supabase.from('events').update({ favorites_count: Math.max(0,(event.favorites_count||0)+(isFav?-1:1)) }).eq('id',event.id)
+        .then(({ error }) => { if (error) toast.error(lang === 'cs' ? 'Nepodařilo se aktualizovat počet oblíbených.' : 'Failed to update favorite count.'); });
+    } catch {
+      toast.error(lang === 'cs' ? 'Nepodařilo se uložit oblíbenou položku.' : 'Failed to update favorite.');
     } finally { favRef.current.delete(event.id); }
   };
 

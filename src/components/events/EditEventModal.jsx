@@ -11,6 +11,7 @@ import { Loader2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LocationAutocomplete from "@/components/events/LocationAutocomplete";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { toast } from 'sonner';
 
 export default function EditEventModal({ event, open, onClose, onSaved }) {
   const navigate = useNavigate();
@@ -40,19 +41,31 @@ export default function EditEventModal({ event, open, onClose, onSaved }) {
       age_min: form.age_min ? parseInt(form.age_min) : null,
       age_max: form.age_max ? parseInt(form.age_max) : null,
     };
-    await supabase.from('events').update(data).eq('id', event.id);
-    setSaving(false);
-    onSaved({ ...event, ...data });
-    onClose();
+    try {
+      const { error } = await supabase.from('events').update(data).eq('id', event.id);
+      if (error) { toast.error('Nepodařilo se uložit změny.'); return; }
+      onSaved({ ...event, ...data });
+      onClose();
+    } catch {
+      toast.error('Nepodařilo se uložit změny.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
     setDeleteConfirm(false);
     setDeleting(true);
-    await supabase.from('events').delete().eq('id', event.id);
-    setDeleting(false);
-    onClose();
-    navigate("/");
+    try {
+      const { error } = await supabase.from('events').delete().eq('id', event.id);
+      if (error) { toast.error('Nepodařilo se smazat událost.'); return; }
+      onClose();
+      navigate("/");
+    } catch {
+      toast.error('Nepodařilo se smazat událost.');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (

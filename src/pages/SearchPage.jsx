@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, Clock, TrendingUp } from 'lucide-react';
+import { Search, X, Clock } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { getCategoryStyle } from '@/lib/categories';
 import { cn } from '@/lib/utils';

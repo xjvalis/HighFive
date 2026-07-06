@@ -8,20 +8,28 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
+import { toast } from 'sonner';
 
-const TYPE_ICONS = { noshow_warning: '⚠️', event_suspended: '⚠️', noshow_warning: '⚠️', event_reminder:'⏰', event_updated:'✏️', new_participant:'🙌', waitlist_promoted:'🎉', new_report:'🚩', new_message:'💬', new_chat_message:'💬', event_past:'🗓️' };
+const TYPE_ICONS = { noshow_warning: '⚠️', event_suspended: '⚠️', event_reminder:'⏰', event_updated:'✏️', new_participant:'🙌', waitlist_promoted:'🎉', new_report:'🚩', new_message:'💬', new_chat_message:'💬', event_past:'🗓️' };
 
 export default function Notifications() {
   const tr = useT();
+  const navigate = useNavigate();
   const { user, loading: userLoading } = useCurrentUser();
-  if (!user && !userLoading) { navigate('/login'); return null; }
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user && !userLoading) navigate('/login');
+  }, [user, userLoading]);
+
+  useEffect(() => {
     if (!user) return;
     supabase.from('notifications').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(50)
-      .then(({data})=>{setNotifications(data||[]);setLoading(false);});
+      .then(({data, error})=>{
+        if (error) toast.error('Nepodařilo se načíst notifikace.');
+        setNotifications(data||[]);setLoading(false);
+      });
 
     const ch = supabase.channel('notif-page')
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications'},p=>{if(p.new.user_id===user.id)setNotifications(prev=>[p.new,...prev]);})
@@ -32,17 +40,24 @@ export default function Notifications() {
 
   const markAllRead = async () => {
     const unread=notifications.filter(n=>!n.is_read);
-    await Promise.all(unread.map(n=>supabase.from('notifications').update({is_read:true}).eq('id',n.id)));
-    setNotifications(prev=>prev.map(n=>({...n,is_read:true})));
+    try {
+      await Promise.all(unread.map(n=>supabase.from('notifications').update({is_read:true}).eq('id',n.id)));
+      setNotifications(prev=>prev.map(n=>({...n,is_read:true})));
+    } catch {
+      toast.error('Nepodařilo se označit notifikace jako přečtené.');
+    }
   };
 
   const markRead = async (notif) => {
     if (notif.is_read) return;
-    await supabase.from('notifications').update({is_read:true}).eq('id',notif.id);
+    const { error } = await supabase.from('notifications').update({is_read:true}).eq('id',notif.id);
+    if (error) { toast.error('Nepodařilo se označit notifikaci jako přečtenou.'); return; }
     setNotifications(prev=>prev.map(n=>n.id===notif.id?{...n,is_read:true}:n));
   };
 
   const unreadCount = notifications.filter(n=>!n.is_read).length;
+
+  if (!user && !userLoading) return null;
 
   return (
     <div className="max-w-xl mx-auto">

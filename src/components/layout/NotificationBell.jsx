@@ -6,6 +6,7 @@ import { Bell, CheckCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
+import { toast } from 'sonner';
 
 const TYPE_ICONS = { event_suspended: '⚠️', noshow_warning: '⚠️', event_reminder:'⏰', event_updated:'✏️', new_participant:'🙌', waitlist_promoted:'🎉', new_report:'🚩', new_message:'💬', new_chat_message:'💬', event_past:'🗓️' };
 
@@ -18,7 +19,10 @@ export default function NotificationBell() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('notifications').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(20).then(({data})=>setNotifications(data||[]));
+    supabase.from('notifications').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(20).then(({data, error})=>{
+      if (error) toast.error('Nepodařilo se načíst notifikace.');
+      setNotifications(data||[]);
+    });
 
     const ch = supabase.channel('bell-notifs')
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications'},p=>{if(p.new.user_id===user.id)setNotifications(prev=>[p.new,...prev]);})
@@ -34,8 +38,21 @@ export default function NotificationBell() {
   }, []);
 
   const unreadCount = notifications.filter(n=>!n.is_read).length;
-  const markRead = async (n) => { if (n.is_read) return; await supabase.from('notifications').update({is_read:true}).eq('id',n.id); setNotifications(prev=>prev.map(x=>x.id===n.id?{...x,is_read:true}:x)); };
-  const markAllRead = async () => { const unread=notifications.filter(n=>!n.is_read); await Promise.all(unread.map(n=>supabase.from('notifications').update({is_read:true}).eq('id',n.id))); setNotifications(prev=>prev.map(n=>({...n,is_read:true}))); };
+  const markRead = async (n) => {
+    if (n.is_read) return;
+    const { error } = await supabase.from('notifications').update({is_read:true}).eq('id',n.id);
+    if (error) { toast.error('Nepodařilo se označit notifikaci jako přečtenou.'); return; }
+    setNotifications(prev=>prev.map(x=>x.id===n.id?{...x,is_read:true}:x));
+  };
+  const markAllRead = async () => {
+    const unread=notifications.filter(n=>!n.is_read);
+    try {
+      await Promise.all(unread.map(n=>supabase.from('notifications').update({is_read:true}).eq('id',n.id)));
+      setNotifications(prev=>prev.map(n=>({...n,is_read:true})));
+    } catch {
+      toast.error('Nepodařilo se označit notifikace jako přečtené.');
+    }
+  };
 
   return (
     <div className="relative" ref={ref}>

@@ -26,7 +26,10 @@ export default function EventChat({ event, user, profile, readOnly = false }) {
   useEffect(() => {
     if (!canChat || !event?.id) return;
     supabase.from('event_chat').select('*').eq('event_id', event.id).order('created_at', { ascending: true }).limit(100)
-      .then(({ data }) => { setMessages(data || []); setLoading(false); });
+      .then(({ data, error }) => {
+        if (error) toast.error('Nepodařilo se načíst chat.');
+        setMessages(data || []); setLoading(false);
+      });
 
     const ch = supabase.channel(`chat-${event.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'event_chat', filter: `event_id=eq.${event.id}` },

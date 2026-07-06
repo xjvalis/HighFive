@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import { format } from 'date-fns';
@@ -9,13 +9,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useT } from '@/lib/i18n';
+import { LanguageContext } from '@/lib/language';
 
 export default function Messages() {
   const tr = useT();
-  const { user, profile } = useCurrentUser();
-  if (!user && !loading) { navigate('/login'); return null; }
   const navigate = useNavigate();
   const { lang } = useContext(LanguageContext);
+  const { user, profile, loading: userLoading } = useCurrentUser();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
@@ -26,13 +26,19 @@ export default function Messages() {
   const chanRef = useRef(null);
 
   useEffect(() => {
+    if (!user && !userLoading) navigate('/login');
+  }, [user, userLoading]);
+
+  useEffect(() => {
     if (!user) return;
     supabase.from('direct_messages').select('*').or(`from_email.eq.${user.email},to_email.eq.${user.email}`).order('created_at',{ascending:false}).limit(200)
-      .then(async ({data}) => {
+      .then(async ({data, error}) => {
+        if (error) { toast.error(lang==='cs'?'Nepodařilo se načíst zprávy.':'Failed to load messages.'); setLoading(false); return; }
         setMessages(data||[]);
         const emails = [...new Set((data||[]).map(m=>m.from_email===user.email?m.to_email:m.from_email))];
         if (emails.length) {
-          const {data:pp} = await supabase.from('user_profiles').select('user_email,display_name,avatar_url').in('user_email',emails);
+          const {data:pp, error: ppError} = await supabase.from('user_profiles').select('user_email,display_name,avatar_url').in('user_email',emails);
+          if (ppError) { toast.error(lang==='cs'?'Nepodařilo se načíst profily.':'Failed to load profiles.'); setLoading(false); return; }
           const m={}; (pp||[]).forEach(p=>m[p.user_email]=p); setPartnerProfiles(m);
         }
         setLoading(false);
@@ -70,7 +76,8 @@ export default function Messages() {
     setSelected(email);
     const unreadIds = messages.filter(m=>m.from_email===email&&m.to_email===user.email&&!m.is_read).map(m=>m.id);
     if (unreadIds.length) {
-      await supabase.from('direct_messages').update({is_read:true}).in('id',unreadIds);
+      const { error } = await supabase.from('direct_messages').update({is_read:true}).in('id',unreadIds);
+      if (error) { toast.error(lang==='cs'?'Nepodařilo se označit zprávy jako přečtené.':'Failed to mark messages as read.'); return; }
       setMessages(prev=>prev.map(m=>unreadIds.includes(m.id)?{...m,is_read:true}:m));
     }
   };
@@ -79,12 +86,19 @@ export default function Messages() {
     if (!reply.trim()||!selected||sending) return;
     setSending(true);
     const content=reply.trim(); setReply('');
-    await supabase.from('direct_messages').insert({from_id:user.id,from_email:user.email,from_name:profile?.display_name||user.email,from_avatar:profile?.avatar_url||null,to_email:selected,content,is_read:false});
-    setSending(false);
+    try {
+      const { error } = await supabase.from('direct_messages').insert({from_id:user.id,from_email:user.email,from_name:profile?.display_name||user.email,from_avatar:profile?.avatar_url||null,to_email:selected,content,is_read:false});
+      if (error) toast.error(lang==='cs'?'Zprávu se nepodařilo odeslat.':'Failed to send message.');
+    } catch {
+      toast.error(lang==='cs'?'Zprávu se nepodařilo odeslat.':'Failed to send message.');
+    } finally {
+      setSending(false);
+    }
   };
 
   const pName = (email) => partnerProfiles[email]?.display_name||email;
 
+  if (!user && !userLoading) return null;
   if (loading) return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-lavender border-t-violet-500 rounded-full animate-spin"/></div>;
 
   return (

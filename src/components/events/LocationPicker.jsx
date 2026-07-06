@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import { useT } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

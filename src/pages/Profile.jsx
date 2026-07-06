@@ -17,7 +17,6 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import EventCard from '@/components/events/EventCard';
 import PremiumModal from '@/components/premium/PremiumModal';
 import BadgesSection from '@/components/profile/BadgesSection';
-import ProfileHint from '@/components/profile/ProfileHint';
 
 function ReliabilityBadge({ score, noshowCount, lang }) {
   if (score === null || score === undefined || noshowCount === 0) {

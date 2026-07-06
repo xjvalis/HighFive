@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { useContext } from "react";
 import { LanguageContext } from "@/lib/language";
 import SearchPage from "@/pages/SearchPage";
+import { toast } from 'sonner';
 
 function LangSwitcher() {
   const { lang, setLang } = useLanguage();
@@ -50,17 +51,21 @@ function DesktopSearch() {
   const search = useCallback(async (q) => {
     if (!q.trim() || q.length < 2) { setResults([]); setOpen(false); return; }
     setLoading(true);
-    const { data } = await supabase.from('events')
-      .select('id, title, category, location, date')
-      .eq('is_approved', true)
-      .gt('date', new Date().toISOString())
-      .or(`title.ilike.%${q}%,location.ilike.%${q}%,category.ilike.%${q}%`)
-      .order('date', { ascending: true })
-      .limit(6);
-    setResults(data || []);
-    setOpen((data || []).length > 0);
-    setLoading(false);
-  }, []);
+    try {
+      const { data, error } = await supabase.from('events')
+        .select('id, title, category, location, date')
+        .eq('is_approved', true)
+        .gt('date', new Date().toISOString())
+        .or(`title.ilike.%${q}%,location.ilike.%${q}%,category.ilike.%${q}%`)
+        .order('date', { ascending: true })
+        .limit(6);
+      if (error) { toast.error(lang === 'cs' ? 'Vyhledávání selhalo.' : 'Search failed.'); return; }
+      setResults(data || []);
+      setOpen((data || []).length > 0);
+    } finally {
+      setLoading(false);
+    }
+  }, [lang]);
 
   const handleInput = (e) => {
     const val = e.target.value;

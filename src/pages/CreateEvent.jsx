@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import PremiumModal from '@/components/premium/PremiumModal';
 import LocationAutocomplete from '@/components/events/LocationAutocomplete';
 import DateTimePicker from '@/components/ui/DateTimePicker';
+import { toast } from 'sonner';
 
 // Required field label — single asterisk, no double
 function Req({ children }) {
@@ -26,7 +27,6 @@ export default function CreateEvent() {
   const { lang } = useContext(LanguageContext);
   const tr = useT();
   const { user, profile, updateProfile, loading: userLoading } = useCurrentUser();
-  if (!user && !userLoading) { navigate('/login'); return null; }
   const [loading, setLoading] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -37,6 +37,10 @@ export default function CreateEvent() {
     max_capacity: '', image_url: '', age_min: '', age_max: '',
     gender_recommendation: 'Everyone'
   });
+
+  useEffect(() => {
+    if (!user && !userLoading) navigate('/login');
+  }, [user, userLoading]);
 
   const canCreate = () => {
     if (!profile) return true;
@@ -95,6 +99,8 @@ export default function CreateEvent() {
     if (!error) {
       const { data: { publicUrl } } = supabase.storage.from('event-images').getPublicUrl(name);
       setForm(f => ({ ...f, image_url: publicUrl }));
+    } else {
+      toast.error(lang === 'cs' ? 'Nahrání obrázku selhalo.' : 'Image upload failed.');
     }
     setUploadingImage(false);
   };
@@ -111,10 +117,15 @@ export default function CreateEvent() {
         end_time: form.end_time || null,
       };
       const { data, error } = await supabase.functions.invoke('create-event', { body: { eventData } });
-      if (error || data?.error === 'monthly_limit_reached') { setShowPremium(true); return; }
+      if (data?.error === 'monthly_limit_reached') { setShowPremium(true); return; }
+      if (error) { toast.error(lang === 'cs' ? 'Vytvoření události se nezdařilo.' : 'Failed to create event.'); return; }
       if (data?.event) navigate(`/event/${data.event.id}`);
+    } catch {
+      toast.error(lang === 'cs' ? 'Vytvoření události se nezdařilo.' : 'Failed to create event.');
     } finally { setLoading(false); }
   };
+
+  if (!user && !userLoading) return null;
 
   if (!canCreate()) return (
     <div className="max-w-lg mx-auto text-center py-16">

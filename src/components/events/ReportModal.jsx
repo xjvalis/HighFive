@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Flag } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const REASONS = [{value:'inappropriate',label:'🚫 Nevhodný obsah'},{value:'spam',label:'📢 Spam'},{value:'fraud',label:'⚠️ Podvod'},{value:'hate',label:'💢 Nenávistný obsah'},{value:'other',label:'❓ Jiné'}];
 
@@ -15,8 +16,15 @@ export default function ReportModal({ eventId, user, open, onClose }) {
   const handleSubmit = async () => {
     if (!selected||!user) return;
     setLoading(true);
-    await supabase.from('reports').insert({target_id:eventId,target_type:'event',reason:selected,reporter_id:user.id,reporter_email:user.email});
-    setLoading(false); setDone(true);
+    try {
+      const { error } = await supabase.from('reports').insert({target_id:eventId,target_type:'event',reason:selected,reporter_id:user.id,reporter_email:user.email});
+      if (error) { toast.error('Nahlášení se nepodařilo odeslat.'); return; }
+      setDone(true);
+    } catch {
+      toast.error('Nahlášení se nepodařilo odeslat.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => { setSelected(null); setDone(false); onClose(); };

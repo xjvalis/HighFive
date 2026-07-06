@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
-import { MapPin, Clock, Users, ArrowLeft, Star, Flag, Send, Crown, Pencil, Loader2 } from 'lucide-react';
+import { ArrowLeft, Star, Flag, Send, Crown, Pencil, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
 import { useContext } from 'react';
@@ -50,15 +50,22 @@ export default function EventDetail() {
   usePageMeta({ title: event ? `${event.title} | HighFive` : 'HighFive', description: event?.description || '' });
 
   useEffect(() => {
-    supabase.from('events').select('*').eq('id', id).single().then(({data}) => {
+    supabase.from('events').select('*').eq('id', id).single().then(({data, error}) => {
+      if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se načíst událost.' : 'Failed to load event.'); return; }
       setEvent(data);
       if (data?.participants?.length) {
         supabase.from('user_profiles').select('user_email,display_name,avatar_url,subscription_plan,is_premium,is_verified,reliability_score,noshow_count')
           .in('user_email', data.participants)
-          .then(({data:pp}) => { const m={}; (pp||[]).forEach(p => m[p.user_email]=p); setParticipantProfiles(m); });
+          .then(({data:pp, error:ppError}) => {
+            if (ppError) { toast.error(lang === 'cs' ? 'Nepodařilo se načíst účastníky.' : 'Failed to load participants.'); return; }
+            const m={}; (pp||[]).forEach(p => m[p.user_email]=p); setParticipantProfiles(m);
+          });
       }
     });
-    supabase.from('comments').select('*').eq('event_id', id).order('created_at',{ascending:true}).limit(50).then(({data}) => setComments(data||[]));
+    supabase.from('comments').select('*').eq('event_id', id).order('created_at',{ascending:true}).limit(50).then(({data, error}) => {
+      if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se načíst komentáře.' : 'Failed to load comments.'); return; }
+      setComments(data||[]);
+    });
   }, [id]);
 
   const isJoined = user && event?.participants?.includes(user.email);
@@ -96,19 +103,29 @@ export default function EventDetail() {
     if (!isOrganizer) return;
     const newWaitlist = (event.waitlist||[]).filter(e=>e!==email);
     const newParticipants = [...(event.participants||[]), email];
-    const {data} = await supabase.from('events').update({participants:newParticipants,waitlist:newWaitlist}).eq('id',event.id).select().single();
+    const {data, error} = await supabase.from('events').update({participants:newParticipants,waitlist:newWaitlist}).eq('id',event.id).select().single();
+    if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se přesunout z čekačky.' : 'Failed to promote from waitlist.'); return; }
     if (data) setEvent(data);
-    const {data:up} = await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
-    if (up) await supabase.from('notifications').insert({ user_id:up.user_id, user_email:email, type:'waitlist_promoted', title:`🎉 Dostal/a ses na akci: ${event.title}`, body:`Byl/a jsi přesunut/a z čekačky do účastníků.`, event_id:event.id, is_read:false });
+    const {data:up, error:upError} = await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
+    if (upError) { toast.error(lang === 'cs' ? 'Nepodařilo se odeslat notifikaci.' : 'Failed to send notification.'); return; }
+    if (up) {
+      const { error: notifError } = await supabase.from('notifications').insert({ user_id:up.user_id, user_email:email, type:'waitlist_promoted', title:`🎉 Dostal/a ses na akci: ${event.title}`, body:`Byl/a jsi přesunut/a z čekačky do účastníků.`, event_id:event.id, is_read:false });
+      if (notifError) toast.error(lang === 'cs' ? 'Nepodařilo se odeslat notifikaci.' : 'Failed to send notification.');
+    }
   };
 
   const handleDeclineWaitlist = async (email) => {
     if (!isOrganizer) return;
     const newWaitlist = (event.waitlist||[]).filter(e=>e!==email);
-    const {data} = await supabase.from('events').update({waitlist:newWaitlist}).eq('id',event.id).select().single();
+    const {data, error} = await supabase.from('events').update({waitlist:newWaitlist}).eq('id',event.id).select().single();
+    if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se odmítnout z čekačky.' : 'Failed to decline from waitlist.'); return; }
     if (data) setEvent(data);
-    const {data:up} = await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
-    if (up) await supabase.from('notifications').insert({ user_id:up.user_id, user_email:email, type:'event_updated', title:`😔 Nebyl/a jsi přijat/a na akci: ${event.title}`, event_id:event.id, is_read:false });
+    const {data:up, error:upError} = await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
+    if (upError) { toast.error(lang === 'cs' ? 'Nepodařilo se odeslat notifikaci.' : 'Failed to send notification.'); return; }
+    if (up) {
+      const { error: notifError } = await supabase.from('notifications').insert({ user_id:up.user_id, user_email:email, type:'event_updated', title:`😔 Nebyl/a jsi přijat/a na akci: ${event.title}`, event_id:event.id, is_read:false });
+      if (notifError) toast.error(lang === 'cs' ? 'Nepodařilo se odeslat notifikaci.' : 'Failed to send notification.');
+    }
   };
 
   const handleFavorite = async () => {
@@ -118,6 +135,8 @@ export default function EventDetail() {
       if (!user||!profile) return;
       const updated = isFav ? (profile.favorited_events||[]).filter(i=>i!==id) : [...(profile.favorited_events||[]),id];
       await updateProfile({ favorited_events: updated });
+    } catch {
+      toast.error(lang === 'cs' ? 'Nepodařilo se uložit oblíbenou položku.' : 'Failed to update favorite.');
     } finally { favRef.current.delete(id); }
   };
 
@@ -125,9 +144,11 @@ export default function EventDetail() {
     if (!newComment.trim()||!user||submittingComment) return;
     setSubmittingComment(true);
     try {
-      const {data:comment} = await supabase.from('comments').insert({ event_id:id, author_id:user.id, author_email:user.email, author_name:profile?.display_name||user.email, author_avatar:profile?.avatar_url||null, content:newComment.trim() }).select().single();
+      const {data:comment, error} = await supabase.from('comments').insert({ event_id:id, author_id:user.id, author_email:user.email, author_name:profile?.display_name||user.email, author_avatar:profile?.avatar_url||null, content:newComment.trim() }).select().single();
+      if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se přidat komentář.' : 'Failed to add comment.'); return; }
       if (comment) { setComments(prev=>[...prev,comment]); setNewComment(''); }
-      await supabase.from('events').update({comments_count:(event.comments_count||0)+1}).eq('id',id);
+      const { error: updateError } = await supabase.from('events').update({comments_count:(event.comments_count||0)+1}).eq('id',id);
+      if (updateError) { toast.error(lang === 'cs' ? 'Nepodařilo se aktualizovat počet komentářů.' : 'Failed to update comment count.'); return; }
       setEvent(e=>({...e,comments_count:(e.comments_count||0)+1}));
     } finally { setSubmittingComment(false); }
   };

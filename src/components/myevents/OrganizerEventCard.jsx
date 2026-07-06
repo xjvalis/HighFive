@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import { Users, Clock, MapPin, ChevronDown, ChevronUp, Mail, ArrowUp, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
@@ -30,33 +29,53 @@ export default function OrganizerEventCard({ event, onWaitlistPromote }) {
   const sendMessage = async () => {
     if (!emailMsg.trim()||participants.length===0||!user) return;
     setEmailLoading(true);
-    for (const email of participants) {
-      if (email===user.email) continue;
-      await supabase.from('direct_messages').insert({from_id:user.id,from_email:user.email,from_name:event.organizer_name||user.email,to_email:email,event_id:event.id,event_title:event.title,content:emailMsg.trim(),is_read:false});
+    try {
+      for (const email of participants) {
+        if (email===user.email) continue;
+        const { error } = await supabase.from('direct_messages').insert({from_id:user.id,from_email:user.email,from_name:event.organizer_name||user.email,to_email:email,event_id:event.id,event_title:event.title,content:emailMsg.trim(),is_read:false});
+        if (error) throw error;
+      }
+      setEmailMsg('');
+      toast.success('Zpráva odeslána všem účastníkům!');
+    } catch {
+      toast.error('Nepodařilo se odeslat zprávu všem účastníkům.');
+    } finally {
+      setEmailLoading(false);
     }
-    setEmailMsg('');
-    toast.success('Zpráva odeslána všem účastníkům!');
-    setEmailLoading(false);
   };
 
   const sendReminder = async () => {
     if (participants.length===0||!user) return;
     setReminderLoading(true);
-    await Promise.all(participants.filter(e=>e!==user.email).map(async (email) => {
-      const {data:up}=await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
-      if (up) await supabase.from('notifications').insert({user_id:up.user_id,user_email:email,type:'event_reminder',title:`⏰ Připomínka: ${event.title}`,body:`Událost se koná ${format(new Date(event.date),'d. M. HH:mm')} na místě ${event.location}.`,event_id:event.id,is_read:false});
-    }));
-    toast.success('Připomínka odeslána!');
-    setReminderLoading(false);
+    try {
+      await Promise.all(participants.filter(e=>e!==user.email).map(async (email) => {
+        const {data:up, error: upError}=await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
+        if (upError) throw upError;
+        if (up) {
+          const { error: notifError } = await supabase.from('notifications').insert({user_id:up.user_id,user_email:email,type:'event_reminder',title:`⏰ Připomínka: ${event.title}`,body:`Událost se koná ${format(new Date(event.date),'d. M. HH:mm')} na místě ${event.location}.`,event_id:event.id,is_read:false});
+          if (notifError) throw notifError;
+        }
+      }));
+      toast.success('Připomínka odeslána!');
+    } catch {
+      toast.error('Nepodařilo se odeslat připomínku.');
+    } finally {
+      setReminderLoading(false);
+    }
   };
 
   const handlePromote = async (email) => {
     const newWaitlist=waitlist.filter(e=>e!==email);
     const newParticipants=[...participants,email];
-    const {data}=await supabase.from('events').update({participants:newParticipants,waitlist:newWaitlist}).eq('id',event.id).select().single();
+    const {data, error}=await supabase.from('events').update({participants:newParticipants,waitlist:newWaitlist}).eq('id',event.id).select().single();
+    if (error) { toast.error('Nepodařilo se přesunout z čekačky.'); return; }
     if (data) onWaitlistPromote?.(event.id,newParticipants,newWaitlist);
-    const {data:up}=await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
-    if (up) await supabase.from('notifications').insert({user_id:up.user_id,user_email:email,type:'waitlist_promoted',title:`🎉 Dostal/a ses na akci: ${event.title}`,event_id:event.id,is_read:false});
+    const {data:up, error: upError}=await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
+    if (upError) { toast.error('Nepodařilo se odeslat notifikaci.'); return; }
+    if (up) {
+      const { error: notifError } = await supabase.from('notifications').insert({user_id:up.user_id,user_email:email,type:'waitlist_promoted',title:`🎉 Dostal/a ses na akci: ${event.title}`,event_id:event.id,is_read:false});
+      if (notifError) { toast.error('Nepodařilo se odeslat notifikaci.'); return; }
+    }
     toast.success(tr.promotedToast?.(email)||`${email} přijat/a!`);
   };
 

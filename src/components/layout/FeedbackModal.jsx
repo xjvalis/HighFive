@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm, ValidationError } from "@formspree/react";
 import { X } from "lucide-react";
 

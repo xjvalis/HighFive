@@ -3,7 +3,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { useT } from '@/lib/i18n';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
 
@@ -40,14 +39,15 @@ export default function Login() {
     setLoading(false);
   };
 
-  const handleGoogle = () => {
-    supabase.auth.signInWithOAuth({
+  const handleGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin + '/',
         queryParams: { access_type: 'offline', prompt: 'consent' },
       }
     });
+    if (error) toast.error(lang === 'cs' ? 'Přihlášení přes Google se nezdařilo.' : 'Google sign-in failed.');
   };
 
   return (

@@ -1,7 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { MapPin, Users, Clock } from "lucide-react";
 import { getCategoryStyle } from "@/lib/categories";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";

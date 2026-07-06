@@ -7,9 +7,8 @@ import { useT } from '@/lib/i18n';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
 import { toast } from 'sonner';
-import { Star, Calendar, Bell } from 'lucide-react';
+import { Star, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
 
 export default function Favorites() {
   const tr = useT();
@@ -20,14 +19,19 @@ export default function Favorites() {
   const [loading, setLoading] = useState(true);
   const favRef = useRef(new Set());
 
-  if (!user && !userLoading) { navigate('/login'); return null; }
+  useEffect(() => {
+    if (!user && !userLoading) navigate('/login');
+  }, [user, userLoading]);
 
   useEffect(() => {
     if (!profile) return;
     const ids = profile?.favorited_events || [];
     if (!ids.length) { setEvents([]); setLoading(false); return; }
     supabase.from('events').select('*').in('id', ids).order('date', { ascending: true })
-      .then(({ data }) => { setEvents(data || []); setLoading(false); });
+      .then(({ data, error }) => {
+        if (error) toast.error(lang === 'cs' ? 'Nepodařilo se načíst oblíbené události.' : 'Failed to load favorite events.');
+        setEvents(data || []); setLoading(false);
+      });
   }, [profile?.id]);
 
   const handleFavorite = async (event) => {
@@ -38,6 +42,8 @@ export default function Favorites() {
       await updateProfile({ favorited_events: updated });
       setEvents(prev => prev.filter(e => e.id !== event.id));
       toast.success(lang === 'cs' ? 'Odebráno z oblíbených' : 'Removed from favorites');
+    } catch {
+      toast.error(lang === 'cs' ? 'Nepodařilo se odebrat z oblíbených.' : 'Failed to remove from favorites.');
     } finally { favRef.current.delete(event.id); }
   };
 
@@ -46,13 +52,16 @@ export default function Favorites() {
     const isJoined = event.participants?.includes(user.email);
     const action = isJoined ? 'leave' : 'join';
     const { data, error } = await supabase.functions.invoke('join-event', { body: { event_id: event.id, action } });
-    if (!error && data?.event) setEvents(prev => prev.map(e => e.id === event.id ? data.event : e));
+    if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.'); return; }
+    if (data?.event) setEvents(prev => prev.map(e => e.id === event.id ? data.event : e));
   };
 
   // Split into upcoming and past
   const now = new Date();
   const upcoming = events.filter(e => new Date(e.date) > now);
   const past = events.filter(e => new Date(e.date) <= now);
+
+  if (!user && !userLoading) return null;
 
   return (
     <div className="max-w-2xl mx-auto">
