@@ -6,12 +6,14 @@ import MobileBottomNav from "./MobileBottomNav";
 import FeedbackModal from "./FeedbackModal";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { useNotificationEngine } from "@/hooks/useNotificationEngine";
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { LanguageContext } from "@/lib/language";
 import { MessageSquare } from "lucide-react";
 
 function NotificationEngineRunner() {
-  const { user, profile } = useCurrentUser();
-  useNotificationEngine(user, profile);
+  const { user } = useCurrentUser();
+  const { lang } = useContext(LanguageContext);
+  useNotificationEngine(user, lang);
   return null;
 }
 

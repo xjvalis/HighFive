@@ -61,7 +61,7 @@ function PastEventCard({ event }) {
 export default function MyEvents() {
   const tr = useT();
   const navigate = useNavigate();
-  const { user, profile, loading } = useCurrentUser();
+  const { user, loading } = useCurrentUser();
   const [created, setCreated] = useState([]);
   const [joined, setJoined] = useState([]);
   const [pastJoined, setPastJoined] = useState([]);
@@ -85,14 +85,10 @@ export default function MyEvents() {
       supabase.from('events').select('*').eq('organizer_email', user.email).order('date', { ascending: false }),
       // Past created events
       Promise.resolve({ data: [] }), // past created handled client-side
-      // Active joined events
-      profile?.joined_events?.length
-        ? supabase.from('events').select('*').in('id', profile.joined_events).neq('organizer_email', user.email).order('date', { ascending: true })
-        : Promise.resolve({ data: [] }),
+      // Active joined events — anything the user is a participant of, including events they organize themselves
+      supabase.from('events').select('*').contains('participants', [user.email]).order('date', { ascending: true }),
       // Past joined events
-      profile?.joined_events?.length
-        ? Promise.resolve({ data: [] }) // past joined handled client-side
-        : Promise.resolve({ data: [] }),
+      Promise.resolve({ data: [] }), // past joined handled client-side
     ]).then(([{ data: allMine, error: mineError }, _unused1, { data: allJoined, error: joinedError }, _unused2]) => {
       if (mineError || joinedError) {
         toast.error('Nepodařilo se načíst tvé události.');
@@ -115,7 +111,7 @@ export default function MyEvents() {
       toast.error('Nepodařilo se načíst tvé události.');
       setLoadingData(false);
     });
-  }, [user?.id, profile?.joined_events?.length]);
+  }, [user?.id]);
 
   const confirmLeave = async () => {
     const event = leaveConfirm;
@@ -129,10 +125,11 @@ export default function MyEvents() {
     }
   };
 
-  const handleWaitlistPromote = (eventId, newParticipants, newWaitlist) =>
+  const handleParticipantsChange = (eventId, newParticipants, newWaitlist) =>
     setCreated(prev => prev.map(e => e.id === eventId ? { ...e, participants: newParticipants, waitlist: newWaitlist } : e));
 
-  const pastCount = pastJoined.length + pastCreated.length;
+  const pastCombined = [...pastJoined, ...pastCreated.filter(e => !pastJoined.some(j => j.id === e.id))];
+  const pastCount = pastCombined.length;
 
   const tabs = [
     { key: 'going', label: `${tr.attending} (${joined.length})` },
@@ -185,7 +182,7 @@ export default function MyEvents() {
 
           {tab === 'hosting' && (
             <>
-              {created.map(e => <OrganizerEventCard key={e.id} event={e} onWaitlistPromote={handleWaitlistPromote} />)}
+              {created.map(e => <OrganizerEventCard key={e.id} event={e} onParticipantsChange={handleParticipantsChange} />)}
               {created.length === 0 && (
                 <div className="text-center py-16">
                   <p className="text-4xl mb-3">📅</p>
@@ -213,7 +210,7 @@ export default function MyEvents() {
                       </span>
                     </div>
                   )}
-                  {[...pastJoined, ...pastCreated]
+                  {pastCombined
                     .sort((a, b) => new Date(b.date) - new Date(a.date))
                     .map(e => <PastEventCard key={e.id} event={e} />)}
                 </>

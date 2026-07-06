@@ -9,6 +9,7 @@ export const translations = {
     myEvents: "My Events",
     notifications: "Notifications",
     profile: "Profile",
+    login: "Sign in",
     moderation: "Moderation",
     categories: "Categories",
     search: "Search",
@@ -148,6 +149,12 @@ export const translations = {
     reminderSent: (n) => `Reminder sent to ${n} participants.`,
     messageSentToAll: (n) => `Message sent to ${n} participants (email + inbox).`,
     promotedToast: (email) => `${email} was moved to participants.`,
+    reliabilityScore: "Score",
+    noShowsCount: (n) => `${n}x no-show`,
+    removeParticipant: "Remove",
+    removeParticipantTitle: "Remove from event?",
+    removeParticipantConfirm: (name) => `Remove ${name} from this event? They'll be notified.`,
+    removedToast: (name) => `${name} removed from the event.`,
 
     // Admin
     accessDenied: "Access Denied",
@@ -273,6 +280,7 @@ export const translations = {
     myEvents: "Moje události",
     notifications: "Oznámení",
     profile: "Profil",
+    login: "Přihlásit se",
     moderation: "Moderace",
     categories: "Kategorie",
     search: "Hledat",
@@ -412,6 +420,12 @@ export const translations = {
     reminderSent: (n) => `Připomínka odeslána ${n} účastníkům.`,
     messageSentToAll: (n) => `Zpráva odeslána ${n} účastníkům (email + inbox).`,
     promotedToast: (email) => `${email} byl přesunut do účastníků.`,
+    reliabilityScore: "Skóre",
+    noShowsCount: (n) => `${n}x nedorazil/a`,
+    removeParticipant: "Odebrat",
+    removeParticipantTitle: "Odebrat z akce?",
+    removeParticipantConfirm: (name) => `Opravdu chceš odebrat ${name} z této akce? Bude o tom informován/a.`,
+    removedToast: (name) => `${name} byl/a odebrán/a z akce.`,
 
     // Admin
     accessDenied: "Přístup odepřen",

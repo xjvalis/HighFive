@@ -233,7 +233,8 @@ export default function TopNav() {
                 }
               </button>
             ) : (
-              <Button size="sm" className="hidden xl:flex rounded-xl px-4 h-8 text-xs" onClick={() => navigate('/login')}>
+              <Button size="sm" className="hidden xl:flex items-center gap-1.5 rounded-xl px-4 h-8 text-xs" onClick={() => navigate('/login')}>
+                <User className="w-3.5 h-3.5"/>
                 {tr.login}
               </Button>
             )}

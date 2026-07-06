@@ -1,7 +1,33 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
-export function useNotificationEngine(user) {
+// Collapses bursts of activity into a single unread notification instead of
+// inserting one row per message: the first message gets a specific preview,
+// any further message while that notification is still unread just bumps a
+// generic "new messages" body/timestamp rather than spamming new rows.
+async function notifyOrCollapse({ userId, userEmail, eventId, title, previewBody, collapsedBody }) {
+  const { data: existing } = await supabase.from('notifications')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('event_id', eventId)
+    .eq('title', title)
+    .eq('is_read', false)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase.from('notifications').update({
+      body: collapsedBody,
+      created_at: new Date().toISOString(),
+    }).eq('id', existing.id);
+  } else {
+    await supabase.from('notifications').insert({
+      user_id: userId, user_email: userEmail, type: 'new_chat_message',
+      title, body: previewBody, event_id: eventId, is_read: false,
+    });
+  }
+}
+
+export function useNotificationEngine(user, lang = 'cs') {
   const channelsRef = useRef([]);
 
   useEffect(() => {
@@ -23,7 +49,7 @@ export function useNotificationEngine(user) {
       .subscribe();
     channelsRef.current.push(dmCh);
 
-    // New chat message notification
+    // New event chat message notification (collapses repeat messages)
     const chatCh = supabase.channel('notif-chat')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'event_chat' },
         async (p) => {
@@ -32,15 +58,34 @@ export function useNotificationEngine(user) {
           const { data: ev } = await supabase.from('events').select('title,participants,organizer_email').eq('id', msg.event_id).single();
           if (!ev) return;
           if (!ev.participants?.includes(user.email) && ev.organizer_email !== user.email) return;
-          await supabase.from('notifications').insert({
-            user_id: user.id, user_email: user.email, type: 'new_chat_message',
-            title: `💬 ${ev.title}`,
-            body: `${msg.author_name || 'Někdo'}: ${msg.content?.slice(0, 60)}`,
-            event_id: msg.event_id, is_read: false,
+          await notifyOrCollapse({
+            userId: user.id, userEmail: user.email, eventId: msg.event_id,
+            title: `💬 Chat: ${ev.title}`,
+            previewBody: `${msg.author_name || 'Někdo'}: ${msg.content?.slice(0, 60)}`,
+            collapsedBody: lang === 'cs' ? 'V chatu jsou nové zprávy.' : 'There are new messages in chat.',
           });
         })
       .subscribe();
     channelsRef.current.push(chatCh);
+
+    // New discussion comment notification (collapses repeat comments)
+    const commentCh = supabase.channel('notif-comment')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments' },
+        async (p) => {
+          const comment = p.new;
+          if (comment.author_email === user.email) return;
+          const { data: ev } = await supabase.from('events').select('title,participants,organizer_email').eq('id', comment.event_id).single();
+          if (!ev) return;
+          if (!ev.participants?.includes(user.email) && ev.organizer_email !== user.email) return;
+          await notifyOrCollapse({
+            userId: user.id, userEmail: user.email, eventId: comment.event_id,
+            title: `💬 Diskuze: ${ev.title}`,
+            previewBody: `${comment.author_name || 'Někdo'}: ${comment.content?.slice(0, 60)}`,
+            collapsedBody: lang === 'cs' ? 'V diskuzi jsou nové zprávy.' : 'There are new messages in the discussion.',
+          });
+        })
+      .subscribe();
+    channelsRef.current.push(commentCh);
 
     // Past event notifications
     checkPastEvents();
@@ -63,5 +108,5 @@ export function useNotificationEngine(user) {
     }
 
     return () => { channelsRef.current.forEach(c => supabase.removeChannel(c)); channelsRef.current = []; clearInterval(pastInterval); };
-  }, [user?.id, user?.email]);
+  }, [user?.id, user?.email, lang]);
 }
