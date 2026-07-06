@@ -152,7 +152,7 @@ export default function Home() {
     }
     return evts;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events, sort, radius]);
+  }, [events, sort, radius, userLocation]);
 
   const mapEvents = events.filter(e => e.latitude && e.longitude && (!userLocation || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius));
   const profileWithCategories = useMemo(() => {
@@ -290,7 +290,7 @@ export default function Home() {
         );
       })()}
 
-      {(showMap || userLocation) && <div className="mb-2"><LocationPicker userLocation={userLocation} radius={radius} onLocationChange={setUserLocation} onRadiusChange={setRadius}/></div>}
+      <div className="mb-2"><LocationPicker userLocation={userLocation} radius={radius} onLocationChange={setUserLocation} onRadiusChange={setRadius}/></div>
 
       {showMap ? (
         <div>
