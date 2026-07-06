@@ -33,7 +33,7 @@ export default function BadgesSection({ profile, eventsCreated, eventsJoined }) 
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="font-semibold">{label}</p>
-                  <p className="text-muted-foreground">{description}</p>
+                  <p className="text-primary-foreground/80">{description}</p>
                 </TooltipContent>
               </Tooltip>
             );
