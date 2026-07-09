@@ -16,6 +16,7 @@ import Trending from '@/pages/Trending';
 import MyEvents from '@/pages/MyEvents';
 import AdminDashboard from '@/pages/AdminDashboard';
 import Notifications from '@/pages/Notifications';
+import Messages from '@/pages/Messages';
 import { useState, useEffect } from 'react';
 
 function SplashScreen() {
@@ -76,6 +77,7 @@ function AppContent() {
             <Route path="/create" element={<CreateEvent />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/messages" element={<Messages />} />
             <Route path="/admin" element={<AdminDashboard />} />
           </Route>
           <Route path="/login" element={<Login />} />

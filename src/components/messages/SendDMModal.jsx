@@ -14,7 +14,9 @@ export default function SendDMModal({ open, onClose, toEmail, toName, fromUser, 
     if (!content.trim()) return;
     setSending(true);
     try {
-      await supabase.from('direct_messages').insert({from_id:fromUser.id,from_email:fromUser.email,from_name:fromProfile?.display_name||fromUser.email,from_avatar:fromProfile?.avatar_url||null,to_email:toEmail,event_id:event?.id||null,event_title:event?.title||null,content:content.trim(),is_read:false});
+      const { data: toProfile } = await supabase.from('user_profiles').select('user_id').eq('user_email',toEmail).maybeSingle();
+      const { error } = await supabase.from('direct_messages').insert({from_id:fromUser.id,from_email:fromUser.email,from_name:fromProfile?.display_name||fromUser.email,from_avatar:fromProfile?.avatar_url||null,to_id:toProfile?.user_id||null,to_email:toEmail,event_id:event?.id||null,event_title:event?.title||null,content:content.trim(),is_read:false});
+      if (error) throw error;
       setContent(''); toast.success('Zpráva odeslána!'); onClose();
     } catch { toast.error('Zprávu se nepodařilo odeslat.'); } finally { setSending(false); }
   };

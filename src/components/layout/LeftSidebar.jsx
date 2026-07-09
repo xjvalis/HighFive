@@ -1,6 +1,6 @@
 import { useState, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, TrendingUp, Star, Calendar, Shield, ChevronDown, ChevronUp } from "lucide-react";
+import { Home, TrendingUp, Star, Calendar, Shield, ChevronDown, ChevronUp, MessageCircle } from "lucide-react";
 import { CATEGORIES, getCategoryLabel } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
@@ -10,7 +10,7 @@ import { LanguageContext } from "@/lib/language";
 const VISIBLE_COUNT = 5;
 
 export default function LeftSidebar() {
-  const { profile } = useCurrentUser();
+  const { user, profile } = useCurrentUser();
   const tr = useT();
   const { lang } = useContext(LanguageContext);
   const location = useLocation();
@@ -23,6 +23,7 @@ export default function LeftSidebar() {
     { icon: TrendingUp, label: tr.trending, path: "/trending" },
     { icon: Star, label: tr.favorites, path: "/favorites" },
     { icon: Calendar, label: tr.myEvents, path: "/my-events" },
+    ...(user ? [{ icon: MessageCircle, label: tr.messages, path: "/messages" }] : []),
   ];
 
   const visibleCategories = expanded ? CATEGORIES : CATEGORIES.slice(0, VISIBLE_COUNT);

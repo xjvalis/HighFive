@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import EventChat from '@/components/events/EventChat';
 import AttendanceMarker from '@/components/events/AttendanceMarker';
-import WaitlistSection from '@/components/events/WaitlistSection';
+import ParticipantsPanel from '@/components/events/ParticipantsPanel';
 import ReportModal from '@/components/events/ReportModal';
 import PremiumModal from '@/components/premium/PremiumModal';
 import AddToCalendar from '@/components/events/AddToCalendar';
@@ -46,6 +46,7 @@ export default function EventDetail() {
   const [showEdit, setShowEdit] = useState(false);
   const [showDM, setShowDM] = useState(false);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [participantsOpen, setParticipantsOpen] = useState(false);
   const favRef = useRef(new Set());
 
   usePageMeta({ title: event ? `${event.title} | HighFive` : 'HighFive', description: event?.description || '' });
@@ -98,35 +99,6 @@ export default function EventDetail() {
       if (data?.error === 'monthly_limit_reached') { setShowPremium(true); return; }
       if (data?.event) setEvent(data.event);
     } finally { setJoiningEvent(false); }
-  };
-
-  const handlePromoteWaitlist = async (email) => {
-    if (!isOrganizer) return;
-    const newWaitlist = (event.waitlist||[]).filter(e=>e!==email);
-    const newParticipants = [...(event.participants||[]), email];
-    const {data, error} = await supabase.from('events').update({participants:newParticipants,waitlist:newWaitlist}).eq('id',event.id).select().single();
-    if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se přesunout z čekačky.' : 'Failed to promote from waitlist.'); return; }
-    if (data) setEvent(data);
-    const {data:up, error:upError} = await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
-    if (upError) { toast.error(lang === 'cs' ? 'Nepodařilo se odeslat notifikaci.' : 'Failed to send notification.'); return; }
-    if (up) {
-      const { error: notifError } = await supabase.from('notifications').insert({ user_id:up.user_id, user_email:email, type:'waitlist_promoted', title:`🎉 Dostal/a ses na akci: ${event.title}`, body:`Byl/a jsi přesunut/a z čekačky do účastníků.`, event_id:event.id, is_read:false });
-      if (notifError) toast.error(lang === 'cs' ? 'Nepodařilo se odeslat notifikaci.' : 'Failed to send notification.');
-    }
-  };
-
-  const handleDeclineWaitlist = async (email) => {
-    if (!isOrganizer) return;
-    const newWaitlist = (event.waitlist||[]).filter(e=>e!==email);
-    const {data, error} = await supabase.from('events').update({waitlist:newWaitlist}).eq('id',event.id).select().single();
-    if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se odmítnout z čekačky.' : 'Failed to decline from waitlist.'); return; }
-    if (data) setEvent(data);
-    const {data:up, error:upError} = await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
-    if (upError) { toast.error(lang === 'cs' ? 'Nepodařilo se odeslat notifikaci.' : 'Failed to send notification.'); return; }
-    if (up) {
-      const { error: notifError } = await supabase.from('notifications').insert({ user_id:up.user_id, user_email:email, type:'event_updated', title:`😔 Nebyl/a jsi přijat/a na akci: ${event.title}`, event_id:event.id, is_read:false });
-      if (notifError) toast.error(lang === 'cs' ? 'Nepodařilo se odeslat notifikaci.' : 'Failed to send notification.');
-    }
   };
 
   const handleFavorite = async () => {
@@ -191,24 +163,28 @@ export default function EventDetail() {
             {user && !isOrganizer && event.organizer_email && <button onClick={()=>setShowDM(true)} className="flex items-center gap-2 text-xs font-medium text-primary bg-lavender/60 hover:bg-lavender px-2.5 py-2 rounded-xl transition-colors"><Send className="w-3.5 h-3.5"/></button>}
           </div>
 
-          {event.participants?.length > 0 && (
-            <div className="mb-5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{tr.detailGoing} ({event.participants.length})</p>
-              <div className="flex flex-wrap gap-1">
-                {event.participants.slice(0,12).map((email,i) => {
-                  const pp = participantProfiles[email];
-                  const isCreator = pp?.subscription_plan==='creator'||(pp?.is_premium&&pp?.is_verified);
-                  const style = isCreator?{boxShadow:'0 0 0 2px #FFD700, 0 0 0 4px #FFA500'}:{};
-                  return pp?.avatar_url
-                    ? <img key={i} src={pp.avatar_url} alt={pp.display_name||email} title={pp.display_name||email} className="w-8 h-8 rounded-full object-cover border-2 border-card" style={style}/>
-                    : <div key={i} title={email} className="w-8 h-8 rounded-full bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold" style={style}>{email[0].toUpperCase()}</div>;
-                })}
-                {event.participants.length>12 && <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs text-muted-foreground">+{event.participants.length-12}</div>}
-              </div>
-            </div>
+          {(isOrganizer || event.participants?.length > 0) && (
+            <button type="button" onClick={()=>setParticipantsOpen(true)} className="w-full text-left mb-5 rounded-xl -mx-1 px-1 py-1 hover:bg-secondary/40 transition-colors">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{tr.detailGoing} ({event.participants?.length||0})</p>
+              {event.participants?.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {event.participants.slice(0,12).map((email,i) => {
+                    const pp = participantProfiles[email];
+                    const isCreator = pp?.subscription_plan==='creator'||(pp?.is_premium&&pp?.is_verified);
+                    const style = isCreator?{boxShadow:'0 0 0 2px #FFD700, 0 0 0 4px #FFA500'}:{};
+                    return pp?.avatar_url
+                      ? <img key={i} src={pp.avatar_url} alt={pp.display_name||email} title={pp.display_name||email} className="w-8 h-8 rounded-full object-cover border-2 border-card" style={style}/>
+                      : <div key={i} title={email} className="w-8 h-8 rounded-full bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold" style={style}>{email[0].toUpperCase()}</div>;
+                  })}
+                  {event.participants.length>12 && <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs text-muted-foreground">+{event.participants.length-12}</div>}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">{tr.noParticipants}</p>
+              )}
+            </button>
           )}
 
-          <WaitlistSection event={event} user={user} onPromote={handlePromoteWaitlist} onDecline={handleDeclineWaitlist}/>
+          <ParticipantsPanel event={event} isOrganizer={isOrganizer} open={participantsOpen} onClose={()=>setParticipantsOpen(false)} onEventUpdate={setEvent}/>
 
           {profile&&!profile.is_premium&&profile.subscription_plan!=='plus'&&profile.subscription_plan!=='creator'&&!isJoined&&!isOnWaitlist&&(()=>{
             const now=new Date();const reset=profile.monthly_reset_date?new Date(profile.monthly_reset_date):null;
@@ -227,7 +203,7 @@ export default function EventDetail() {
             <Button variant="outline" size="icon" className="rounded-2xl w-12 h-12" onClick={()=>setReportOpen(true)}><Flag className="w-4 h-4 text-muted-foreground"/></Button>
           </div>
 
-          <ReportModal eventId={id} user={user} open={reportOpen} onClose={()=>setReportOpen(false)}/>
+          <ReportModal eventId={id} eventTitle={event?.title} user={user} open={reportOpen} onClose={()=>setReportOpen(false)}/>
           {showEdit && <EditEventModal event={event} open={showEdit} onClose={()=>setShowEdit(false)} onSaved={updated=>setEvent(updated)}/>}
           <PremiumModal open={showPremium} onClose={()=>setShowPremium(false)} profile={profile} onUpgrade={u=>updateProfile(u)}/>
           <ConfirmDialog open={leaveConfirm} onConfirm={()=>{setLeaveConfirm(false);handleJoin(true);}} onCancel={()=>setLeaveConfirm(false)} title={isOnWaitlist?(lang==='cs'?'Odhlásit se z čekačky?':'Leave waitlist?'):(lang==='cs'?'Zrušit účast?':'Cancel attendance?')} description={lang==='cs'?`Opravdu chceš opustit akci „${event?.title}"?`:`Are you sure you want to leave "${event?.title}"?`} confirmLabel={isOnWaitlist?(lang==='cs'?'Odhlásit z čekačky':'Leave waitlist'):(lang==='cs'?'Zrušit účast':'Cancel')} destructive/>

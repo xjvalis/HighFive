@@ -87,7 +87,8 @@ export default function Messages() {
     setSending(true);
     const content=reply.trim(); setReply('');
     try {
-      const { error } = await supabase.from('direct_messages').insert({from_id:user.id,from_email:user.email,from_name:profile?.display_name||user.email,from_avatar:profile?.avatar_url||null,to_email:selected,content,is_read:false});
+      const { data: toProfile } = await supabase.from('user_profiles').select('user_id').eq('user_email',selected).maybeSingle();
+      const { error } = await supabase.from('direct_messages').insert({from_id:user.id,from_email:user.email,from_name:profile?.display_name||user.email,from_avatar:profile?.avatar_url||null,to_id:toProfile?.user_id||null,to_email:selected,content,is_read:false});
       if (error) toast.error(lang==='cs'?'Zprávu se nepodařilo odeslat.':'Failed to send message.');
     } catch {
       toast.error(lang==='cs'?'Zprávu se nepodařilo odeslat.':'Failed to send message.');

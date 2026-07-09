@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 
 const REASONS = [{value:'inappropriate',label:'🚫 Nevhodný obsah'},{value:'spam',label:'📢 Spam'},{value:'fraud',label:'⚠️ Podvod'},{value:'hate',label:'💢 Nenávistný obsah'},{value:'other',label:'❓ Jiné'}];
 
-export default function ReportModal({ eventId, user, open, onClose }) {
+export default function ReportModal({ eventId, eventTitle, user, open, onClose }) {
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -20,6 +20,18 @@ export default function ReportModal({ eventId, user, open, onClose }) {
       const { error } = await supabase.from('reports').insert({target_id:eventId,target_type:'event',reason:selected,reporter_id:user.id,reporter_email:user.email});
       if (error) { toast.error('Nahlášení se nepodařilo odeslat.'); return; }
       setDone(true);
+      try {
+        const { data: mods } = await supabase.from('user_profiles').select('user_id,user_email').or('is_admin.eq.true,is_moderator.eq.true');
+        const reasonLabel = REASONS.find(r=>r.value===selected)?.label || selected;
+        await Promise.all((mods||[]).map(m => supabase.from('notifications').insert({
+          user_id: m.user_id, user_email: m.user_email, type: 'new_report',
+          title: `🚩 Nové nahlášení: ${eventTitle || 'událost'}`,
+          body: `Důvod: ${reasonLabel}`,
+          event_id: eventId, is_read: false,
+        })));
+      } catch {
+        // Notifikace moderátorům není kritická, nahlášení už proběhlo.
+      }
     } catch {
       toast.error('Nahlášení se nepodařilo odeslat.');
     } finally {

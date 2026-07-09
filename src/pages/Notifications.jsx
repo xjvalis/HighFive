@@ -5,7 +5,6 @@ import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import { Bell, CheckCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
 import { toast } from 'sonner';
@@ -72,16 +71,20 @@ export default function Notifications() {
       : notifications.length===0 ? <div className="text-center py-16"><p className="text-4xl mb-3">🔔</p><p className="font-grotesk font-semibold">{tr.noNotifications}</p><p className="text-sm text-muted-foreground mt-1">{tr.noNotificationsHint}</p></div>
       : <div className="space-y-2">
           {notifications.map(n=>(
-            <div key={n.id} onClick={()=>markRead(n)} className={cn('bg-card rounded-2xl border border-border/60 p-4 cursor-pointer hover:shadow-md transition-all',!n.is_read&&'border-violet-200 bg-lavender/20')}>
+            <div key={n.id} onClick={()=>{markRead(n);if(n.event_id)window.open(`/event/${n.event_id}`,'_blank');}} className={cn('bg-card rounded-2xl border border-border/60 p-4 cursor-pointer hover:shadow-md transition-all',!n.is_read&&'border-violet-200 bg-lavender/20')}>
               <div className="flex gap-3">
                 <span className="text-xl flex-shrink-0">{TYPE_ICONS[n.type]||'🔔'}</span>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2"><p className={cn('text-sm font-medium leading-snug',n.is_read&&'text-foreground/70')}>{n.title}</p>{!n.is_read&&<div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1"/>}</div>
-                  {n.body&&<p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{n.body}</p>}
-                  <div className="flex items-center gap-3 mt-2">
-                    <span className="text-[10px] text-muted-foreground">{format(new Date(n.created_at),'MMM d, HH:mm')}</span>
-                    {n.event_id&&<Link to={`/event/${n.event_id}`} onClick={e=>e.stopPropagation()} className="text-[11px] text-primary font-medium hover:underline">{tr.viewEvent}</Link>}
+                  <div className="flex items-start justify-between gap-2">
+                    <p className={cn('text-sm font-medium leading-snug',n.is_read&&'text-foreground/70')}>{n.title}</p>
+                    {!n.is_read&&(
+                      <button onClick={e=>{e.stopPropagation();markRead(n);}} className="p-1.5 -m-1.5 flex-shrink-0" title={tr.markAllRead}>
+                        <div className="w-3 h-3 rounded-full bg-primary"/>
+                      </button>
+                    )}
                   </div>
+                  {n.body&&<p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{n.body}</p>}
+                  <span className="text-[10px] text-muted-foreground mt-2 block">{format(new Date(n.created_at),'MMM d, HH:mm')}</span>
                 </div>
               </div>
             </div>

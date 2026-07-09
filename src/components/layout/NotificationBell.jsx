@@ -69,15 +69,19 @@ export default function NotificationBell() {
           <div className="max-h-[360px] overflow-y-auto">
             {notifications.length===0 ? <div className="text-center py-10"><p className="text-2xl mb-1">🔔</p><p className="text-sm text-muted-foreground">{tr.notifNone}</p></div>
             : notifications.map(n=>(
-              <div key={n.id} onClick={()=>markRead(n)} className={cn('flex gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/50 transition-colors border-b border-border/40 last:border-0',!n.is_read&&'bg-lavender/20')}>
+              <div key={n.id} onClick={()=>{markRead(n);setOpen(false);if(n.event_id)window.open(`/event/${n.event_id}`,'_blank');}} className={cn('flex gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/50 transition-colors border-b border-border/40 last:border-0',!n.is_read&&'bg-lavender/20')}>
                 <span className="text-lg flex-shrink-0 mt-0.5">{TYPE_ICONS[n.type]||'🔔'}</span>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start gap-2"><p className={cn('text-xs font-medium leading-snug flex-1',!n.is_read?'text-foreground':'text-foreground/70')}>{n.title}</p>{!n.is_read&&<div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1"/>}</div>
-                  {n.body&&<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>}
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-muted-foreground">{format(new Date(n.created_at),'MMM d, HH:mm')}</span>
-                    {n.event_id&&<Link to={`/event/${n.event_id}`} onClick={e=>{e.stopPropagation();setOpen(false);}} className="text-[11px] text-primary font-medium hover:underline">{tr.notifViewEvent}</Link>}
+                  <div className="flex items-start gap-2">
+                    <p className={cn('text-xs font-medium leading-snug flex-1',!n.is_read?'text-foreground':'text-foreground/70')}>{n.title}</p>
+                    {!n.is_read&&(
+                      <button onClick={e=>{e.stopPropagation();markRead(n);}} className="p-1.5 -m-1.5 flex-shrink-0" title={tr.notifMarkAllRead}>
+                        <div className="w-2.5 h-2.5 rounded-full bg-primary"/>
+                      </button>
+                    )}
                   </div>
+                  {n.body&&<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>}
+                  <span className="text-[10px] text-muted-foreground mt-1 block">{format(new Date(n.created_at),'MMM d, HH:mm')}</span>
                 </div>
               </div>
             ))}

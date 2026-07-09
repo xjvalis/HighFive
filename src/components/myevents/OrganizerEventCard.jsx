@@ -1,6 +1,6 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { format } from 'date-fns';
-import { Users, Clock, MapPin, ChevronDown, ChevronUp, Mail, ArrowUp, ExternalLink, UserX, ShieldAlert } from 'lucide-react';
+import { Users, Clock, MapPin, ChevronDown, ChevronUp, Mail, ExternalLink, UsersRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,7 @@ import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import { toast } from 'sonner';
 import { useT } from '@/lib/i18n';
 import { LanguageContext } from '@/lib/language';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { cn } from '@/lib/utils';
+import ParticipantsPanel from '@/components/events/ParticipantsPanel';
 
 export default function OrganizerEventCard({ event, onParticipantsChange }) {
   const tr = useT();
@@ -21,25 +20,12 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
   const [emailLoading, setEmailLoading] = useState(false);
   const [reminderLoading, setReminderLoading] = useState(false);
   const [emailMsg, setEmailMsg] = useState('');
-  const [participantProfiles, setParticipantProfiles] = useState({});
-  const [removeConfirm, setRemoveConfirm] = useState(null);
-  const [removing, setRemoving] = useState(false);
+  const [participantsOpen, setParticipantsOpen] = useState(false);
 
   const cat = getCategoryStyle(event.category);
   const participants = event.participants || [];
   const waitlist = event.waitlist || [];
   const isFull = event.max_capacity && participants.length >= event.max_capacity;
-
-  useEffect(() => {
-    if (!expanded || participants.length === 0) return;
-    supabase.from('user_profiles').select('user_email,display_name,avatar_url,reliability_score,noshow_count')
-      .in('user_email', participants)
-      .then(({ data, error }) => {
-        if (error) return;
-        const m = {}; (data || []).forEach(p => m[p.user_email] = p);
-        setParticipantProfiles(m);
-      });
-  }, [expanded, event.id]);
 
   const sendMessage = async () => {
     if (!emailMsg.trim()||participants.length===0||!user) return;
@@ -79,44 +65,6 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
     }
   };
 
-  const handlePromote = async (email) => {
-    const newWaitlist=waitlist.filter(e=>e!==email);
-    const newParticipants=[...participants,email];
-    const {data, error}=await supabase.from('events').update({participants:newParticipants,waitlist:newWaitlist}).eq('id',event.id).select().single();
-    if (error) { toast.error('Nepodařilo se přesunout z čekačky.'); return; }
-    if (data) onParticipantsChange?.(event.id,newParticipants,newWaitlist);
-    const {data:up, error: upError}=await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
-    if (upError) { toast.error('Nepodařilo se odeslat notifikaci.'); return; }
-    if (up) {
-      const { error: notifError } = await supabase.from('notifications').insert({user_id:up.user_id,user_email:email,type:'waitlist_promoted',title:`🎉 Dostal/a ses na akci: ${event.title}`,event_id:event.id,is_read:false});
-      if (notifError) { toast.error('Nepodařilo se odeslat notifikaci.'); return; }
-    }
-    toast.success(tr.promotedToast?.(email)||`${email} přijat/a!`);
-  };
-
-  const handleRemove = async (email) => {
-    setRemoveConfirm(null);
-    setRemoving(true);
-    try {
-      const newParticipants = participants.filter(e => e !== email);
-      const { error } = await supabase.from('events').update({ participants: newParticipants }).eq('id', event.id);
-      if (error) { toast.error('Nepodařilo se odebrat účastníka.'); return; }
-      onParticipantsChange?.(event.id, newParticipants, waitlist);
-      const name = participantProfiles[email]?.display_name || email;
-      const { data: up } = await supabase.from('user_profiles').select('user_id').eq('user_email', email).maybeSingle();
-      if (up) {
-        await supabase.from('notifications').insert({
-          user_id: up.user_id, user_email: email, type: 'event_updated',
-          title: `😔 ${lang === 'cs' ? 'Byl/a jsi odebrán/a z akce' : 'You were removed from the event'}: ${event.title}`,
-          event_id: event.id, is_read: false,
-        });
-      }
-      toast.success(tr.removedToast?.(name) || `${name} odebrán/a.`);
-    } finally {
-      setRemoving(false);
-    }
-  };
-
   return (
     <div className="bg-card rounded-2xl border border-border/60 shadow-sm overflow-hidden">
       <button className="w-full flex items-start gap-3 p-4 text-left hover:bg-secondary/30 transition-colors" onClick={()=>setExpanded(e=>!e)}>
@@ -137,56 +85,10 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
 
       {expanded&&(
         <div className="px-4 pb-4 space-y-4 border-t border-border/60 pt-4">
-          {waitlist.length>0&&(
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{tr.waitlist} ({waitlist.length})</p>
-              <div className="space-y-1.5">
-                {waitlist.map((email,i)=>(
-                  <div key={i} className="flex items-center justify-between gap-2 bg-secondary/40 rounded-xl px-3 py-2">
-                    <span className="text-xs text-foreground/80 truncate">{email}</span>
-                    <button onClick={()=>handlePromote(email)} className="text-[11px] px-2 py-1 rounded-lg bg-mint text-emerald-700 font-medium hover:bg-emerald-100 flex items-center gap-1 flex-shrink-0"><ArrowUp className="w-3 h-3"/>{tr.promote}</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{tr.participants} ({participants.length})</p>
-            {participants.length===0 ? (
-              <p className="text-xs text-muted-foreground">{tr.noParticipants}</p>
-            ) : (
-              <div className="space-y-1.5">
-                {participants.map(email=>{
-                  const p = participantProfiles[email];
-                  const score = p?.reliability_score ?? 100;
-                  const noShows = p?.noshow_count || 0;
-                  const isSelf = email === user?.email;
-                  return (
-                    <div key={email} className="flex items-center justify-between gap-2 bg-secondary/40 rounded-xl px-3 py-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold">
-                          {p?.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover"/> : <span>{(p?.display_name||email)[0]?.toUpperCase()}</span>}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-medium truncate">{p?.display_name || email}{isSelf ? ` (${lang==='cs'?'ty':'you'})` : ''}</p>
-                          <p className={cn('text-[10px] flex items-center gap-1', score < 70 ? 'text-red-500' : 'text-muted-foreground')}>
-                            {score < 70 && <ShieldAlert className="w-2.5 h-2.5"/>}
-                            {tr.reliabilityScore}: {score}/100{noShows > 0 ? ` · ${tr.noShowsCount(noShows)}` : ''}
-                          </p>
-                        </div>
-                      </div>
-                      {!isSelf && (
-                        <button onClick={()=>setRemoveConfirm(email)} disabled={removing} className="text-[11px] px-2 py-1 rounded-lg bg-red-50 text-red-600 font-medium hover:bg-red-100 flex items-center gap-1 flex-shrink-0 disabled:opacity-50">
-                          <UserX className="w-3 h-3"/>{tr.removeParticipant}
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <Button variant="outline" size="sm" onClick={()=>setParticipantsOpen(true)} className="w-full rounded-xl gap-1.5 justify-start">
+            <UsersRound className="w-3.5 h-3.5"/>
+            {tr.participants} ({participants.length}){waitlist.length>0?` · ${tr.waitlist} (${waitlist.length})`:''}
+          </Button>
 
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{tr.messageAll}</p>
@@ -199,14 +101,12 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
         </div>
       )}
 
-      <ConfirmDialog
-        open={!!removeConfirm}
-        onConfirm={()=>handleRemove(removeConfirm)}
-        onCancel={()=>setRemoveConfirm(null)}
-        title={tr.removeParticipantTitle}
-        description={removeConfirm ? tr.removeParticipantConfirm(participantProfiles[removeConfirm]?.display_name || removeConfirm) : ''}
-        confirmLabel={tr.removeParticipant}
-        destructive
+      <ParticipantsPanel
+        event={event}
+        isOrganizer
+        open={participantsOpen}
+        onClose={()=>setParticipantsOpen(false)}
+        onEventUpdate={(updated)=>onParticipantsChange?.(event.id, updated.participants, updated.waitlist)}
       />
     </div>
   );

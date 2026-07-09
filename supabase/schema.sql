@@ -27,6 +27,9 @@ create table public.user_profiles (
   is_premium boolean default false,
   is_verified boolean default false,
   is_admin boolean default false,
+  is_moderator boolean default false,
+  reliability_score integer default 100,
+  noshow_count integer default 0,
   monthly_join_count integer default 0,
   monthly_create_count integer default 0,
   monthly_reset_date date,
@@ -34,6 +37,7 @@ create table public.user_profiles (
   stripe_customer_id text,
   notify_email_reminders boolean default true,
   notify_email_event_updates boolean default true,
+  push_token text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -105,7 +109,9 @@ create table public.notifications (
   user_email text not null,
   type text not null check (type in (
     'event_reminder', 'event_updated', 'new_participant',
-    'waitlist_promoted', 'new_report', 'new_message', 'new_chat_message'
+    'waitlist_promoted', 'new_report', 'new_message', 'new_chat_message',
+    'event_past', 'noshow_warning', 'event_suspended',
+    'reliability_reset_request', 'reliability_reset_done'
   )),
   title text not null,
   body text,
