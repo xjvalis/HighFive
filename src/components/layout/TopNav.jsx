@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Plus, Menu, X, Home, TrendingUp, Star, Calendar, User, Shield, Loader2, MessageSquare, MessageCircle } from "lucide-react";
+import { Search, Plus, Menu, X, Home, TrendingUp, Star, Calendar, User, Shield, Loader2, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,6 @@ import { useContext } from "react";
 import { LanguageContext } from "@/lib/language";
 import SearchPage from "@/pages/SearchPage";
 import { toast } from 'sonner';
-import { useUnreadMessageCount } from "@/hooks/useUnreadMessageCount";
 
 function LangSwitcher() {
   const { lang, setLang } = useLanguage();
@@ -204,7 +203,6 @@ export default function TopNav() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const unreadMessages = useUnreadMessageCount(user);
 
   return (
     <>
@@ -226,12 +224,6 @@ export default function TopNav() {
               <Search className="w-5 h-5 text-muted-foreground"/>
             </button>
             <LangSwitcher/>
-            {user && (
-              <button onClick={() => navigate('/messages')} className="relative p-2 rounded-xl hover:bg-secondary transition-colors" title={tr.messages}>
-                <MessageCircle className="w-5 h-5 text-muted-foreground"/>
-                {unreadMessages>0 && <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-0.5">{unreadMessages>9?'9+':unreadMessages}</span>}
-              </button>
-            )}
             <NotificationBell/>
             {user ? (
               <button className="hidden xl:flex items-center justify-center w-9 h-9 rounded-full hover:opacity-80 transition-opacity" onClick={() => navigate('/profile')}>
