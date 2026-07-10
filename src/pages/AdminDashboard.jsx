@@ -20,6 +20,7 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState('pending');
   const [events, setEvents] = useState([]);
   const [reports, setReports] = useState([]);
+  const [reliabilityRequests, setReliabilityRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editEvent, setEditEvent] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -32,16 +33,18 @@ export default function AdminDashboard() {
   const hasAccess = isAdmin || isModerator;
 
   useEffect(() => {
-    if (!hasAccess) return;
+    if (!hasAccess || !user) return;
     Promise.all([
       supabase.from('events').select('*').eq('is_approved', false).order('created_at', { ascending: false }).limit(50),
       supabase.from('reports').select('*').eq('status', 'pending').order('created_at', { ascending: false }).limit(50),
-    ]).then(([{ data: evts }, { data: rpts }]) => {
+      supabase.from('notifications').select('*').eq('user_id', user.id).eq('type', 'reliability_reset_request').eq('is_read', false).order('created_at', { ascending: false }).limit(50),
+    ]).then(([{ data: evts }, { data: rpts }, { data: relReqs }]) => {
       setEvents(evts || []);
       setReports(rpts || []);
+      setReliabilityRequests(relReqs || []);
       setLoading(false);
     });
-  }, [hasAccess]);
+  }, [hasAccess, user]);
 
   const approveEvent = async (event) => {
     await supabase.from('events').update({ is_approved: true, is_suspended: false }).eq('id', event.id);
@@ -118,7 +121,7 @@ export default function AdminDashboard() {
     const email = emailMatch?.[1];
     if (!email) return;
     await supabase.from('user_profiles').update({ reliability_score: 100, noshow_count: 0 }).eq('user_email', email);
-    await supabase.from('notifications').update({ status: 'resolved' }).eq('id', notif.id);
+    await supabase.from('notifications').update({ is_read: true }).eq('id', notif.id);
     // Notify user
     const { data: userProfile } = await supabase.from('user_profiles').select('user_id').eq('user_email', email).maybeSingle();
     if (userProfile) {
@@ -130,8 +133,13 @@ export default function AdminDashboard() {
         is_read: false,
       });
     }
-    setReports(prev => prev.filter(r => r.id !== notif.id));
+    setReliabilityRequests(prev => prev.filter(r => r.id !== notif.id));
     toast.success(lang === 'cs' ? 'Skóre resetováno' : 'Score reset');
+  };
+
+  const dismissReliabilityRequest = async (notif) => {
+    await supabase.from('notifications').update({ is_read: true }).eq('id', notif.id);
+    setReliabilityRequests(prev => prev.filter(r => r.id !== notif.id));
   };
 
   const resolveReport = async (report) => {
@@ -156,7 +164,7 @@ export default function AdminDashboard() {
         {!isAdmin && isModerator && <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">{lang === 'cs' ? 'Moderátor' : 'Moderator'}</span>}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-card rounded-2xl border border-border/60 p-4 text-center">
           <p className="text-2xl font-bold">{events.length}</p>
           <p className="text-xs text-muted-foreground mt-1">{lang === 'cs' ? 'Čeká na schválení' : 'Pending approval'}</p>
@@ -165,12 +173,17 @@ export default function AdminDashboard() {
           <p className="text-2xl font-bold">{reports.length}</p>
           <p className="text-xs text-muted-foreground mt-1">{lang === 'cs' ? 'Otevřené reporty' : 'Open reports'}</p>
         </div>
+        <div className="bg-card rounded-2xl border border-border/60 p-4 text-center">
+          <p className="text-2xl font-bold">{reliabilityRequests.length}</p>
+          <p className="text-xs text-muted-foreground mt-1">{lang === 'cs' ? 'Žádosti o reset' : 'Reset requests'}</p>
+        </div>
       </div>
 
-      <div className="flex gap-1 bg-secondary rounded-xl p-1 mb-5 w-fit">
+      <div className="flex gap-1 bg-secondary rounded-xl p-1 mb-5 w-fit flex-wrap">
         {[
           { key: 'pending', label: `${lang === 'cs' ? 'Ke schválení' : 'Pending'} (${events.length})` },
           { key: 'reports', label: `${lang === 'cs' ? 'Reporty' : 'Reports'} (${reports.length})` },
+          { key: 'reliability', label: `${lang === 'cs' ? 'Reset skóre' : 'Score resets'} (${reliabilityRequests.length})` },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={cn('px-4 py-2 rounded-lg text-sm font-medium transition-all', tab === t.key ? 'bg-card shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
@@ -211,7 +224,7 @@ export default function AdminDashboard() {
             <div className="text-center py-10"><CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2"/><p className="text-sm text-muted-foreground">{lang === 'cs' ? 'Vše zkontrolováno ✓' : 'All reviewed ✓'}</p></div>
           )}
         </div>
-      ) : (
+      ) : tab === 'reports' ? (
         <div className="space-y-3">
           {reports.map(r => (
             <div key={r.id} className="bg-card rounded-2xl border border-border/60 p-4">
@@ -251,6 +264,31 @@ export default function AdminDashboard() {
           ))}
           {reports.length === 0 && (
             <div className="text-center py-10"><CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2"/><p className="text-sm text-muted-foreground">{lang === 'cs' ? 'Žádné otevřené reporty' : 'No open reports'}</p></div>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {reliabilityRequests.map(notif => (
+            <div key={notif.id} className="bg-card rounded-2xl border border-border/60 p-4">
+              <div className="flex items-start gap-2 mb-3">
+                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5"/>
+                <div>
+                  <p className="text-sm font-medium">{notif.body}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{format(new Date(notif.created_at), 'MMM d HH:mm')}</p>
+                </div>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button size="sm" onClick={() => resetReliability(notif)} className="rounded-xl gap-1 h-8 bg-emerald-500 hover:bg-emerald-600 text-white border-0">
+                  <CheckCircle className="w-3 h-3"/>{lang === 'cs' ? 'Resetovat skóre' : 'Reset score'}
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => dismissReliabilityRequest(notif)} className="rounded-xl gap-1 h-8">
+                  <X className="w-3 h-3"/>{lang === 'cs' ? 'Zamítnout' : 'Dismiss'}
+                </Button>
+              </div>
+            </div>
+          ))}
+          {reliabilityRequests.length === 0 && (
+            <div className="text-center py-10"><CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2"/><p className="text-sm text-muted-foreground">{lang === 'cs' ? 'Žádné žádosti o reset' : 'No reset requests'}</p></div>
           )}
         </div>
       )}

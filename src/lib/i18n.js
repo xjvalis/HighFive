@@ -69,14 +69,14 @@ export const translations = {
     hotRightNow: "Hot Right Now",
     justPosted: "Just Posted",
     communityTitle: "Community",
-    communityText: "HighFive is for finding real people to do things with. No followers, no likes — just good times. 🙌",
+    communityText: "HighFive is for finding real people to do things with. No followers, no likes - just good times. 🙌",
 
     motivationMessages: (todayCount, activePeople, newToday, firstTimers) => [
       `${activePeople} people looking for someone to go out with today`,
       `${newToday} new events added today`,
       `${firstTimers} people going out with HighFive for the first time today`,
       `${todayCount || "A few"} events happening today`,
-      `No pressure — just people making plans`,
+      `No pressure - just people making plans`,
       `Most people here felt the same way before their first event`,
     ],
 
@@ -262,7 +262,7 @@ export const translations = {
     goingPast: "Happened",
 
     chatCloses: "Closes",
-    chatEmpty: "👋 Chat is empty — say hi and share details!",
+    chatEmpty: "👋 Chat is empty - say hi and share details!",
     chatPlaceholder: "Type a message... (Enter to send)",
 
     // NotificationBell
@@ -347,7 +347,7 @@ export const translations = {
       `${newToday} nových událostí dnes`,
       `${firstTimers} lidí jde dnes poprvé s HighFive`,
       `Dnes se koná ${todayCount || "pár"} událostí`,
-      `Žádný tlak — jen lidi, co si chtějí něco zažít`,
+      `Žádný tlak - jen lidi, co si chtějí něco zažít`,
       `Většina lidí tady měla před první událostí stejný pocit`,
     ],
 
@@ -533,7 +533,7 @@ export const translations = {
     goingPast: "Proběhlo",
 
     chatCloses: "Uzavírá se",
-    chatEmpty: "👋 Chat je prázdný — pozdrav ostatní!",
+    chatEmpty: "👋 Chat je prázdný - pozdrav ostatní!",
     chatPlaceholder: "Napiš zprávu... (Enter pro odeslání)",
 
     // NotificationBell

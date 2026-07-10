@@ -151,14 +151,14 @@ export default function Home() {
       });
     }
     return evts;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [events, sort, radius, userLocation]);
 
   const mapEvents = events.filter(e => e.latitude && e.longitude && (!userLocation || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius));
   const profileWithCategories = useMemo(() => {
     if (!profile) return profile;
     return { ...profile, joined_categories: [...new Set(events.filter(e => e.participants?.includes(user?.email)).map(e => e.category).filter(Boolean))] };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [profile?.id, events.length]);
 
   const handleJoin = async (event) => {
@@ -282,7 +282,7 @@ export default function Home() {
           <div className="mb-2 flex items-center justify-between gap-2 bg-violet-50/50 border border-violet-200/60 rounded-xl px-3 py-2">
             <button className="flex-1 text-left" onClick={()=>setShowPremium(true)}>
               <span className="text-xs font-medium text-violet-700">
-                {remaining<=0?'Vyčerpal/a jsi limit 3 přihlášení · Upgraduj na Plus →':remaining<=1?`Zbývá ${remaining} ze 3 přihlášení · Upgraduj →`:'Získej neomezené přihlašování — Plus od 100 Kč/měs'}
+                {remaining<=0?'Vyčerpal/a jsi limit 3 přihlášení · Upgraduj na Plus →':remaining<=1?`Zbývá ${remaining} ze 3 přihlášení · Upgraduj →`:'Získej neomezené přihlašování - Plus od 100 Kč/měs'}
               </span>
             </button>
             <button onClick={()=>{setPremiumBannerDismissed(true);sessionStorage.setItem('hf_premium_banner_dismissed','1');}} className="text-muted-foreground p-0.5"><X className="w-3 h-3"/></button>

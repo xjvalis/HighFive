@@ -73,8 +73,8 @@ export default function PremiumModal({ open, onClose, profile, highlightPlan, on
 
   const selectedPlan = PLANS.find(p => p.id === selected);
   const freeNote = lang === 'cs'
-    ? "Free plán zůstává plně funkční — 3 přihlášení a 1 vytvořená akce za měsíc. Premium je pro ty, kdo chtějí být aktivnější."
-    : "Free plan stays fully functional — 3 joins and 1 event created per month. Premium is for those who want to do more.";
+    ? "Free plán zůstává plně funkční - 3 přihlášení a 1 vytvořená akce za měsíc. Premium je pro ty, kdo chtějí být aktivnější."
+    : "Free plan stays fully functional - 3 joins and 1 event created per month. Premium is for those who want to do more.";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -141,7 +141,7 @@ export default function PremiumModal({ open, onClose, profile, highlightPlan, on
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
             {loading
               ? (lang === 'cs' ? 'Přesměrovávám...' : 'Redirecting...')
-              : `${lang === 'cs' ? 'Přejít na' : 'Go'} ${selectedPlan?.name} — ${selectedPlan?.price} Kč/${lang === 'cs' ? 'měsíc' : 'month'}`}
+              : `${lang === 'cs' ? 'Přejít na' : 'Go'} ${selectedPlan?.name} - ${selectedPlan?.price} Kč/${lang === 'cs' ? 'měsíc' : 'month'}`}
           </Button>
           <p className="text-center text-xs text-muted-foreground mt-2">{lang === 'cs' ? 'Zrušení kdykoli · Žádné skryté poplatky' : 'Cancel anytime · No hidden fees'}</p>
         </div>

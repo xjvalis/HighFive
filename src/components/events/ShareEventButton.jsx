@@ -148,7 +148,7 @@ function generateShareCanvas(event) {
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 26px Arial";
-    ctx.fillText("🙏  HighFive — najdi partu na cokoliv", 60, 600);
+    ctx.fillText("🙏  HighFive - najdi partu na cokoliv", 60, 600);
 
     // ── URL hint ──
     ctx.fillStyle = "rgba(255,255,255,0.65)";
