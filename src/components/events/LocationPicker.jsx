@@ -4,16 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MapPin, Loader2, Navigation, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-async function reverseGeocode(lat, lng) {
-  try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=cs`);
-    const data = await res.json();
-    return data.address?.city || data.address?.town || data.address?.village || data.address?.county || null;
-  } catch {
-    return null;
-  }
-}
+import { searchPlaces, reverseGeocodeCity } from "@/lib/geocoding";
 
 export default function LocationPicker({ userLocation, radius, onLocationChange, onRadiusChange }) {
   const tr = useT();
@@ -39,12 +30,9 @@ export default function LocationPicker({ userLocation, radius, onLocationChange,
     clearTimeout(debounceRef.current);
     if (query.length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
     debounceRef.current = setTimeout(async () => {
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&addressdetails=1&accept-language=cs`);
-        const data = await res.json();
-        setSuggestions(data);
-        setShowSuggestions(data.length > 0);
-      } catch { setSuggestions([]); }
+      const results = await searchPlaces(query, { lang: 'cs', limit: 5 });
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
     }, 300);
   };
 
@@ -54,9 +42,8 @@ export default function LocationPicker({ userLocation, radius, onLocationChange,
   };
 
   const handleSelectSuggestion = (item) => {
-    const city = item.address?.city || item.address?.town || item.address?.village || item.address?.county || item.display_name.split(",")[0];
-    onLocationChange({ lat: parseFloat(item.lat), lng: parseFloat(item.lon) });
-    setLocationLabel(city);
+    onLocationChange({ lat: item.lat, lng: item.lng });
+    setLocationLabel(item.label);
     setAddress("");
     setSuggestions([]);
     setShowSuggestions(false);
@@ -74,7 +61,7 @@ export default function LocationPicker({ userLocation, radius, onLocationChange,
       async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
         onLocationChange({ lat, lng });
-        const city = await reverseGeocode(lat, lng);
+        const city = await reverseGeocodeCity(lat, lng);
         setLocationLabel(city);
         setGeolocating(false);
       },
@@ -90,15 +77,13 @@ export default function LocationPicker({ userLocation, radius, onLocationChange,
     setGeocoding(true);
     setError("");
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`, { headers: { 'Accept-Language': 'cs,en' } });
-      const data = await res.json();
+      const results = await searchPlaces(address, { lang: 'cs', limit: 1 });
       setGeocoding(false);
-      if (data[0]) {
-        const lat = parseFloat(data[0].lat);
-        const lng = parseFloat(data[0].lon);
+      if (results[0]) {
+        const { lat, lng, label } = results[0];
         onLocationChange({ lat, lng });
-        const city = await reverseGeocode(lat, lng);
-        setLocationLabel(city || address.trim());
+        const city = await reverseGeocodeCity(lat, lng);
+        setLocationLabel(city || label || address.trim());
         setAddress("");
       } else {
         setError(tr.addressNotFound);
@@ -169,12 +154,12 @@ export default function LocationPicker({ userLocation, radius, onLocationChange,
             <ul className="absolute z-50 top-full mt-1 left-0 right-0 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
               {suggestions.map((item) => (
                 <li
-                  key={item.place_id}
+                  key={item.id}
                   onMouseDown={() => handleSelectSuggestion(item)}
                   className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-secondary text-sm"
                 >
                   <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
-                  <span className="truncate text-xs text-foreground">{item.display_name}</span>
+                  <span className="truncate text-xs text-foreground">{item.sublabel ? `${item.label}, ${item.sublabel}` : item.label}</span>
                 </li>
               ))}
             </ul>

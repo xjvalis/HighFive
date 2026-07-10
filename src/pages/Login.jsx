@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ export default function Login() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault(); setLoading(true);
@@ -27,6 +28,7 @@ export default function Login() {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!name.trim()) { toast.error(lang === 'cs' ? 'Zadej své jméno.' : 'Please enter your name.'); return; }
+    if (!agreedToTerms) { toast.error(lang === 'cs' ? 'Pro registraci musíš souhlasit s podmínkami.' : 'You must agree to the terms to register.'); return; }
     setLoading(true);
     const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name.trim() } } });
     if (error) toast.error(error.message);
@@ -115,7 +117,16 @@ export default function Login() {
               <Input placeholder={lang === 'cs' ? 'Jméno a příjmení' : 'Full name'} value={name} onChange={e => setName(e.target.value)} required className="rounded-xl" />
               <Input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required className="rounded-xl" />
               <Input type="password" placeholder={lang === 'cs' ? 'Heslo (min. 6 znaků)' : 'Password (min. 6 chars)'} value={password} onChange={e => setPassword(e.target.value)} required minLength={6} className="rounded-xl" />
-              <Button type="submit" disabled={loading} className="w-full rounded-xl">
+              <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
+                <input type="checkbox" checked={agreedToTerms} onChange={e => setAgreedToTerms(e.target.checked)} className="mt-0.5 rounded border-input" />
+                <span>
+                  {lang === 'cs' ? 'Souhlasím s ' : 'I agree to the '}
+                  <Link to="/terms" target="_blank" className="text-primary hover:underline">{lang === 'cs' ? 'podmínkami používání' : 'terms of use'}</Link>
+                  {lang === 'cs' ? ' a ' : ' and '}
+                  <Link to="/privacy" target="_blank" className="text-primary hover:underline">{lang === 'cs' ? 'zásadami ochrany osobních údajů' : 'privacy policy'}</Link>.
+                </span>
+              </label>
+              <Button type="submit" disabled={loading || !agreedToTerms} className="w-full rounded-xl">
                 {loading ? (lang === 'cs' ? 'Vytvářím...' : 'Creating...') : (lang === 'cs' ? 'Vytvořit účet' : 'Create account')}
               </Button>
             </form>
@@ -143,6 +154,11 @@ export default function Login() {
           <button onClick={() => window.history.back()} className="hover:underline">
             ← {lang === 'cs' ? 'Zpět na hlavní stránku' : 'Back to homepage'}
           </button>
+        </p>
+        <p className="text-center text-[11px] text-muted-foreground mt-3">
+          <Link to="/terms" className="hover:underline">{lang === 'cs' ? 'Podmínky používání' : 'Terms of use'}</Link>
+          {' · '}
+          <Link to="/privacy" className="hover:underline">{lang === 'cs' ? 'Ochrana osobních údajů' : 'Privacy policy'}</Link>
         </p>
       </div>
     </div>

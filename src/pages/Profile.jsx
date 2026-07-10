@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
@@ -263,15 +263,22 @@ export default function Profile() {
             </p>
             <button
               onClick={async () => {
-                await supabase.from('notifications').insert({
-                  user_id: 'db2e3632-d8ea-4c04-a5c2-c0119b883ac6',
-                  user_email: 'xjvalis@gmail.com',
-                  type: 'reliability_reset_request',
-                  title: `🔄 ${lang === 'cs' ? 'Žádost o reset spolehlivosti' : 'Reliability reset request'}`,
-                  body: `${profile?.display_name || user.email} (${user.email}) ${lang === 'cs' ? 'žádá o reset.' : 'requests a reset.'}`,
-                  is_read: false,
-                });
-                toast.success(lang === 'cs' ? 'Žádost odeslána moderátorovi' : 'Request sent to moderator');
+                try {
+                  const { data: mods, error: modsError } = await supabase.from('user_profiles').select('user_id,user_email').or('is_admin.eq.true,is_moderator.eq.true');
+                  if (modsError) throw modsError;
+                  if (!mods?.length) { toast.error(lang === 'cs' ? 'Nepodařilo se najít moderátora.' : 'Could not find a moderator.'); return; }
+                  const requestBody = `${profile?.display_name || user.email} (${user.email}) ${lang === 'cs' ? 'žádá o reset.' : 'requests a reset.'}`;
+                  const title = `🔄 ${lang === 'cs' ? 'Žádost o reset spolehlivosti' : 'Reliability reset request'}`;
+                  await Promise.all(mods.map(m => supabase.from('notifications').insert({
+                    user_id: m.user_id, user_email: m.user_email,
+                    type: 'reliability_reset_request',
+                    title, body: requestBody, is_read: false,
+                  })));
+                  supabase.functions.invoke('notify-admins-email', { body: { subject: title, message: requestBody } }).catch(() => {});
+                  toast.success(lang === 'cs' ? 'Žádost odeslána moderátorovi' : 'Request sent to moderator');
+                } catch {
+                  toast.error(lang === 'cs' ? 'Žádost se nepodařilo odeslat.' : 'Failed to send request.');
+                }
               }}
               className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-amber-600 transition-colors"
             >
@@ -295,6 +302,11 @@ export default function Profile() {
         />
       </div>
 
+      <p className="text-center text-[11px] text-muted-foreground mt-6">
+        <Link to="/terms" className="hover:underline">{lang === 'cs' ? 'Podmínky používání' : 'Terms of use'}</Link>
+        {' · '}
+        <Link to="/privacy" className="hover:underline">{lang === 'cs' ? 'Ochrana osobních údajů' : 'Privacy policy'}</Link>
+      </p>
     </div>
   );
 }

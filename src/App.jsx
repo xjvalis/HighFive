@@ -6,18 +6,31 @@ import PageNotFound from './lib/PageNotFound';
 import AppLayout from '@/components/layout/AppLayout';
 import LanguageProvider from '@/lib/LanguageProvider';
 import { CurrentUserProvider, useCurrentUser } from '@/contexts/CurrentUserContext';
-import Login from '@/pages/Login';
-import Home from '@/pages/Home';
-import EventDetail from '@/pages/EventDetail';
-import CreateEvent from '@/pages/CreateEvent';
-import Profile from '@/pages/Profile';
-import Favorites from '@/pages/Favorites';
-import Trending from '@/pages/Trending';
-import MyEvents from '@/pages/MyEvents';
-import AdminDashboard from '@/pages/AdminDashboard';
-import Notifications from '@/pages/Notifications';
-import Messages from '@/pages/Messages';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
+
+// Route-level code splitting — only the page the user actually lands on
+// (plus AppLayout/Home for the common case) ships on first load.
+const Login = lazy(() => import('@/pages/Login'));
+const Home = lazy(() => import('@/pages/Home'));
+const EventDetail = lazy(() => import('@/pages/EventDetail'));
+const CreateEvent = lazy(() => import('@/pages/CreateEvent'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const Favorites = lazy(() => import('@/pages/Favorites'));
+const Trending = lazy(() => import('@/pages/Trending'));
+const MyEvents = lazy(() => import('@/pages/MyEvents'));
+const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
+const Notifications = lazy(() => import('@/pages/Notifications'));
+const Messages = lazy(() => import('@/pages/Messages'));
+const Terms = lazy(() => import('@/pages/Terms'));
+const Privacy = lazy(() => import('@/pages/Privacy'));
+
+function RouteLoader() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <div className="w-8 h-8 border-4 border-lavender border-t-violet-500 rounded-full animate-spin"/>
+    </div>
+  );
+}
 
 function SplashScreen() {
   return (
@@ -67,22 +80,26 @@ function AppContent() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <Router>
-        <Routes>
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/trending" element={<Trending />} />
-            <Route path="/event/:id" element={<EventDetail />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/my-events" element={<MyEvents />} />
-            <Route path="/create" element={<CreateEvent />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-          </Route>
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<PageNotFound />} />
-        </Routes>
+        <Suspense fallback={<RouteLoader/>}>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/trending" element={<Trending />} />
+              <Route path="/event/:id" element={<EventDetail />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/my-events" element={<MyEvents />} />
+              <Route path="/create" element={<CreateEvent />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
+            <Route path="/login" element={<Login />} />
+            <Route path="/terms" element={<div className="min-h-screen bg-background px-4 pt-8"><Terms /></div>} />
+            <Route path="/privacy" element={<div className="min-h-screen bg-background px-4 pt-8"><Privacy /></div>} />
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+        </Suspense>
       </Router>
       <Toaster />
     </QueryClientProvider>

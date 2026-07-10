@@ -4,6 +4,7 @@ import { MapPin, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useContext } from "react";
 import { LanguageContext } from "@/lib/language";
+import { searchPlaces } from "@/lib/geocoding";
 
 export default function LocationAutocomplete({ value, onChange, placeholder, className }) {
   const { lang } = useContext(LanguageContext);
@@ -37,19 +38,9 @@ export default function LocationAutocomplete({ value, onChange, placeholder, cla
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        // Use Nominatim with higher detail level
-        const url = `https://nominatim.openstreetmap.org/search?` + new URLSearchParams({
-          q: val,
-          format: 'json',
-          addressdetails: '1',
-          limit: '8',
-          'accept-language': lang === 'cs' ? 'cs,en' : 'en,cs',
-          countrycodes: '', // no restriction - worldwide
-        });
-        const res = await fetch(url, { headers: { 'User-Agent': 'HighFive/1.0' } });
-        const data = await res.json();
-        setSuggestions(data || []);
-        setOpen(data.length > 0);
+        const results = await searchPlaces(val, { lang: lang === 'cs' ? 'cs' : 'en', limit: 8 });
+        setSuggestions(results);
+        setOpen(results.length > 0);
       } catch {
         setSuggestions([]);
       } finally {
@@ -58,32 +49,10 @@ export default function LocationAutocomplete({ value, onChange, placeholder, cla
     }, 300);
   };
 
-  const formatLabel = (item) => {
-    const a = item.address || {};
-    // Build a nice label: venue/park/street, city
-    const parts = [];
-    // Specific place name
-    const specific = a.amenity || a.leisure || a.tourism || a.shop || a.building ||
-                     a.park || a.natural || a.historic || a.sport;
-    if (specific) parts.push(specific);
-    // Street
-    if (a.road) parts.push(a.road + (a.house_number ? ' ' + a.house_number : ''));
-    // Neighborhood / suburb
-    if (a.neighbourhood || a.suburb || a.quarter) parts.push(a.neighbourhood || a.suburb || a.quarter);
-    // City
-    if (a.city || a.town || a.village || a.municipality) {
-      parts.push(a.city || a.town || a.village || a.municipality);
-    }
-    // Country (only if no city)
-    if (!a.city && !a.town && !a.village && a.country) parts.push(a.country);
-
-    return parts.length > 0 ? parts.join(', ') : item.display_name;
-  };
-
   const handleSelect = (item) => {
-    const label = formatLabel(item);
+    const label = item.sublabel ? `${item.label}, ${item.sublabel}` : item.label;
     setQuery(label);
-    onChange({ location: label, latitude: parseFloat(item.lat), longitude: parseFloat(item.lon) });
+    onChange({ location: label, latitude: item.lat, longitude: item.lng });
     setOpen(false);
     setSuggestions([]);
   };
@@ -119,52 +88,22 @@ export default function LocationAutocomplete({ value, onChange, placeholder, cla
 
       {open && suggestions.length > 0 && (
         <div className="absolute left-0 top-full mt-1.5 z-50 bg-card border border-border rounded-2xl shadow-xl overflow-hidden w-full max-h-64 overflow-y-auto">
-          {suggestions.map((item, i) => {
-            const label = formatLabel(item);
-            const type = item.type || item.class || '';
-            const typeEmoji = getTypeEmoji(item);
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => handleSelect(item)}
-                className="flex items-start gap-2.5 w-full px-4 py-2.5 text-left hover:bg-secondary transition-colors border-b border-border/40 last:border-0"
-              >
-                <span className="text-base flex-shrink-0 mt-0.5">{typeEmoji}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{label}</p>
-                  {item.address?.country && (
-                    <p className="text-xs text-muted-foreground truncate">{item.address.country}</p>
-                  )}
-                </div>
-              </button>
-            );
-          })}
+          {suggestions.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => handleSelect(item)}
+              className="flex items-start gap-2.5 w-full px-4 py-2.5 text-left hover:bg-secondary transition-colors border-b border-border/40 last:border-0"
+            >
+              <span className="text-base flex-shrink-0 mt-0.5">{item.emoji}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{item.label}</p>
+                {item.sublabel && <p className="text-xs text-muted-foreground truncate">{item.sublabel}</p>}
+              </div>
+            </button>
+          ))}
         </div>
       )}
     </div>
   );
-}
-
-function getTypeEmoji(item) {
-  const a = item.address || {};
-  const cls = item.class || '';
-  const type = item.type || '';
-  if (a.amenity || cls === 'amenity') {
-    if (type === 'restaurant' || type === 'cafe' || type === 'bar') return '🍽️';
-    if (type === 'pub') return '🍺';
-    if (type === 'park') return '🌳';
-    if (type === 'sports_centre' || type === 'gym') return '🏋️';
-    if (type === 'library') return '📚';
-    if (type === 'theatre' || type === 'cinema') return '🎭';
-    if (type === 'hospital' || type === 'clinic') return '🏥';
-    return '📍';
-  }
-  if (cls === 'leisure' || type === 'park' || type === 'garden') return '🌳';
-  if (cls === 'natural') return '🏞️';
-  if (cls === 'tourism') return '🏛️';
-  if (cls === 'shop') return '🛍️';
-  if (cls === 'highway' || cls === 'place') return '📍';
-  if (a.city || a.town || a.village) return '🏙️';
-  return '📍';
 }
