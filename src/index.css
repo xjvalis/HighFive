@@ -110,9 +110,16 @@
 }
 
 @layer utilities {
-  /* Safe bottom padding for bottom nav */
+  /* Keeps page content clear of the fixed MobileBottomNav (h-16 + safe area),
+     plus a gap so the last element isn't flush against it. The nav is
+     xl:hidden, so above xl this collapses to ordinary bottom padding. */
   .pb-safe {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 1rem);
+  }
+  @media (min-width: 1280px) {
+    .pb-safe {
+      padding-bottom: 1rem;
+    }
   }
   .bottom-safe {
     bottom: env(safe-area-inset-bottom);

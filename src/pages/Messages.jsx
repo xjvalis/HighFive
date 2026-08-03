@@ -102,8 +102,10 @@ export default function Messages() {
   if (!user && !userLoading) return null;
   if (loading) return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-lavender border-t-violet-500 rounded-full animate-spin"/></div>;
 
+  // dvh (not vh) so iOS Safari's collapsing URL bar doesn't push the composer
+  // off-screen; subtracts the layout's top nav + bottom nav padding.
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)]">
+    <div className="flex flex-col h-[calc(100dvh-136px)] xl:h-[calc(100dvh-72px)]">
       <div className="flex items-center gap-3 mb-4">
         {selected&&<button onClick={()=>setSelected(null)} className="p-1.5 hover:bg-secondary rounded-lg"><ArrowLeft className="w-4 h-4"/></button>}
         <h1 className="font-grotesk font-bold text-xl">{selected?pName(selected):tr.messages}</h1>
