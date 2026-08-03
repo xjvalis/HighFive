@@ -1,3 +1,5 @@
+import { useContext } from "react";
+import { LanguageContext } from "@/lib/language";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,7 +15,8 @@ import {
  * Simple reusable confirm dialog.
  * Props: open, onConfirm, onCancel, title, description, confirmLabel, destructive
  */
-export default function ConfirmDialog({ open, onConfirm, onCancel, title, description, confirmLabel = "Potvrdit", destructive = false }) {
+export default function ConfirmDialog({ open, onConfirm, onCancel, title, description, confirmLabel, destructive = false }) {
+  const { lang } = useContext(LanguageContext);
   return (
     <AlertDialog open={open} onOpenChange={v => !v && onCancel()}>
       <AlertDialogContent>
@@ -22,12 +25,12 @@ export default function ConfirmDialog({ open, onConfirm, onCancel, title, descri
           {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onCancel}>Zrušit</AlertDialogCancel>
+          <AlertDialogCancel onClick={onCancel}>{lang === 'cs' ? 'Zrušit' : 'Cancel'}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             className={destructive ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
           >
-            {confirmLabel}
+            {confirmLabel || (lang === 'cs' ? 'Potvrdit' : 'Confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

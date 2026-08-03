@@ -12,6 +12,7 @@ import { LanguageContext } from '@/lib/language';
 import { toast } from 'sonner';
 import EditEventModal from '@/components/events/EditEventModal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { renderNotification } from '@/lib/notifTemplates';
 
 export default function AdminDashboard() {
   const tr = useT();
@@ -65,8 +66,7 @@ export default function AdminDashboard() {
         await supabase.from('notifications').insert({
           user_id: orgProfile.user_id, user_email: deleteConfirm.organizer_email,
           type: 'event_updated',
-          title: `🗑️ ${lang === 'cs' ? 'Tvá událost byla odstraněna' : 'Your event was removed'}: ${deleteConfirm.title}`,
-          body: lang === 'cs' ? 'Moderátor odstranil tvou událost z platformy.' : 'A moderator removed your event from the platform.',
+          data: { eventTitle: deleteConfirm.title, reason: 'deleted_by_moderator' },
           is_read: false,
         });
       }
@@ -88,8 +88,7 @@ export default function AdminDashboard() {
         await supabase.from('notifications').insert({
           user_id: orgProfile.user_id, user_email: suspendDialog.organizer_email,
           type: 'event_suspended',
-          title: `⚠️ ${lang === 'cs' ? 'Tvá událost byla pozastavena' : 'Your event was suspended'}: ${suspendDialog.title}`,
-          body: reason,
+          data: { eventTitle: suspendDialog.title, reason }, // reason is moderator-typed — verbatim
           event_id: suspendDialog.id,
           is_read: false,
         });
@@ -116,9 +115,8 @@ export default function AdminDashboard() {
   };
 
   const resetReliability = async (notif) => {
-    // Extract email from notification body
-    const emailMatch = notif.body?.match(/\(([^)]+@[^)]+)\)/);
-    const email = emailMatch?.[1];
+    // New rows carry the email in data; legacy rows only have it embedded in body text.
+    const email = notif.data?.requesterEmail || notif.body?.match(/\(([^)]+@[^)]+)\)/)?.[1];
     if (!email) return;
     await supabase.from('user_profiles').update({ reliability_score: 100, noshow_count: 0 }).eq('user_email', email);
     await supabase.from('notifications').update({ is_read: true }).eq('id', notif.id);
@@ -128,8 +126,7 @@ export default function AdminDashboard() {
       await supabase.from('notifications').insert({
         user_id: userProfile.user_id, user_email: email,
         type: 'reliability_reset_done',
-        title: lang === 'cs' ? '✅ Tvé skóre spolehlivosti bylo resetováno' : '✅ Your reliability score was reset',
-        body: lang === 'cs' ? 'Moderátor ti resetoval skóre spolehlivosti. Čistý štít!' : 'A moderator reset your reliability score. Fresh start!',
+        data: {},
         is_read: false,
       });
     }
@@ -273,7 +270,7 @@ export default function AdminDashboard() {
               <div className="flex items-start gap-2 mb-3">
                 <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5"/>
                 <div>
-                  <p className="text-sm font-medium">{notif.body}</p>
+                  <p className="text-sm font-medium">{renderNotification(notif, lang).body}</p>
                   <p className="text-xs text-muted-foreground mt-1">{format(new Date(notif.created_at), 'MMM d HH:mm')}</p>
                 </div>
               </div>

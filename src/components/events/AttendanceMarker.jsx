@@ -62,10 +62,7 @@ export default function AttendanceMarker({ event, onMarked }) {
             user_id: profile.user_id,
             user_email: email,
             type: 'noshow_warning',
-            title: lang === 'cs' ? '⚠️ Nepřišel/a jsi na akci' : '⚠️ You missed an event',
-            body: lang === 'cs'
-              ? `Organizátor označil tvou neúčast na akci "${event.title}". Pokud se nemůžeš zúčastnit, odhlašuj se prosím předem ✌️`
-              : `The organizer marked you as absent from "${event.title}". Please cancel in advance if you can't make it ✌️`,
+            data: { eventTitle: event.title },
             event_id: event.id,
             is_read: false,
           }).catch(() => {});

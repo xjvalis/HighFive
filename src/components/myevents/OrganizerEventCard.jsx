@@ -39,7 +39,7 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
       setEmailMsg('');
       toast.success(tr.messageSentToAll?.(participants.length) || 'Zpráva odeslána všem účastníkům!');
     } catch {
-      toast.error('Nepodařilo se odeslat zprávu všem účastníkům.');
+      toast.error(lang === 'cs' ? 'Nepodařilo se odeslat zprávu všem účastníkům.' : 'Failed to message all participants.');
     } finally {
       setEmailLoading(false);
     }
@@ -53,13 +53,13 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
         const {data:up, error: upError}=await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
         if (upError) throw upError;
         if (up) {
-          const { error: notifError } = await supabase.from('notifications').insert({user_id:up.user_id,user_email:email,type:'event_reminder',title:`⏰ Připomínka: ${event.title}`,body:`Událost se koná ${format(new Date(event.date),'d. M. HH:mm')} na místě ${event.location}.`,event_id:event.id,is_read:false});
+          const { error: notifError } = await supabase.from('notifications').insert({user_id:up.user_id,user_email:email,type:'event_reminder',data:{eventTitle:event.title,eventDate:event.date,location:event.location},event_id:event.id,is_read:false});
           if (notifError) throw notifError;
         }
       }));
       toast.success(tr.reminderSent?.(participants.length) || 'Připomínka odeslána!');
     } catch {
-      toast.error('Nepodařilo se odeslat připomínku.');
+      toast.error(lang === 'cs' ? 'Nepodařilo se odeslat připomínku.' : 'Failed to send the reminder.');
     } finally {
       setReminderLoading(false);
     }
@@ -69,7 +69,7 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
     <div className="bg-card rounded-2xl border border-border/60 shadow-sm overflow-hidden">
       <button className="w-full flex items-start gap-3 p-4 text-left hover:bg-secondary/30 transition-colors" onClick={()=>setExpanded(e=>!e)}>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-1"><span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${cat.color}`}>{cat.emoji} {getCategoryLabel(event.category,lang)}</span>{isFull&&<span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground font-medium">Plné</span>}</div>
+          <div className="flex items-center gap-1.5 mb-1"><span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${cat.color}`}>{cat.emoji} {getCategoryLabel(event.category,lang)}</span>{isFull&&<span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground font-medium">{lang === 'cs' ? 'Plné' : 'Full'}</span>}</div>
           <p className="font-grotesk font-semibold text-sm text-foreground">{event.title}</p>
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3"/>{event.location}</span>

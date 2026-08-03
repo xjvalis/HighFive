@@ -45,7 +45,7 @@ export default function Home() {
   const params = new URLSearchParams(location.search);
   const activeCategory = params.get('category');
 
-  usePageMeta({ title: activeCategory ? `${activeCategory} | HighFive` : 'HighFive', description: 'Najdi lidi pro společné aktivity.' });
+  usePageMeta({ title: activeCategory ? `${activeCategory} | HighFive` : 'HighFive', description: lang === 'cs' ? 'Najdi lidi pro společné aktivity.' : 'Find people for shared activities.' });
 
   useEffect(() => {
     if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => setUserLocation({ lat: p.coords.latitude, lng: p.coords.longitude }), () => {});
@@ -282,7 +282,9 @@ export default function Home() {
           <div className="mb-2 flex items-center justify-between gap-2 bg-violet-50/50 border border-violet-200/60 rounded-xl px-3 py-2">
             <button className="flex-1 text-left" onClick={()=>setShowPremium(true)}>
               <span className="text-xs font-medium text-violet-700">
-                {remaining<=0?'Vyčerpal/a jsi limit 3 přihlášení · Upgraduj na Plus →':remaining<=1?`Zbývá ${remaining} ze 3 přihlášení · Upgraduj →`:'Získej neomezené přihlašování - Plus od 100 Kč/měs'}
+                {lang === 'cs'
+                  ? (remaining<=0?'Vyčerpal/a jsi limit 3 přihlášení · Upgraduj na Plus →':remaining<=1?`Zbývá ${remaining} ze 3 přihlášení · Upgraduj →`:'Získej neomezené přihlašování - Plus od 100 Kč/měs')
+                  : (remaining<=0?"You've used your 3 free joins this month · Upgrade to Plus →":remaining<=1?`${remaining} of 3 joins left · Upgrade →`:'Get unlimited joins - Plus from 100 Kč/mo')}
               </span>
             </button>
             <button onClick={()=>{setPremiumBannerDismissed(true);sessionStorage.setItem('hf_premium_banner_dismissed','1');}} className="text-muted-foreground p-0.5"><X className="w-3 h-3"/></button>

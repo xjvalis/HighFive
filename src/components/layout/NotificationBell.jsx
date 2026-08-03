@@ -7,11 +7,13 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
 import { toast } from 'sonner';
-
-const TYPE_ICONS = { event_suspended: '⚠️', noshow_warning: '⚠️', event_reminder:'⏰', event_updated:'✏️', new_participant:'🙌', waitlist_promoted:'🎉', new_report:'🚩', new_message:'💬', new_chat_message:'💬', event_past:'🗓️' };
+import { useContext } from 'react';
+import { LanguageContext } from '@/lib/language';
+import { renderNotification } from '@/lib/notifTemplates';
 
 export default function NotificationBell() {
   const tr = useT();
+  const { lang } = useContext(LanguageContext);
   const { user } = useCurrentUser();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -20,7 +22,7 @@ export default function NotificationBell() {
   useEffect(() => {
     if (!user) return;
     supabase.from('notifications').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(20).then(({data, error})=>{
-      if (error) toast.error('Nepodařilo se načíst notifikace.');
+      if (error) toast.error(tr.notifLoadFailed);
       setNotifications(data||[]);
     });
 
@@ -41,7 +43,7 @@ export default function NotificationBell() {
   const markRead = async (n) => {
     if (n.is_read) return;
     const { error } = await supabase.from('notifications').update({is_read:true}).eq('id',n.id);
-    if (error) { toast.error('Nepodařilo se označit notifikaci jako přečtenou.'); return; }
+    if (error) { toast.error(tr.notifMarkReadFailed); return; }
     setNotifications(prev=>prev.map(x=>x.id===n.id?{...x,is_read:true}:x));
   };
   const markAllRead = async () => {
@@ -50,7 +52,7 @@ export default function NotificationBell() {
       await Promise.all(unread.map(n=>supabase.from('notifications').update({is_read:true}).eq('id',n.id)));
       setNotifications(prev=>prev.map(n=>({...n,is_read:true})));
     } catch {
-      toast.error('Nepodařilo se označit notifikace jako přečtené.');
+      toast.error(tr.notifMarkAllReadFailed);
     }
   };
 
@@ -68,23 +70,25 @@ export default function NotificationBell() {
           </div>
           <div className="max-h-[360px] overflow-y-auto">
             {notifications.length===0 ? <div className="text-center py-10"><p className="text-2xl mb-1">🔔</p><p className="text-sm text-muted-foreground">{tr.notifNone}</p></div>
-            : notifications.map(n=>(
+            : notifications.map(n=>{
+              const rendered = renderNotification(n, lang);
+              return (
               <div key={n.id} onClick={()=>{markRead(n);setOpen(false);if(n.event_id)window.open(`/event/${n.event_id}`,'_blank');}} className={cn('flex gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/50 transition-colors border-b border-border/40 last:border-0',!n.is_read&&'bg-lavender/20')}>
-                <span className="text-lg flex-shrink-0 mt-0.5">{TYPE_ICONS[n.type]||'🔔'}</span>
+                <span className="text-lg flex-shrink-0 mt-0.5">{rendered.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start gap-2">
-                    <p className={cn('text-xs font-medium leading-snug flex-1',!n.is_read?'text-foreground':'text-foreground/70')}>{n.title}</p>
+                    <p className={cn('text-xs font-medium leading-snug flex-1',!n.is_read?'text-foreground':'text-foreground/70')}>{rendered.title}</p>
                     {!n.is_read&&(
                       <button onClick={e=>{e.stopPropagation();markRead(n);}} className="p-1.5 -m-1.5 flex-shrink-0" title={tr.notifMarkAllRead}>
                         <div className="w-2.5 h-2.5 rounded-full bg-primary"/>
                       </button>
                     )}
                   </div>
-                  {n.body&&<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>}
+                  {rendered.body&&<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{rendered.body}</p>}
                   <span className="text-[10px] text-muted-foreground mt-1 block">{format(new Date(n.created_at),'MMM d, HH:mm')}</span>
                 </div>
               </div>
-            ))}
+            );})}
           </div>
           <div className="border-t border-border px-4 py-2.5"><Link to="/notifications" onClick={()=>setOpen(false)} className="text-xs text-primary font-medium hover:underline">{tr.notifSeeAll}</Link></div>
         </div>

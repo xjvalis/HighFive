@@ -91,9 +91,17 @@
     user-select: none;
   }
   /* Re-enable text selection for inputs and editable content */
-  input, textarea, [contenteditable], p, span.selectable {
+  input, textarea, [contenteditable], p, span.selectable,
+  h1, h2, h3, h4, h5, h6 {
     -webkit-user-select: text;
     user-select: text;
+  }
+  /* ...but not when a heading is just the label of something you tap, or
+     long-pressing a feed card would select its title instead of opening it */
+  a :where(h1, h2, h3, h4, h5, h6),
+  button :where(h1, h2, h3, h4, h5, h6) {
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* Remove tap highlight on iOS */

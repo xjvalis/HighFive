@@ -27,7 +27,7 @@ export default function EventChat({ event, user, profile, readOnly = false }) {
     if (!canChat || !event?.id) return;
     supabase.from('event_chat').select('*').eq('event_id', event.id).order('created_at', { ascending: true }).limit(100)
       .then(({ data, error }) => {
-        if (error) toast.error('Nepodařilo se načíst chat.');
+        if (error) toast.error(tr.chatLoadFailed);
         setMessages(data || []); setLoading(false);
       });
 
@@ -55,7 +55,7 @@ export default function EventChat({ event, user, profile, readOnly = false }) {
       author_avatar: profile?.avatar_url || null,
       content,
     });
-    if (error) { setNewMsg(content); toast.error('Nepodařilo se odeslat zprávu.'); }
+    if (error) { setNewMsg(content); toast.error(tr.chatSendFailed); }
   };
 
   if (!canChat) return null;

@@ -95,7 +95,7 @@ export default function EventDetail() {
     setJoiningEvent(true);
     try {
       const { data, error } = await supabase.functions.invoke('join-event', { body: { event_id: event.id, action } });
-      if (error) { toast.error('Nepodařilo se změnit účast.'); return; }
+      if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.'); return; }
       if (data?.error === 'monthly_limit_reached') { setShowPremium(true); return; }
       if (data?.event) setEvent(data.event);
     } finally { setJoiningEvent(false); }
@@ -190,7 +190,7 @@ export default function EventDetail() {
             const now=new Date();const reset=profile.monthly_reset_date?new Date(profile.monthly_reset_date):null;
             const isNew=!reset||now.getFullYear()>reset.getFullYear()||now.getMonth()>reset.getMonth();
             const remaining=3-(isNew?0:profile.monthly_join_count||0);
-            if (remaining<=1&&remaining>0) return <button onClick={()=>setShowPremium(true)} className="w-full mb-3 flex items-center gap-2 bg-lemon/60 rounded-xl px-3 py-2 text-xs text-yellow-700 hover:bg-lemon transition-colors"><Crown className="w-3.5 h-3.5"/>{`Zbývá ${remaining} volné zúčastnění · Upgrade na Plus →`}</button>;
+            if (remaining<=1&&remaining>0) return <button onClick={()=>setShowPremium(true)} className="w-full mb-3 flex items-center gap-2 bg-lemon/60 rounded-xl px-3 py-2 text-xs text-yellow-700 hover:bg-lemon transition-colors"><Crown className="w-3.5 h-3.5"/>{lang === 'cs' ? `Zbývá ${remaining} volné zúčastnění · Upgrade na Plus →` : `${remaining} free join${remaining===1?'':'s'} left · Upgrade to Plus →`}</button>;
             return null;
           })()}
 

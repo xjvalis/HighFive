@@ -151,7 +151,7 @@ export default function Login() {
           )}
         </div>
         <p className="text-center text-xs text-muted-foreground mt-4">
-          <button onClick={() => window.history.back()} className="hover:underline">
+          <button onClick={() => navigate('/')} className="hover:underline">
             ← {lang === 'cs' ? 'Zpět na hlavní stránku' : 'Back to homepage'}
           </button>
         </p>

@@ -49,8 +49,7 @@ export default function ParticipantsPanel({ event, isOrganizer, open, onClose, o
       onEventUpdate?.(data);
       await notifyUser(email, {
         type: 'waitlist_promoted',
-        title: `🎉 Dostal/a ses na akci: ${event.title}`,
-        body: lang === 'cs' ? 'Byl/a jsi přesunut/a z čekačky do účastníků.' : 'You were moved from the waitlist to participants.',
+        data: { eventTitle: event.title },
         event_id: event.id,
       });
       toast.success(tr.promotedToast?.(email) || `${email} přijat/a!`);
@@ -68,7 +67,7 @@ export default function ParticipantsPanel({ event, isOrganizer, open, onClose, o
       onEventUpdate?.(data);
       await notifyUser(email, {
         type: 'event_updated',
-        title: `😔 ${lang === 'cs' ? 'Nebyl/a jsi přijat/a na akci' : 'You were not accepted to the event'}: ${event.title}`,
+        data: { eventTitle: event.title, reason: 'waitlist_declined' },
         event_id: event.id,
       });
     } finally {
@@ -87,7 +86,7 @@ export default function ParticipantsPanel({ event, isOrganizer, open, onClose, o
       const name = participantProfiles[email]?.display_name || email;
       await notifyUser(email, {
         type: 'event_updated',
-        title: `😔 ${lang === 'cs' ? 'Byl/a jsi odebrán/a z akce' : 'You were removed from the event'}: ${event.title}`,
+        data: { eventTitle: event.title, reason: 'removed' },
         event_id: event.id,
       });
       toast.success(tr.removedToast?.(name) || `${name} odebrán/a.`);

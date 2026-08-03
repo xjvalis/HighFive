@@ -12,14 +12,22 @@ const endOf = (e) => e.end_time
   ? new Date(e.end_time)
   : new Date(new Date(e.date).getTime() + 2 * 60 * 60 * 1000);
 
-// hot_score exists in the DB but is null on most rows, so rank on the counters
-// the app actually maintains. People who signed up are the strongest signal of
-// an event being alive, and something happening right now gets a nudge up.
-const liveliness = (e, now) =>
-  (e.participants?.length || 0) * 3 +
-  (e.favorites_count || 0) * 2 +
-  (e.comments_count || 0) +
-  (new Date(e.date) <= now ? 5 : 0);
+// hot_score exists in the DB but is null on most rows, so rank on the signals
+// the app actually maintains: people signed up, an active discussion, being
+// favorited a lot, only a few spots left (scarcity — a near-full event reads
+// as "in demand" far more than raw headcount does), and already underway.
+const liveliness = (e, now) => {
+  const capacity = e.max_capacity;
+  const going = e.participants?.length || 0;
+  const spotsLeft = capacity ? capacity - going : null;
+  const almostFull = spotsLeft !== null && spotsLeft > 0 && spotsLeft <= 3;
+
+  return going * 3
+    + (e.comments_count || 0) * 2
+    + (e.favorites_count || 0) * 2
+    + (almostFull ? 8 : 0)
+    + (new Date(e.date) <= now ? 5 : 0);
+};
 
 export default function Trending() {
   const tr = useT();

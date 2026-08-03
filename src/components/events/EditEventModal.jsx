@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { LanguageContext } from "@/lib/language";
 import { supabase } from "@/lib/supabaseClient";
 import { CATEGORIES } from "@/lib/categories";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import { toast } from 'sonner';
 
 export default function EditEventModal({ event, open, onClose, onSaved }) {
   const navigate = useNavigate();
+  const { lang } = useContext(LanguageContext);
   const [form, setForm] = useState({
     title: event.title || "",
     description: event.description || "",
@@ -43,11 +45,11 @@ export default function EditEventModal({ event, open, onClose, onSaved }) {
     };
     try {
       const { error } = await supabase.from('events').update(data).eq('id', event.id);
-      if (error) { toast.error('Nepodařilo se uložit změny.'); return; }
+      if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se uložit změny.' : 'Failed to save changes.'); return; }
       onSaved({ ...event, ...data });
       onClose();
     } catch {
-      toast.error('Nepodařilo se uložit změny.');
+      toast.error(lang === 'cs' ? 'Nepodařilo se uložit změny.' : 'Failed to save changes.');
     } finally {
       setSaving(false);
     }
@@ -58,11 +60,11 @@ export default function EditEventModal({ event, open, onClose, onSaved }) {
     setDeleting(true);
     try {
       const { error } = await supabase.from('events').delete().eq('id', event.id);
-      if (error) { toast.error('Nepodařilo se smazat událost.'); return; }
+      if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se smazat událost.' : 'Failed to delete the event.'); return; }
       onClose();
       navigate("/");
     } catch {
-      toast.error('Nepodařilo se smazat událost.');
+      toast.error(lang === 'cs' ? 'Nepodařilo se smazat událost.' : 'Failed to delete the event.');
     } finally {
       setDeleting(false);
     }
@@ -73,16 +75,16 @@ export default function EditEventModal({ event, open, onClose, onSaved }) {
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-grotesk">Upravit událost</DialogTitle>
+            <DialogTitle className="font-grotesk">{lang === 'cs' ? 'Upravit událost' : 'Edit event'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <Label className="text-sm font-medium mb-1 block">Název *</Label>
+              <Label className="text-sm font-medium mb-1 block">{lang === 'cs' ? 'Název *' : 'Title *'}</Label>
               <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required className="rounded-xl" />
             </div>
 
             <div>
-              <Label className="text-sm font-medium mb-1.5 block">Kategorie *</Label>
+              <Label className="text-sm font-medium mb-1.5 block">{lang === 'cs' ? 'Kategorie *' : 'Category *'}</Label>
               <div className="flex flex-wrap gap-1.5">
                 {CATEGORIES.map(cat => (
                   <button key={cat.name} type="button" onClick={() => setForm(f => ({ ...f, category: cat.name }))}
@@ -96,49 +98,49 @@ export default function EditEventModal({ event, open, onClose, onSaved }) {
             </div>
 
             <div>
-              <Label className="text-sm font-medium mb-1 block">Popis</Label>
+              <Label className="text-sm font-medium mb-1 block">{lang === 'cs' ? 'Popis' : 'Description'}</Label>
               <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="rounded-xl resize-none min-h-[80px]" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-sm font-medium mb-1 block">📍 Místo *</Label>
+                <Label className="text-sm font-medium mb-1 block">📍 {lang === 'cs' ? 'Místo *' : 'Location *'}</Label>
                 <LocationAutocomplete
                   value={form.location}
                   onChange={({ location, latitude, longitude }) => setForm(f => ({ ...f, location, latitude, longitude }))}
-                  placeholder="Kde?"
+                  placeholder={lang === 'cs' ? 'Kde?' : 'Where?'}
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium mb-1 block">🕐 Datum *</Label>
+                <Label className="text-sm font-medium mb-1 block">🕐 {lang === 'cs' ? 'Datum *' : 'Date *'}</Label>
                 <Input type="datetime-local" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required className="rounded-xl" />
               </div>
             </div>
 
             <div>
-              <Label className="text-sm font-medium mb-1 block">👥 Max osob</Label>
-              <Input type="number" value={form.max_capacity} onChange={e => setForm(f => ({ ...f, max_capacity: e.target.value }))} placeholder="Neomezeno" min="2" className="rounded-xl" />
+              <Label className="text-sm font-medium mb-1 block">👥 {lang === 'cs' ? 'Max osob' : 'Max people'}</Label>
+              <Input type="number" value={form.max_capacity} onChange={e => setForm(f => ({ ...f, max_capacity: e.target.value }))} placeholder={lang === 'cs' ? 'Neomezeno' : 'Unlimited'} min="2" className="rounded-xl" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-medium mb-1 block">Min věk</Label>
+                <Label className="text-xs font-medium mb-1 block">{lang === 'cs' ? 'Min věk' : 'Min age'}</Label>
                 <Input type="number" value={form.age_min} onChange={e => setForm(f => ({ ...f, age_min: e.target.value }))} className="rounded-xl h-8 text-xs" min="1" max="99" />
               </div>
               <div>
-                <Label className="text-xs font-medium mb-1 block">Max věk</Label>
+                <Label className="text-xs font-medium mb-1 block">{lang === 'cs' ? 'Max věk' : 'Max age'}</Label>
                 <Input type="number" value={form.age_max} onChange={e => setForm(f => ({ ...f, age_max: e.target.value }))} className="rounded-xl h-8 text-xs" min="1" max="99" />
               </div>
             </div>
 
             <div>
-              <Label className="text-xs font-medium mb-1.5 block">Doporučení pohlaví</Label>
+              <Label className="text-xs font-medium mb-1.5 block">{lang === 'cs' ? 'Doporučení pohlaví' : 'Gender recommendation'}</Label>
               <div className="flex gap-2">
                 {[
-                  { val: "Everyone", label: "Všichni" },
-                  { val: "M", label: "♂ Muži" },
-                  { val: "F", label: "♀ Ženy" },
-                  { val: "M+F", label: "♂♀ Mix" },
+                  { val: "Everyone", label: lang === 'cs' ? 'Všichni' : 'Everyone' },
+                  { val: "M", label: lang === 'cs' ? '♂ Muži' : '♂ Men' },
+                  { val: "F", label: lang === 'cs' ? '♀ Ženy' : '♀ Women' },
+                  { val: "M+F", label: '♂♀ Mix' },
                 ].map(opt => (
                   <button key={opt.val} type="button" onClick={() => setForm(f => ({ ...f, gender_recommendation: opt.val }))}
                     className={cn("flex-1 py-1.5 rounded-xl text-[11px] font-medium border transition-all",
@@ -151,10 +153,10 @@ export default function EditEventModal({ event, open, onClose, onSaved }) {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1 rounded-xl">Zrušit</Button>
+              <Button type="button" variant="outline" onClick={onClose} className="flex-1 rounded-xl">{lang === 'cs' ? 'Zrušit' : 'Cancel'}</Button>
               <Button type="submit" disabled={saving || !form.title || !form.category || !form.location || !form.date} className="flex-1 rounded-xl gap-2">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                {saving ? "Ukládám..." : "Uložit změny"}
+                {saving ? (lang === 'cs' ? 'Ukládám...' : 'Saving...') : (lang === 'cs' ? 'Uložit změny' : 'Save changes')}
               </Button>
             </div>
 
@@ -167,7 +169,7 @@ export default function EditEventModal({ event, open, onClose, onSaved }) {
                 disabled={deleting}
               >
                 {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                {deleting ? "Mažu..." : "Smazat událost"}
+                {deleting ? (lang === 'cs' ? 'Mažu...' : 'Deleting...') : (lang === 'cs' ? 'Smazat událost' : 'Delete event')}
               </Button>
             </div>
           </form>
@@ -178,9 +180,11 @@ export default function EditEventModal({ event, open, onClose, onSaved }) {
         open={deleteConfirm}
         onConfirm={handleDelete}
         onCancel={() => setDeleteConfirm(false)}
-        title="Smazat událost?"
-        description={`Opravdu chceš trvale smazat akci „${event.title}"? Tato akce je nevratná.`}
-        confirmLabel="Smazat"
+        title={lang === 'cs' ? 'Smazat událost?' : 'Delete event?'}
+        description={lang === 'cs'
+          ? `Opravdu chceš trvale smazat akci „${event.title}"? Tato akce je nevratná.`
+          : `Are you sure you want to permanently delete "${event.title}"? This action cannot be undone.`}
+        confirmLabel={lang === 'cs' ? 'Smazat' : 'Delete'}
         destructive
       />
     </>

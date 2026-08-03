@@ -24,7 +24,7 @@ export default function RightSidebar() {
       .order('date', { ascending: true })
       .limit(5)
       .then(({ data, error }) => {
-        if (error) toast.error('Nepodařilo se načíst populární události.');
+        if (error) toast.error(tr.sidebarHotLoadFailed);
         setHotEvents(data || []);
       });
 
@@ -34,7 +34,7 @@ export default function RightSidebar() {
       .order('created_at', { ascending: false })
       .limit(5)
       .then(({ data, error }) => {
-        if (error) toast.error('Nepodařilo se načíst nové události.');
+        if (error) toast.error(tr.sidebarNewLoadFailed);
         setRecentEvents(data || []);
       });
 

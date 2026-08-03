@@ -122,7 +122,7 @@ export default function Profile() {
               <p className="text-xs text-muted-foreground mt-1">{profile?.joined_events?.length || 0} {tr.eventsAttended} · {myEvents.length} {tr.eventsCreated}</p>
               {!profile?.is_premium && (
                 <div className="text-xs text-muted-foreground bg-secondary rounded-lg px-3 py-2 mt-2">
-                  Plán: <strong>{profile?.subscription_plan || 'free'}</strong> · Přihlášení: <strong>{profile?.monthly_join_count || 0}/3</strong> · Vytvořené: <strong>{profile?.monthly_create_count || 0}/1</strong>
+                  {lang === 'cs' ? 'Plán' : 'Plan'}: <strong>{profile?.subscription_plan || 'free'}</strong> · {lang === 'cs' ? 'Přihlášení' : 'Joins'}: <strong>{profile?.monthly_join_count || 0}/3</strong> · {lang === 'cs' ? 'Vytvořené' : 'Created'}: <strong>{profile?.monthly_create_count || 0}/1</strong>
                 </div>
               )}
             </div>
@@ -138,8 +138,8 @@ export default function Profile() {
         {editing ? (
           <div className="space-y-4">
             <div><Label className="text-xs font-medium mb-1 block">{tr.displayName}</Label><Input value={form.display_name || ''} onChange={e => setForm(f => ({ ...f, display_name: e.target.value }))} className="rounded-xl"/></div>
-            <div><Label className="text-xs font-medium mb-1 block">{tr.bio}</Label><Textarea value={form.bio || ''} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} className="rounded-xl resize-none" placeholder="Napiš něco o sobě..."/></div>
-            <div><Label className="text-xs font-medium mb-1 block">{tr.location}</Label><Input value={form.location || ''} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} className="rounded-xl" placeholder="Praha, Letná..."/></div>
+            <div><Label className="text-xs font-medium mb-1 block">{tr.bio}</Label><Textarea value={form.bio || ''} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} className="rounded-xl resize-none" placeholder={lang === 'cs' ? 'Napiš něco o sobě...' : 'Write something about yourself...'}/></div>
+            <div><Label className="text-xs font-medium mb-1 block">{tr.location}</Label><Input value={form.location || ''} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} className="rounded-xl" placeholder={lang === 'cs' ? 'Praha, Letná...' : 'Prague, Old Town...'}/></div>
             <div className="flex gap-3">
               <div className="flex-1"><Label className="text-xs font-medium mb-1 block">{tr.age}</Label><Input type="number" min="13" max="120" value={form.age || ''} onChange={e => setForm(f => ({ ...f, age: e.target.value ? Number(e.target.value) : '' }))} className="rounded-xl" placeholder="28"/></div>
               <div className="flex-1"><Label className="text-xs font-medium mb-1 block">{tr.gender}</Label>
@@ -192,13 +192,13 @@ export default function Profile() {
             <Button size="sm" variant="outline" className="rounded-xl w-full" onClick={async () => {
               const { data } = await supabase.functions.invoke('stripe-billing-portal', { body: { return_url: window.location.origin + '/profile' } });
               if (data?.url) window.location.href = data.url;
-            }}>Spravovat předplatné</Button>
+            }}>{lang === 'cs' ? 'Spravovat předplatné' : 'Manage subscription'}</Button>
           </div>
         ) : (
           <div className="mt-5 rounded-2xl overflow-hidden border border-violet-200/60 bg-violet-50/50 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowPremium(true)}>
             <div className="px-5 py-4">
-              <div className="flex items-center justify-between mb-2"><span className="font-grotesk font-semibold">HighFive Premium</span><span className="text-xs text-muted-foreground">Plus od 100 Kč/měs</span></div>
-              <p className="text-sm text-muted-foreground mb-4">Neomezené eventy, bez limitů.</p>
+              <div className="flex items-center justify-between mb-2"><span className="font-grotesk font-semibold">HighFive Premium</span><span className="text-xs text-muted-foreground">{lang === 'cs' ? 'Plus od 100 Kč/měs' : 'Plus from 100 Kč/mo'}</span></div>
+              <p className="text-sm text-muted-foreground mb-4">{lang === 'cs' ? 'Neomezené eventy, bez limitů.' : 'Unlimited events, no limits.'}</p>
               <Button onClick={e => { e.stopPropagation(); setShowPremium(true); }} className="w-full rounded-xl">{tr.viewPlans}</Button>
             </div>
           </div>
@@ -267,12 +267,14 @@ export default function Profile() {
                   const { data: mods, error: modsError } = await supabase.from('user_profiles').select('user_id,user_email').or('is_admin.eq.true,is_moderator.eq.true');
                   if (modsError) throw modsError;
                   if (!mods?.length) { toast.error(lang === 'cs' ? 'Nepodařilo se najít moderátora.' : 'Could not find a moderator.'); return; }
-                  const requestBody = `${profile?.display_name || user.email} (${user.email}) ${lang === 'cs' ? 'žádá o reset.' : 'requests a reset.'}`;
+                  const requesterName = profile?.display_name || user.email;
+                  const requestBody = `${requesterName} (${user.email}) ${lang === 'cs' ? 'žádá o reset.' : 'requests a reset.'}`;
                   const title = `🔄 ${lang === 'cs' ? 'Žádost o reset spolehlivosti' : 'Reliability reset request'}`;
                   await Promise.all(mods.map(m => supabase.from('notifications').insert({
                     user_id: m.user_id, user_email: m.user_email,
                     type: 'reliability_reset_request',
-                    title, body: requestBody, is_read: false,
+                    data: { requesterName, requesterEmail: user.email },
+                    is_read: false,
                   })));
                   supabase.functions.invoke('notify-admins-email', { body: { subject: title, message: requestBody } }).catch(() => {});
                   toast.success(lang === 'cs' ? 'Žádost odeslána moderátorovi' : 'Request sent to moderator');

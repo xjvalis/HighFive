@@ -137,8 +137,7 @@ Deno.serve(async (req) => {
               user_id: orgProfile.user_id,
               user_email: event.organizer_email,
               type: 'new_participant',
-              title: `🙌 ${profile?.display_name || user.email} se přidal/a na: ${event.title}`,
-              body: 'Nový účastník na tvé akci.',
+              data: { participantName: profile?.display_name || user.email, eventTitle: event.title },
               event_id: event_id,
               is_read: false,
             });

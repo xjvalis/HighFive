@@ -143,7 +143,7 @@ export default function Messages() {
             <div ref={bottomRef}/>
           </div>
           <div className="flex gap-2 p-3 border-t border-border/60">
-            <Textarea value={reply} onChange={e=>setReply(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();}}} placeholder="Napiš zprávu..." className="rounded-xl text-sm min-h-[40px] max-h-[120px] resize-none" rows={1}/>
+            <Textarea value={reply} onChange={e=>setReply(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();}}} placeholder={lang === 'cs' ? 'Napiš zprávu...' : 'Write a message...'} className="rounded-xl text-sm min-h-[40px] max-h-[120px] resize-none" rows={1}/>
             <Button onClick={handleSend} disabled={sending||!reply.trim()} size="sm" className="rounded-xl px-3 self-end">{sending?<Loader2 className="w-3.5 h-3.5 animate-spin"/>:<Send className="w-3.5 h-3.5"/>}</Button>
           </div>
         </div>

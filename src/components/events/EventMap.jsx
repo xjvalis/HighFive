@@ -4,7 +4,8 @@ import { format } from "date-fns";
 import { getCategoryStyle } from "@/lib/categories";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect } from "react";
+import { useEffect, useContext } from "react";
+import { LanguageContext } from "@/lib/language";
 
 // Fix default marker icons for leaflet with vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -47,6 +48,7 @@ function RecenterMap({ center }) {
 }
 
 export default function EventMap({ events, userLocation, radius }) {
+  const { lang } = useContext(LanguageContext);
   const center = userLocation
     ? [userLocation.lat, userLocation.lng]
     : [50.0755, 14.4378]; // Prague fallback
@@ -110,7 +112,7 @@ export default function EventMap({ events, userLocation, radius }) {
                     )}
                     <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#6b7280" }}>
                       👥 {participantCount}{event.max_capacity ? `/${event.max_capacity}` : ""}
-                      {isFull && <span style={{ color: "#9ca3af", marginLeft: 2 }}>(Plné)</span>}
+                      {isFull && <span style={{ color: "#9ca3af", marginLeft: 2 }}>{lang === 'cs' ? '(Plné)' : '(Full)'}</span>}
                     </span>
                   </div>
                   <Link
@@ -126,7 +128,7 @@ export default function EventMap({ events, userLocation, radius }) {
                       textDecoration: "none",
                     }}
                   >
-                    Zobrazit detaily →
+                    {lang === 'cs' ? 'Zobrazit detaily →' : 'View details →'}
                   </Link>
                 </div>
               </Popup>

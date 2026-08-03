@@ -3,31 +3,34 @@ import { supabase } from '@/lib/supabaseClient';
 
 // Collapses bursts of activity into a single unread notification instead of
 // inserting one row per message: the first message gets a specific preview,
-// any further message while that notification is still unread just bumps a
-// generic "new messages" body/timestamp rather than spamming new rows.
-async function notifyOrCollapse({ userId, userEmail, eventId, title, previewBody, collapsedBody }) {
+// any further message while that notification is still unread just bumps the
+// data payload (marked `collapsed: true`) rather than spamming new rows.
+// `kind` distinguishes event chat from discussion comments (both use type
+// 'new_chat_message'); rendering is done at read time via notifTemplates.js.
+async function notifyOrCollapse({ userId, userEmail, eventId, eventTitle, kind, senderName, preview }) {
   const { data: existing } = await supabase.from('notifications')
-    .select('id')
+    .select('id, data')
     .eq('user_id', userId)
     .eq('event_id', eventId)
-    .eq('title', title)
+    .eq('type', 'new_chat_message')
     .eq('is_read', false)
     .maybeSingle();
 
-  if (existing) {
+  if (existing && existing.data?.kind === kind) {
     await supabase.from('notifications').update({
-      body: collapsedBody,
+      data: { eventTitle, kind, senderName, preview, collapsed: true },
       created_at: new Date().toISOString(),
     }).eq('id', existing.id);
   } else {
     await supabase.from('notifications').insert({
       user_id: userId, user_email: userEmail, type: 'new_chat_message',
-      title, body: previewBody, event_id: eventId, is_read: false,
+      data: { eventTitle, kind, senderName, preview, collapsed: false },
+      event_id: eventId, is_read: false,
     });
   }
 }
 
-export function useNotificationEngine(user, lang = 'cs') {
+export function useNotificationEngine(user) {
   const channelsRef = useRef([]);
 
   useEffect(() => {
@@ -42,8 +45,8 @@ export function useNotificationEngine(user, lang = 'cs') {
           if (p.new.to_email !== user.email) return;
           await supabase.from('notifications').insert({
             user_id: user.id, user_email: user.email, type: 'new_message',
-            title: `💬 Nová zpráva od ${p.new.from_name || p.new.from_email}`,
-            body: p.new.content?.slice(0, 80), is_read: false,
+            data: { senderName: p.new.from_name || p.new.from_email, preview: p.new.content?.slice(0, 80) },
+            is_read: false,
           });
         })
       .subscribe();
@@ -59,10 +62,8 @@ export function useNotificationEngine(user, lang = 'cs') {
           if (!ev) return;
           if (!ev.participants?.includes(user.email) && ev.organizer_email !== user.email) return;
           await notifyOrCollapse({
-            userId: user.id, userEmail: user.email, eventId: msg.event_id,
-            title: `💬 Chat: ${ev.title}`,
-            previewBody: `${msg.author_name || 'Někdo'}: ${msg.content?.slice(0, 60)}`,
-            collapsedBody: lang === 'cs' ? 'V chatu jsou nové zprávy.' : 'There are new messages in chat.',
+            userId: user.id, userEmail: user.email, eventId: msg.event_id, eventTitle: ev.title,
+            kind: 'chat', senderName: msg.author_name || null, preview: msg.content?.slice(0, 60),
           });
         })
       .subscribe();
@@ -78,10 +79,8 @@ export function useNotificationEngine(user, lang = 'cs') {
           if (!ev) return;
           if (!ev.participants?.includes(user.email) && ev.organizer_email !== user.email) return;
           await notifyOrCollapse({
-            userId: user.id, userEmail: user.email, eventId: comment.event_id,
-            title: `💬 Diskuze: ${ev.title}`,
-            previewBody: `${comment.author_name || 'Někdo'}: ${comment.content?.slice(0, 60)}`,
-            collapsedBody: lang === 'cs' ? 'V diskuzi jsou nové zprávy.' : 'There are new messages in the discussion.',
+            userId: user.id, userEmail: user.email, eventId: comment.event_id, eventTitle: ev.title,
+            kind: 'discussion', senderName: comment.author_name || null, preview: comment.content?.slice(0, 60),
           });
         })
       .subscribe();
@@ -103,10 +102,10 @@ export function useNotificationEngine(user, lang = 'cs') {
         if (!isP && !isO) continue;
         const { data: existing } = await supabase.from('notifications').select('id').eq('user_id', user.id).eq('event_id', event.id).eq('type', 'event_past').maybeSingle();
         if (existing) continue;
-        await supabase.from('notifications').insert({ user_id: user.id, user_email: user.email, type: 'event_past', title: `🗓️ ${event.title}`, body: 'Tato akce již proběhla. Najdeš ji v sekci Proběhlé v Mých akcích.', event_id: event.id, is_read: false });
+        await supabase.from('notifications').insert({ user_id: user.id, user_email: user.email, type: 'event_past', data: { eventTitle: event.title }, event_id: event.id, is_read: false });
       }
     }
 
     return () => { channelsRef.current.forEach(c => supabase.removeChannel(c)); channelsRef.current = []; clearInterval(pastInterval); };
-  }, [user?.id, user?.email, lang]);
+  }, [user?.id, user?.email]);
 }

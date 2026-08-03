@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { format } from "date-fns";
 import { Share2, Download, Loader2, Copy, Check } from "lucide-react";
 import { getCategoryStyle } from "@/lib/categories";
+import { LanguageContext } from "@/lib/language";
 
 // Per-category gradient palettes [from, to, accent]
 const CATEGORY_PALETTES = {
@@ -54,7 +55,7 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-function generateShareCanvas(event) {
+function generateShareCanvas(event, lang) {
   return new Promise((resolve) => {
     const canvas = document.createElement("canvas");
     canvas.width = 1200;
@@ -123,7 +124,7 @@ function generateShareCanvas(event) {
     ctx.fillStyle = "#6b7280";
     ctx.fillText("📍", 100, 420);
     ctx.fillStyle = "#1f2937";
-    const loc = (event.location || "").length > 52 ? event.location.slice(0, 52) + "…" : (event.location || "Místo neuvedeno");
+    const loc = (event.location || "").length > 52 ? event.location.slice(0, 52) + "…" : (event.location || (lang === 'cs' ? "Místo neuvedeno" : "No location given"));
     ctx.fillText(loc, 148, 420);
 
     // ── Participants row ──
@@ -131,7 +132,7 @@ function generateShareCanvas(event) {
     ctx.fillStyle = "#6b7280";
     ctx.fillText("👥", 100, 475);
     ctx.fillStyle = "#1f2937";
-    ctx.fillText(`${count}${event.max_capacity ? `/${event.max_capacity}` : ""} účastníků`, 148, 475);
+    ctx.fillText(`${count}${event.max_capacity ? `/${event.max_capacity}` : ""} ${lang === 'cs' ? 'účastníků' : 'going'}`, 148, 475);
 
     // ── Right side: large emoji ──
     ctx.font = "180px Arial";
@@ -148,7 +149,7 @@ function generateShareCanvas(event) {
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 26px Arial";
-    ctx.fillText("🙏  HighFive - najdi partu na cokoliv", 60, 600);
+    ctx.fillText(lang === 'cs' ? "🙏  HighFive - najdi partu na cokoliv" : "🙏  HighFive - find your people for anything", 60, 600);
 
     // ── URL hint ──
     ctx.fillStyle = "rgba(255,255,255,0.65)";
@@ -162,6 +163,7 @@ function generateShareCanvas(event) {
 }
 
 export default function ShareEventButton({ event }) {
+  const { lang } = useContext(LanguageContext);
   const [open, setOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [imgUrl, setImgUrl] = useState(null);
@@ -175,7 +177,7 @@ export default function ShareEventButton({ event }) {
     setOpen(true);
     if (!imgUrl) {
       setGenerating(true);
-      const url = await generateShareCanvas(event);
+      const url = await generateShareCanvas(event, lang);
       setImgUrl(url);
       setGenerating(false);
     }
@@ -233,7 +235,7 @@ export default function ShareEventButton({ event }) {
         className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors bg-secondary hover:bg-secondary/80 px-3 py-2 rounded-xl"
       >
         <Share2 className="w-3.5 h-3.5" />
-        Sdílet
+        {lang === 'cs' ? 'Sdílet' : 'Share'}
       </button>
 
       {open && (
@@ -246,7 +248,7 @@ export default function ShareEventButton({ event }) {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-grotesk font-semibold text-base">Sdílet událost</h3>
+              <h3 className="font-grotesk font-semibold text-base">{lang === 'cs' ? 'Sdílet událost' : 'Share event'}</h3>
               <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground text-lg leading-none">✕</button>
             </div>
 
@@ -255,7 +257,7 @@ export default function ShareEventButton({ event }) {
               {generating ? (
                 <div className="flex flex-col items-center gap-2">
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Generuji kartu…</span>
+                  <span className="text-xs text-muted-foreground">{lang === 'cs' ? 'Generuji kartu…' : 'Generating card…'}</span>
                 </div>
               ) : imgUrl ? (
                 <img src={imgUrl} alt="OG preview" className="w-full h-full object-cover" />
@@ -283,19 +285,19 @@ export default function ShareEventButton({ event }) {
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 rounded-xl border border-border hover:bg-secondary transition-colors"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? "Zkopírováno!" : "Kopírovat odkaz"}
+                {copied ? (lang === 'cs' ? 'Zkopírováno!' : 'Copied!') : (lang === 'cs' ? 'Kopírovat odkaz' : 'Copy link')}
               </button>
               <button
                 onClick={downloadImage}
                 disabled={!imgUrl}
                 className="flex items-center gap-1.5 text-xs font-medium px-4 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40"
               >
-                <Download className="w-3.5 h-3.5" /> Stáhnout kartu
+                <Download className="w-3.5 h-3.5" /> {lang === 'cs' ? 'Stáhnout kartu' : 'Download card'}
               </button>
             </div>
 
             <p className="text-[10px] text-muted-foreground text-center mt-3">
-              💡 Pro Instagram Stories stáhni kartu a nahraj ji ručně
+              {lang === 'cs' ? '💡 Pro Instagram Stories stáhni kartu a nahraj ji ručně' : '💡 For Instagram Stories, download the card and upload it manually'}
             </p>
           </div>
         </div>

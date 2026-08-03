@@ -39,6 +39,12 @@ export const translations = {
     trendingTitle: "🔥 Popular",
     trendingSubtitle: "Most loved events right now",
     nothingTrending: "Nothing popular yet",
+    trendingLoadFailed: "Failed to load popular events.",
+
+    cancelAttendance: "Cancel attendance?",
+    cancelAttendanceConfirm: "Are you sure you want to cancel your attendance at",
+    cancelAttendanceBtn: "Cancel attendance",
+    attendanceCancelled: "Attendance cancelled.",
 
     favoritesTitle: "Your picks",
     favoritesSubtitle: "Events you want to remember or attend",
@@ -264,6 +270,8 @@ export const translations = {
     chatCloses: "Closes",
     chatEmpty: "👋 Chat is empty - say hi and share details!",
     chatPlaceholder: "Type a message... (Enter to send)",
+    chatLoadFailed: "Failed to load the chat.",
+    chatSendFailed: "Failed to send the message.",
 
     // NotificationBell
     notifBellTitle: "Notifications",
@@ -271,6 +279,15 @@ export const translations = {
     notifNone: "No notifications yet",
     notifViewEvent: "View →",
     notifSeeAll: "See all notifications",
+    notifLoadFailed: "Failed to load notifications.",
+    notifMarkReadFailed: "Failed to mark the notification as read.",
+    notifMarkAllReadFailed: "Failed to mark notifications as read.",
+
+    sidebarHotLoadFailed: "Failed to load popular events.",
+    sidebarNewLoadFailed: "Failed to load new events.",
+
+    mapFull: "(Full)",
+    confirmCancel: "Cancel",
   },
 
   cs: {
@@ -306,6 +323,13 @@ export const translations = {
     viewList: "Seznam",
     mapNoCoords: "Žádné události s polohou v tomto okruhu.",
     locationFilterActive: (n) => `Zobrazuji ${n} událostí v okruhu`,
+
+    trendingLoadFailed: "Nepodařilo se načíst populární události.",
+
+    cancelAttendance: "Zrušit účast?",
+    cancelAttendanceConfirm: "Opravdu chceš zrušit účast na akci",
+    cancelAttendanceBtn: "Zrušit účast",
+    attendanceCancelled: "Účast zrušena.",
 
     trendingTitle: "🔥 Trendy",
     trendingSubtitle: "Nejoblíbenější události právě teď",
@@ -535,6 +559,8 @@ export const translations = {
     chatCloses: "Uzavírá se",
     chatEmpty: "👋 Chat je prázdný - pozdrav ostatní!",
     chatPlaceholder: "Napiš zprávu... (Enter pro odeslání)",
+    chatLoadFailed: "Nepodařilo se načíst chat.",
+    chatSendFailed: "Nepodařilo se odeslat zprávu.",
 
     // NotificationBell
     notifBellTitle: "Oznámení",
@@ -542,6 +568,15 @@ export const translations = {
     notifNone: "Zatím žádná oznámení",
     notifViewEvent: "Zobrazit →",
     notifSeeAll: "Zobrazit všechna oznámení",
+    notifLoadFailed: "Nepodařilo se načíst notifikace.",
+    notifMarkReadFailed: "Nepodařilo se označit notifikaci jako přečtenou.",
+    notifMarkAllReadFailed: "Nepodařilo se označit notifikace jako přečtené.",
+
+    sidebarHotLoadFailed: "Nepodařilo se načíst populární události.",
+    sidebarNewLoadFailed: "Nepodařilo se načíst nové události.",
+
+    mapFull: "(Plné)",
+    confirmCancel: "Zrušit",
   },
 };
 

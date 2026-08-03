@@ -6,7 +6,8 @@ import PageNotFound from './lib/PageNotFound';
 import AppLayout from '@/components/layout/AppLayout';
 import LanguageProvider from '@/lib/LanguageProvider';
 import { CurrentUserProvider, useCurrentUser } from '@/contexts/CurrentUserContext';
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useContext, lazy, Suspense } from 'react';
+import { LanguageContext } from '@/lib/language';
 
 // Route-level code splitting — only the page the user actually lands on
 // (plus AppLayout/Home for the common case) ships on first load.
@@ -33,6 +34,7 @@ function RouteLoader() {
 }
 
 function SplashScreen() {
+  const { lang } = useContext(LanguageContext);
   return (
     <div style={{
       position: 'fixed',
@@ -53,27 +55,43 @@ function SplashScreen() {
         HighFive
       </h1>
       <p style={{ fontSize: '13px', color: '#888', textAlign: 'center', maxWidth: '240px', margin: 0, lineHeight: '1.5' }}>
-        Platforma pro hledání událostí a přátel na základě zájmů.
+        {lang === 'cs' ? 'Platforma pro hledání událostí a přátel na základě zájmů.' : 'Find events and friends based on shared interests.'}
       </p>
     </div>
   );
 }
 
-const MIN_SPLASH_MS = 2000;
+const MIN_SPLASH_MS = 800;  // branding floor, only on the first open of a session
 const MAX_SPLASH_MS = 8000; // safety net so a hung auth/profile call can't strand users on the splash forever
+const SPLASH_SEEN_KEY = 'hf_splash_seen';
+
+// sessionStorage throws in some private-browsing modes, and this runs above the
+// router — a throw here would take down the whole app.
+const splashAlreadySeen = () => {
+  try { return sessionStorage.getItem(SPLASH_SEEN_KEY) === '1'; } catch { return false; }
+};
+const rememberSplashSeen = () => {
+  try { sessionStorage.setItem(SPLASH_SEEN_KEY, '1'); } catch { /* ignore */ }
+};
 
 function AppContent() {
   const { loading } = useCurrentUser();
-  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const [seen] = useState(splashAlreadySeen);
+  // On repeat opens skip the branding delay, but still hold while auth resolves:
+  // that gate is what stops the app rendering a signed-out shell (and a blank
+  // avatar) before the profile arrives.
+  const [minTimeElapsed, setMinTimeElapsed] = useState(seen);
   const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
-    const minTimer = setTimeout(() => setMinTimeElapsed(true), MIN_SPLASH_MS);
-    const maxTimer = setTimeout(() => setTimedOut(true), MAX_SPLASH_MS);
-    return () => { clearTimeout(minTimer); clearTimeout(maxTimer); };
-  }, []);
+    const timers = [setTimeout(() => setTimedOut(true), MAX_SPLASH_MS)];
+    if (!seen) timers.push(setTimeout(() => setMinTimeElapsed(true), MIN_SPLASH_MS));
+    return () => timers.forEach(clearTimeout);
+  }, [seen]);
 
   const showSplash = !timedOut && (!minTimeElapsed || loading);
+
+  useEffect(() => { if (!showSplash) rememberSplashSeen(); }, [showSplash]);
 
   if (showSplash) return <SplashScreen />;
 
