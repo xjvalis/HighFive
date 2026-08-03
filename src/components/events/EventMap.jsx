@@ -56,7 +56,7 @@ export default function EventMap({ events, userLocation, radius }) {
   const eventsWithCoords = events.filter(e => e.latitude && e.longitude);
 
   return (
-    <div className="w-full h-[500px] rounded-2xl overflow-hidden border border-border shadow-sm">
+    <div className="relative isolate w-full h-[500px] rounded-2xl overflow-hidden border border-border shadow-sm">
       <MapContainer
         center={center}
         zoom={11}
