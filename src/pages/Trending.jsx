@@ -1,9 +1,25 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import EventCard from '@/components/events/EventCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useT } from '@/lib/i18n';
+import { toast } from 'sonner';
+
+// Same "is it over?" rule the rest of the app uses (MyEvents, Home's Right Now
+// tab): an event ends at end_time, or 2h after it starts if none was set.
+const endOf = (e) => e.end_time
+  ? new Date(e.end_time)
+  : new Date(new Date(e.date).getTime() + 2 * 60 * 60 * 1000);
+
+// hot_score exists in the DB but is null on most rows, so rank on the counters
+// the app actually maintains. People who signed up are the strongest signal of
+// an event being alive, and something happening right now gets a nudge up.
+const liveliness = (e, now) =>
+  (e.participants?.length || 0) * 3 +
+  (e.favorites_count || 0) * 2 +
+  (e.comments_count || 0) +
+  (new Date(e.date) <= now ? 5 : 0);
 
 export default function Trending() {
   const tr = useT();
@@ -13,9 +29,25 @@ export default function Trending() {
   const favRef = useRef(new Set());
 
   useEffect(() => {
-    supabase.from('events').select('*').eq('is_approved',true).order('favorites_count',{ascending:false}).limit(30)
-      .then(({data})=>{setEvents(data||[]);setLoading(false);}).catch(()=>setLoading(false));
+    // Events may run up to 24h (enforced in CreateEvent), so anything started
+    // within the last 24h could still be going; endOf() decides precisely.
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    supabase.from('events').select('*').eq('is_approved', true)
+      .gt('date', cutoff).order('date', { ascending: true }).limit(100)
+      .then(({ data, error }) => {
+        if (error) toast.error(tr.trendingLoadFailed || 'Nepodařilo se načíst populární události.');
+        setEvents(data || []);
+        setLoading(false);
+      });
   }, []);
+
+  const trending = useMemo(() => {
+    const now = new Date();
+    return (events || [])
+      .filter(e => endOf(e) > now)
+      .sort((a, b) => liveliness(b, now) - liveliness(a, now) || new Date(a.date) - new Date(b.date))
+      .slice(0, 30);
+  }, [events]);
 
   const handleJoin = async (event) => {
     if (!user) return;
@@ -41,11 +73,11 @@ export default function Trending() {
       <p className="text-sm text-muted-foreground mb-5">{tr.trendingSubtitle}</p>
       {loading ? (
         <div className="space-y-3">{[1,2,3].map(i=><div key={i} className="bg-card rounded-2xl p-4 border border-border/60"><Skeleton className="h-4 w-24 mb-3"/><Skeleton className="h-5 w-3/4 mb-2"/><Skeleton className="h-4 w-1/2"/></div>)}</div>
-      ) : events.length===0 ? (
+      ) : trending.length===0 ? (
         <div className="text-center py-16"><p className="text-4xl mb-3">🔥</p><p className="font-grotesk font-semibold">{tr.nothingTrending}</p></div>
       ) : (
         <div className="space-y-3">
-          {events.map(e=><EventCard key={e.id} event={e} onJoin={handleJoin} onFavorite={handleFavorite} isJoined={!!(user&&e.participants?.includes(user.email))} isFavorited={!!(profile?.favorited_events?.includes(e.id))}/>)}
+          {trending.map(e=><EventCard key={e.id} event={e} onJoin={handleJoin} onFavorite={handleFavorite} isJoined={!!(user&&e.participants?.includes(user.email))} isFavorited={!!(profile?.favorited_events?.includes(e.id))}/>)}
         </div>
       )}
     </div>
