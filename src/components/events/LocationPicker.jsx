@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Loader2, Navigation, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { searchPlaces, reverseGeocodeCity } from "@/lib/geocoding";
+import { getCurrentPosition } from "@/lib/nativeGeolocation";
 
 export default function LocationPicker({ userLocation, radius, onLocationChange, onRadiusChange }) {
   const tr = useT();
@@ -50,26 +51,19 @@ export default function LocationPicker({ userLocation, radius, onLocationChange,
     setError("");
   };
 
-  const handleGeolocate = () => {
-    if (!navigator.geolocation) {
-      setError(tr.geolocationNotSupported);
-      return;
-    }
+  const handleGeolocate = async () => {
     setGeolocating(true);
     setError("");
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        onLocationChange({ lat, lng });
-        const city = await reverseGeocodeCity(lat, lng);
-        setLocationLabel(city);
-        setGeolocating(false);
-      },
-      () => {
-        setError(tr.geolocationFailed);
-        setGeolocating(false);
-      }
-    );
+    try {
+      const { lat, lng } = await getCurrentPosition();
+      onLocationChange({ lat, lng });
+      const city = await reverseGeocodeCity(lat, lng);
+      setLocationLabel(city);
+    } catch {
+      setError(tr.geolocationFailed);
+    } finally {
+      setGeolocating(false);
+    }
   };
 
   const handleGeocode = async () => {

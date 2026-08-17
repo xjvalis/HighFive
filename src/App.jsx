@@ -1,13 +1,14 @@
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import AppLayout from '@/components/layout/AppLayout';
 import LanguageProvider from '@/lib/LanguageProvider';
 import { CurrentUserProvider, useCurrentUser } from '@/contexts/CurrentUserContext';
 import { useState, useEffect, useContext, lazy, Suspense } from 'react';
 import { LanguageContext } from '@/lib/language';
+import { isNative, handleNativeAuthCallback } from '@/lib/nativeAuth';
 
 // Route-level code splitting — only the page the user actually lands on
 // (plus AppLayout/Home for the common case) ships on first load.
@@ -24,6 +25,37 @@ const Notifications = lazy(() => import('@/pages/Notifications'));
 const Messages = lazy(() => import('@/pages/Messages'));
 const Terms = lazy(() => import('@/pages/Terms'));
 const Privacy = lazy(() => import('@/pages/Privacy'));
+
+function NativeAppListeners() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isNative()) return;
+    let capApp;
+    const listeners = [];
+
+    (async () => {
+      const { App: CapacitorApp } = await import('@capacitor/app');
+      capApp = CapacitorApp;
+
+      // OAuth (and any other) deep-link callback, e.g. highfive://auth-callback
+      listeners.push(await capApp.addListener('appUrlOpen', ({ url }) => {
+        handleNativeAuthCallback(url).then(handled => { if (handled) navigate('/'); });
+      }));
+
+      // Android hardware back button: step back through app history instead
+      // of the OS default (which would otherwise just close the app).
+      listeners.push(await capApp.addListener('backButton', () => {
+        if (window.history.state && window.history.state.idx > 0) navigate(-1);
+        else capApp.exitApp();
+      }));
+    })();
+
+    return () => { listeners.forEach(l => l.remove()); };
+  }, [navigate]);
+
+  return null;
+}
 
 function RouteLoader() {
   return (
@@ -98,6 +130,7 @@ function AppContent() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <Router>
+        <NativeAppListeners />
         <Suspense fallback={<RouteLoader/>}>
           <Routes>
             <Route element={<AppLayout />}>

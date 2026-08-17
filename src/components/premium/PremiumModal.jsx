@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 import { useContext } from "react";
 import { LanguageContext } from "@/lib/language";
+import { isNative } from "@/lib/nativeAuth";
+import { Browser } from "@capacitor/browser";
 
 export default function PremiumModal({ open, onClose, profile, highlightPlan, onUpgrade }) {
   const tr = useT();
@@ -50,11 +52,17 @@ export default function PremiumModal({ open, onClose, profile, highlightPlan, on
     if (!profile) return;
     setLoading(true);
     try {
+      // Stripe Checkout requires real http(s) URLs (a custom app scheme is
+      // rejected), and on native `window.location.origin` is the webview's
+      // internal origin, not the real site — so always point success/cancel
+      // at the real domain. The Stripe webhook updates the subscription
+      // server-side regardless of how the user gets back to the app.
+      const webOrigin = isNative() ? 'https://high-five-nine.vercel.app' : window.location.origin;
       const { data: res, error } = await supabase.functions.invoke('stripe-checkout', {
         body: {
           plan: selected,
-          success_url: window.location.origin + '/profile?premium=success',
-          cancel_url: window.location.href,
+          success_url: webOrigin + '/profile?premium=success',
+          cancel_url: isNative() ? webOrigin + '/profile' : window.location.href,
         }
       });
       if (error) {
@@ -62,7 +70,15 @@ export default function PremiumModal({ open, onClose, profile, highlightPlan, on
         return;
       }
       if (res?.url) {
-        window.location.href = res.url;
+        if (isNative()) {
+          // Checkout has to leave the app's webview to a real browser (Stripe
+          // blocks embedded webviews too) — the Stripe webhook flips the
+          // subscription server-side, so the app just needs a fresh profile
+          // fetch once the user comes back, not an automatic deep-link return.
+          await Browser.open({ url: res.url });
+        } else {
+          window.location.href = res.url;
+        }
       }
     } catch (err) {
       alert(lang === 'cs' ? "Nepodařilo se spustit platbu. Zkus to znovu." : "Could not start payment. Please try again.");

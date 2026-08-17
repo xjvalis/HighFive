@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import PremiumModal from '@/components/premium/PremiumModal';
 import { lazy, Suspense } from 'react';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { getCurrentPosition } from '@/lib/nativeGeolocation';
 const EventMap = lazy(() => import('@/components/events/EventMap'));
 
 const PAGE_SIZE = 15;
@@ -48,7 +49,7 @@ export default function Home() {
   usePageMeta({ title: activeCategory ? `${activeCategory} | HighFive` : 'HighFive', description: lang === 'cs' ? 'Najdi lidi pro společné aktivity.' : 'Find people for shared activities.' });
 
   useEffect(() => {
-    if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => setUserLocation({ lat: p.coords.latitude, lng: p.coords.longitude }), () => {});
+    getCurrentPosition().then(setUserLocation).catch(() => {});
   }, []);
 
   useEffect(() => {

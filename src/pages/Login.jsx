@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
+import { isNative, signInWithGoogleNative } from '@/lib/nativeAuth';
 
 export default function Login() {
   const { lang } = useContext(LanguageContext);
@@ -44,14 +45,22 @@ export default function Login() {
   };
 
   const handleGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/',
-        queryParams: { access_type: 'offline', prompt: 'consent' },
+    try {
+      if (isNative()) {
+        await signInWithGoogleNative();
+        return;
       }
-    });
-    if (error) toast.error(lang === 'cs' ? 'Přihlášení přes Google se nezdařilo.' : 'Google sign-in failed.');
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/',
+          queryParams: { access_type: 'offline', prompt: 'consent' },
+        }
+      });
+      if (error) throw error;
+    } catch {
+      toast.error(lang === 'cs' ? 'Přihlášení přes Google se nezdařilo.' : 'Google sign-in failed.');
+    }
   };
 
   return (
