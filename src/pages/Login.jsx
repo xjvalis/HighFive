@@ -139,7 +139,7 @@ export default function Login() {
             <form onSubmit={handleRegister} className="space-y-3">
               <Input placeholder={lang === 'cs' ? 'Jméno a příjmení' : 'Full name'} value={name} onChange={e => setName(e.target.value)} required className="rounded-xl" />
               <Input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required className="rounded-xl" />
-              <Input type="password" placeholder={lang === 'cs' ? 'Heslo (min. 6 znaků)' : 'Password (min. 6 chars)'} value={password} onChange={e => setPassword(e.target.value)} required minLength={6} className="rounded-xl" />
+              <Input type="password" placeholder={lang === 'cs' ? 'Heslo (min. 8 znaků)' : 'Password (min. 8 chars)'} value={password} onChange={e => setPassword(e.target.value)} required minLength={8} className="rounded-xl" />
               <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
                 <input type="checkbox" checked={agreedToTerms} onChange={e => setAgreedToTerms(e.target.checked)} className="mt-0.5 rounded border-input" />
                 <span>

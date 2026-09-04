@@ -19,7 +19,7 @@ export default function SetNewPasswordScreen() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password.length < 6) { toast.error(lang === 'cs' ? 'Heslo musí mít alespoň 6 znaků.' : 'Password must be at least 6 characters.'); return; }
+    if (password.length < 8) { toast.error(lang === 'cs' ? 'Heslo musí mít alespoň 8 znaků.' : 'Password must be at least 8 characters.'); return; }
     if (password !== confirm) { toast.error(lang === 'cs' ? 'Hesla se neshodují.' : 'Passwords don\'t match.'); return; }
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
@@ -46,8 +46,8 @@ export default function SetNewPasswordScreen() {
         </div>
         <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-3">
-            <Input type="password" placeholder={lang === 'cs' ? 'Nové heslo (min. 6 znaků)' : 'New password (min. 6 chars)'} value={password} onChange={e => setPassword(e.target.value)} required minLength={6} className="rounded-xl" autoFocus />
-            <Input type="password" placeholder={lang === 'cs' ? 'Potvrď nové heslo' : 'Confirm new password'} value={confirm} onChange={e => setConfirm(e.target.value)} required minLength={6} className="rounded-xl" />
+            <Input type="password" placeholder={lang === 'cs' ? 'Nové heslo (min. 8 znaků)' : 'New password (min. 8 chars)'} value={password} onChange={e => setPassword(e.target.value)} required minLength={8} className="rounded-xl" autoFocus />
+            <Input type="password" placeholder={lang === 'cs' ? 'Potvrď nové heslo' : 'Confirm new password'} value={confirm} onChange={e => setConfirm(e.target.value)} required minLength={8} className="rounded-xl" />
             <Button type="submit" disabled={loading} className="w-full rounded-xl">
               {loading ? (lang === 'cs' ? 'Ukládám...' : 'Saving...') : (lang === 'cs' ? 'Nastavit heslo' : 'Set password')}
             </Button>

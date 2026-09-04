@@ -113,8 +113,13 @@ create table public.notifications (
     'event_past', 'noshow_warning', 'event_suspended',
     'reliability_reset_request', 'reliability_reset_done'
   )),
-  title text not null,
+  -- Legacy frozen strings — old rows only. Current inserts leave these null
+  -- and put structured params in `data`; rendering picks whichever is present
+  -- (see src/lib/notifTemplates.js), so the reader always gets their own
+  -- language instead of whoever triggered the notification.
+  title text,
   body text,
+  data jsonb,
   event_id uuid references public.events(id) on delete set null,
   is_read boolean default false,
   created_at timestamptz default now()
@@ -196,7 +201,7 @@ create policy "events_read_approved" on public.events
   );
 
 create policy "events_insert_auth" on public.events
-  for insert with check (auth.role() = 'authenticated');
+  for insert with check (auth.uid() = organizer_id);
 
 create policy "events_update_own_or_admin" on public.events
   for update using (
