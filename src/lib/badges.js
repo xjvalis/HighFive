@@ -53,7 +53,7 @@ export const BADGES = [
     id: "premium",
     emoji: "👑",
     label: { cs: "Premium člen", en: "Premium Member" },
-    description: { cs: "Podporuje HighFive jako Premium", en: "Supports HighFive as Premium" },
+    description: { cs: "Podporuje Spoluvíc jako Premium", en: "Supports Spoluvíc as Premium" },
     condition: ({ profile }) => profile?.is_premium,
   },
 ];

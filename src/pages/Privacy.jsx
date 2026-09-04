@@ -20,9 +20,9 @@ export default function Privacy() {
         <section className="space-y-2">
           <h2 className="font-grotesk font-semibold text-lg">1. Kdo jsme</h2>
           <p className="text-sm text-foreground/80 leading-relaxed">
-            Provozovatelem platformy HighFive (dále jen „my", „HighFive" nebo „Služba") a správcem osobních
+            Provozovatelem platformy Spoluvíc (dále jen „my", „Spoluvíc" nebo „Služba") a správcem osobních
             údajů je <strong>Jan Vališ, se sídlem Praha - Záběhlice, Roztylské náměstí 2396/1, 141 00, IČO: 04859944</strong>, kontaktní e-mail pro otázky
-            ochrany soukromí: <strong>xjvalis+highfive@gmail.com</strong>.
+            ochrany soukromí: <strong>xjvalis+spoluvic@gmail.com</strong>.
           </p>
         </section>
 
@@ -99,7 +99,7 @@ export default function Privacy() {
             <li>podat stížnost u Úřadu pro ochranu osobních údajů (uoou.cz), pokud se domníváte, že vaše práva byla porušena.</li>
           </ul>
           <p className="text-sm text-foreground/80 leading-relaxed">
-            Pro uplatnění těchto práv nás kontaktujte na <strong>xjvalis+highfive@gmail.com</strong>.
+            Pro uplatnění těchto práv nás kontaktujte na <strong>xjvalis+spoluvic@gmail.com</strong>.
           </p>
         </section>
 
@@ -140,7 +140,7 @@ export default function Privacy() {
           <h2 className="font-grotesk font-semibold text-lg">12. Kontakt</h2>
           <p className="text-sm text-foreground/80 leading-relaxed">
             Máte-li jakékoliv dotazy ohledně zpracování vašich osobních údajů, napište nám na
-            <strong> xjvalis+highfive@gmail.com</strong>.
+            <strong> xjvalis+spoluvic@gmail.com</strong>.
           </p>
         </section>
       </div>

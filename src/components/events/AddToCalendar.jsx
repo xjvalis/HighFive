@@ -26,9 +26,9 @@ function generateICS(event) {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//HighFive//EN",
+    "PRODID:-//Spoluvic//EN",
     "BEGIN:VEVENT",
-    `UID:${event.id}@highfive`,
+    `UID:${event.id}@spoluvic`,
     `DTSTART:${start}`,
     `DTEND:${end}`,
     `SUMMARY:${event.title}`,

@@ -75,12 +75,12 @@ export const translations = {
     hotRightNow: "Hot Right Now",
     justPosted: "Just Posted",
     communityTitle: "Community",
-    communityText: "HighFive is for finding real people to do things with. No followers, no likes - just good times. 🙌",
+    communityText: "Spoluvíc is for finding real people to do things with. No followers, no likes - just good times. 🙌",
 
     motivationMessages: (todayCount, activePeople, newToday, firstTimers) => [
       `${activePeople} people looking for someone to go out with today`,
       `${newToday} new events added today`,
-      `${firstTimers} people going out with HighFive for the first time today`,
+      `${firstTimers} people going out with Spoluvíc for the first time today`,
       `${todayCount || "A few"} events happening today`,
       `No pressure - just people making plans`,
       `Most people here felt the same way before their first event`,
@@ -364,12 +364,12 @@ export const translations = {
     hotRightNow: "Hot právě teď",
     justPosted: "Právě přidáno",
     communityTitle: "Komunita",
-    communityText: "HighFive je o tom najít si kamarády na společné aktivity. Žádní sledující, žádné lajky. Pouze komunita.",
+    communityText: "Spoluvíc je o tom najít si kamarády na společné aktivity. Žádní sledující, žádné lajky. Pouze komunita.",
 
     motivationMessages: (todayCount, activePeople, newToday, firstTimers) => [
       `${activePeople} lidí dneska hledá parťáka`,
       `${newToday} nových událostí dnes`,
-      `${firstTimers} lidí jde dnes poprvé s HighFive`,
+      `${firstTimers} lidí jde dnes poprvé se Spoluvíc`,
       `Dnes se koná ${todayCount || "pár"} událostí`,
       `Žádný tlak - jen lidi, co si chtějí něco zažít`,
       `Většina lidí tady měla před první událostí stejný pocit`,

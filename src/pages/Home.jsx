@@ -46,7 +46,7 @@ export default function Home() {
   const params = new URLSearchParams(location.search);
   const activeCategory = params.get('category');
 
-  usePageMeta({ title: activeCategory ? `${activeCategory} | HighFive` : 'HighFive', description: lang === 'cs' ? 'Najdi lidi pro společné aktivity.' : 'Find people for shared activities.' });
+  usePageMeta({ title: activeCategory ? `${activeCategory} | Spoluvíc` : 'Spoluvíc', description: lang === 'cs' ? 'Najdi lidi pro společné aktivity.' : 'Find people for shared activities.' });
 
   useEffect(() => {
     getCurrentPosition().then(setUserLocation).catch(() => {});

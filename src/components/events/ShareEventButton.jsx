@@ -149,13 +149,13 @@ function generateShareCanvas(event, lang) {
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 26px Arial";
-    ctx.fillText(lang === 'cs' ? "🙏  HighFive - najdi partu na cokoliv" : "🙏  HighFive - find your people for anything", 60, 600);
+    ctx.fillText(lang === 'cs' ? "🙌  Spoluvíc - najdi partu na cokoliv" : "🙌  Spoluvíc - find your people for anything", 60, 600);
 
     // ── URL hint ──
     ctx.fillStyle = "rgba(255,255,255,0.65)";
     ctx.font = "18px Arial";
     ctx.textAlign = "right";
-    ctx.fillText("highfive.app", 1140, 600);
+    ctx.fillText("spoluvic.cz", 1140, 600);
     ctx.textAlign = "left";
 
     resolve(canvas.toDataURL("image/png"));
@@ -187,7 +187,7 @@ export default function ShareEventButton({ event }) {
     if (!imgUrl) return;
     const a = document.createElement("a");
     a.href = imgUrl;
-    a.download = `${event.title.replace(/\s+/g, "-")}-highfive.png`;
+    a.download = `${event.title.replace(/\s+/g, "-")}-spoluvic.png`;
     a.click();
   };
 

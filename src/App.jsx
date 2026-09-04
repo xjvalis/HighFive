@@ -39,7 +39,7 @@ function NativeAppListeners() {
       const { App: CapacitorApp } = await import('@capacitor/app');
       capApp = CapacitorApp;
 
-      // OAuth (and any other) deep-link callback, e.g. highfive://auth-callback
+      // OAuth (and any other) deep-link callback, e.g. spoluvic://auth-callback
       listeners.push(await capApp.addListener('appUrlOpen', ({ url }) => {
         handleNativeAuthCallback(url).then(handled => { if (handled) navigate('/'); });
       }));
@@ -81,11 +81,11 @@ function SplashScreen() {
     }}>
       <img
         src="/hands.png"
-        alt="HighFive"
+        alt="Spoluvíc"
         style={{ width: '96px', height: '96px', objectFit: 'contain', marginBottom: '16px' }}
       />
       <h1 style={{ fontWeight: '700', fontSize: '24px', margin: '0 0 8px 0', color: '#1a1a1a' }}>
-        HighFive
+        Spoluvíc
       </h1>
       <p style={{ fontSize: '13px', color: '#888', textAlign: 'center', maxWidth: '240px', margin: 0, lineHeight: '1.5' }}>
         {lang === 'cs' ? 'Platforma pro hledání událostí a přátel na základě zájmů.' : 'Find events and friends based on shared interests.'}

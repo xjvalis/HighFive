@@ -1,4 +1,4 @@
-package com.highfive.app;
+package com.spoluvic.app;
 
 import com.getcapacitor.BridgeActivity;
 

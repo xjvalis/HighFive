@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     }
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
-    const origin = req.headers.get('origin') || 'https://highfive.app';
+    const origin = req.headers.get('origin') || 'https://high-five-nine.vercel.app';
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',

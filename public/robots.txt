@@ -5,4 +5,4 @@ Disallow: /admin
 Disallow: /messages
 Disallow: /profile
 
-Sitemap: https://highfive.app/sitemap.xml
+Sitemap: https://high-five-nine.vercel.app/sitemap.xml

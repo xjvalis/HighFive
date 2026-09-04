@@ -49,7 +49,7 @@ export default function EventDetail() {
   const [participantsOpen, setParticipantsOpen] = useState(false);
   const favRef = useRef(new Set());
 
-  usePageMeta({ title: event ? `${event.title} | HighFive` : 'HighFive', description: event?.description || '' });
+  usePageMeta({ title: event ? `${event.title} | Spoluvíc` : 'Spoluvíc', description: event?.description || '' });
 
   useEffect(() => {
     supabase.from('events').select('*').eq('id', id).single().then(({data, error}) => {

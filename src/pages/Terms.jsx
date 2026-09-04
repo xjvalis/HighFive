@@ -20,7 +20,7 @@ export default function Terms() {
         <section className="space-y-2">
           <h2 className="font-grotesk font-semibold text-lg">1. Úvod</h2>
           <p className="text-sm text-foreground/80 leading-relaxed">
-            Tyto podmínky upravují používání platformy HighFive (dále jen „Služba"), kterou provozuje
+            Tyto podmínky upravují používání platformy Spoluvíc (dále jen „Služba"), kterou provozuje
             <strong> Jan Vališ, se sídlem Praha - Záběhlice, Roztylské náměstí 2396/1, 141 00, IČO: 04859944</strong>. Registrací nebo používáním Služby
             s těmito podmínkami souhlasíte. Pokud s nimi nesouhlasíte, Službu prosím nepoužívejte.
           </p>
@@ -29,8 +29,8 @@ export default function Terms() {
         <section className="space-y-2">
           <h2 className="font-grotesk font-semibold text-lg">2. Co Služba je (a co není)</h2>
           <p className="text-sm text-foreground/80 leading-relaxed">
-            HighFive je platforma, která uživatelům umožňuje vytvářet a vyhledávat společné aktivity a
-            propojovat se s dalšími lidmi. <strong>HighFive akce sám neorganizuje, neověřuje totožnost
+            Spoluvíc je platforma, která uživatelům umožňuje vytvářet a vyhledávat společné aktivity a
+            propojovat se s dalšími lidmi. <strong>Spoluvíc akce sám neorganizuje, neověřuje totožnost
             uživatelů ani bezpečnost, vhodnost či legálnost jednotlivých akcí.</strong> Akce vytvářejí
             a organizují sami uživatelé, na vlastní odpovědnost.
           </p>
@@ -65,7 +65,7 @@ export default function Terms() {
         <section className="space-y-2">
           <h2 className="font-grotesk font-semibold text-lg">5. Bezpečnost při osobních setkáních</h2>
           <p className="text-sm text-foreground/80 leading-relaxed">
-            Akce vytvořené přes HighFive zahrnují setkání s dalšími lidmi v reálném světě.
+            Akce vytvořené přes Spoluvíc zahrnují setkání s dalšími lidmi v reálném světě.
             <strong> Účast na jakékoliv akci je zcela na vaše vlastní riziko.</strong> Doporučujeme:
           </p>
           <ul className="list-disc pl-5 text-sm text-foreground/80 leading-relaxed space-y-1">
@@ -75,7 +75,7 @@ export default function Terms() {
             <li>podezřelé nebo nebezpečné chování ihned nahlásit přes funkci nahlášení v aplikaci.</li>
           </ul>
           <p className="text-sm text-foreground/80 leading-relaxed">
-            HighFive neprovádí prověrky totožnosti ani trestní bezúhonnosti uživatelů a nenese odpovědnost
+            Spoluvíc neprovádí prověrky totožnosti ani trestní bezúhonnosti uživatelů a nenese odpovědnost
             za jednání uživatelů v rámci akcí ani mimo Službu.
           </p>
         </section>
@@ -134,7 +134,7 @@ export default function Terms() {
         <section className="space-y-2">
           <h2 className="font-grotesk font-semibold text-lg">12. Kontakt</h2>
           <p className="text-sm text-foreground/80 leading-relaxed">
-            Dotazy k těmto podmínkám posílejte na <strong>xjvalis+highfive@gmail.com</strong>.
+            Dotazy k těmto podmínkám posílejte na <strong>xjvalis+spoluvic@gmail.com</strong>.
           </p>
         </section>
       </div>

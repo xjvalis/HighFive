@@ -1,4 +1,4 @@
--- HighFive — Supabase Schema
+-- Spoluvíc — Supabase Schema
 -- Spusť celé toto v Supabase → SQL Editor → New query → Run
 
 -- Enable required extensions

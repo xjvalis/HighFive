@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">HighFive</string>
-    <string name="title_activity_main">HighFive</string>
-    <string name="package_name">com.highfive.app</string>
-    <string name="custom_url_scheme">com.highfive.app</string>
+    <string name="app_name">Spoluvíc</string>
+    <string name="title_activity_main">Spoluvíc</string>
+    <string name="package_name">com.spoluvic.app</string>
+    <string name="custom_url_scheme">com.spoluvic.app</string>
 </resources>

@@ -152,7 +152,7 @@ function MobileDrawer({ open, onClose, tr, lang, profile, onFeedback }) {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}/>
       <div className="absolute left-0 top-0 bottom-0 w-72 bg-card shadow-2xl flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <div className="flex items-center gap-2"><img src="/hands.png" alt="HighFive" className="w-7 h-7 object-contain"/><span className="font-grotesk font-bold text-lg">HighFive</span></div>
+          <div className="flex items-center gap-2"><img src="/hands.png" alt="Spoluvíc" className="w-7 h-7 object-contain"/><span className="font-grotesk font-bold text-lg">Spoluvíc</span></div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-secondary"><X className="w-5 h-5"/></button>
         </div>
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
@@ -212,8 +212,8 @@ export default function TopNav() {
             <Menu className="w-5 h-5"/>
           </button>
           <Link to="/" className="font-grotesk font-bold text-base flex-shrink-0 flex items-center gap-2">
-            <img src="/hands.png" alt="HighFive" className="w-7 h-7 object-contain"/>
-            <span>HighFive</span>
+            <img src="/hands.png" alt="Spoluvíc" className="w-7 h-7 object-contain"/>
+            <span>Spoluvíc</span>
           </Link>
           <div className="hidden xl:flex flex-1 justify-center">
             <DesktopSearch/>

@@ -81,8 +81,8 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src="/hands.png" alt="HighFive" className="w-16 h-16 object-contain block mx-auto mb-3"/>
-          <h1 className="font-grotesk font-bold text-2xl">HighFive</h1>
+          <img src="/hands.png" alt="Spoluvíc" className="w-16 h-16 object-contain block mx-auto mb-3"/>
+          <h1 className="font-grotesk font-bold text-2xl">Spoluvíc</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {lang === 'cs' ? 'Najdi lidi pro společné aktivity' : 'Find people for shared activities'}
           </p>

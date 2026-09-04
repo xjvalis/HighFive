@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabaseClient';
 // AppLayout.jsx listens for that scheme via @capacitor/app's appUrlOpen and
 // hands the returned URL to handleNativeAuthCallback below to finish the
 // PKCE code exchange and close the browser.
-export const NATIVE_AUTH_REDIRECT = 'highfive://auth-callback';
+export const NATIVE_AUTH_REDIRECT = 'spoluvic://auth-callback';
 
 export async function signInWithGoogleNative() {
   const { data, error } = await supabase.auth.signInWithOAuth({

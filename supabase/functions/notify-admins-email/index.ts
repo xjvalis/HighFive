@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ skipped: 'no_recipients' }), { headers: corsHeaders });
     }
 
-    const fromAddress = Deno.env.get('NOTIFY_FROM_EMAIL') || 'HighFive <onboarding@resend.dev>';
+    const fromAddress = Deno.env.get('NOTIFY_FROM_EMAIL') || 'Spoluvíc <onboarding@resend.dev>';
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',

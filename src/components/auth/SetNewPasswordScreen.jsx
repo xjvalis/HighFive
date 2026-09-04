@@ -38,7 +38,7 @@ export default function SetNewPasswordScreen() {
     <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src="/hands.png" alt="HighFive" className="w-16 h-16 object-contain block mx-auto mb-3"/>
+          <img src="/hands.png" alt="Spoluvíc" className="w-16 h-16 object-contain block mx-auto mb-3"/>
           <h1 className="font-grotesk font-bold text-2xl">{lang === 'cs' ? 'Nastav nové heslo' : 'Set a new password'}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {lang === 'cs' ? 'Dokonči reset hesla zadáním nového.' : 'Finish the reset by choosing a new password.'}

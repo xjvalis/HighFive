@@ -185,7 +185,7 @@ export default function Profile() {
           <div className="mt-5 rounded-2xl border border-violet-200/60 bg-violet-50/50 p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <span className="font-grotesk font-semibold">HighFive Premium</span>
+                <span className="font-grotesk font-semibold">Spoluvíc Premium</span>
                 <span className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full font-medium">{profile?.subscription_plan === 'creator' ? 'Creator' : 'Plus'}</span>
               </div>
             </div>
@@ -197,7 +197,7 @@ export default function Profile() {
         ) : (
           <div className="mt-5 rounded-2xl overflow-hidden border border-violet-200/60 bg-violet-50/50 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowPremium(true)}>
             <div className="px-5 py-4">
-              <div className="flex items-center justify-between mb-2"><span className="font-grotesk font-semibold">HighFive Premium</span><span className="text-xs text-muted-foreground">{lang === 'cs' ? 'Plus od 100 Kč/měs' : 'Plus from 100 Kč/mo'}</span></div>
+              <div className="flex items-center justify-between mb-2"><span className="font-grotesk font-semibold">Spoluvíc Premium</span><span className="text-xs text-muted-foreground">{lang === 'cs' ? 'Plus od 100 Kč/měs' : 'Plus from 100 Kč/mo'}</span></div>
               <p className="text-sm text-muted-foreground mb-4">{lang === 'cs' ? 'Neomezené eventy, bez limitů.' : 'Unlimited events, no limits.'}</p>
               <Button onClick={e => { e.stopPropagation(); setShowPremium(true); }} className="w-full rounded-xl">{tr.viewPlans}</Button>
             </div>

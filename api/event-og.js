@@ -30,7 +30,7 @@ export default async function handler(req) {
 
   const siteUrl = 'https://high-five-nine.vercel.app';
 
-  let title = 'HighFive — Najdi lidi pro společné aktivity';
+  let title = 'Spoluvíc — Najdi lidi pro společné aktivity';
   let description = 'Platforma pro hledání lidí na společné aktivity. Žádní sledující, žádné lajky — jen dobré zážitky.';
   let image = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&h=630&fit=crop';
   let url = siteUrl;
@@ -61,7 +61,7 @@ export default async function handler(req) {
   <title>${escHtml(title)}</title>
   <meta name="description" content="${escHtml(description)}"/>
   <meta property="og:type" content="website"/>
-  <meta property="og:site_name" content="HighFive"/>
+  <meta property="og:site_name" content="Spoluvíc"/>
   <meta property="og:title" content="${escHtml(title)}"/>
   <meta property="og:description" content="${escHtml(description)}"/>
   <meta property="og:image" content="${escHtml(image)}"/>

@@ -98,7 +98,7 @@ export default function PremiumModal({ open, onClose, profile, highlightPlan, on
       <div className="relative bg-card rounded-2xl border border-border shadow-xl w-full max-w-md overflow-hidden">
         <div className="flex items-start justify-between p-6 pb-4 border-b border-border">
           <div>
-            <h2 className="font-grotesk font-semibold text-lg">HighFive Premium</h2>
+            <h2 className="font-grotesk font-semibold text-lg">Spoluvíc Premium</h2>
             <p className="text-sm text-muted-foreground mt-0.5">{lang === 'cs' ? 'Více prostoru pro komunitu' : 'More space for community'}</p>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors mt-0.5"><X className="w-4 h-4" /></button>
