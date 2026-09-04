@@ -1,7 +1,7 @@
 {
   "name": "Spoluvíc",
   "short_name": "Spoluvíc",
-  "description": "Najdi lidi pro společné aktivity",
+  "description": "Spolu je toho víc",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f9f7f3",

@@ -30,8 +30,8 @@ export default async function handler(req) {
 
   const siteUrl = 'https://high-five-nine.vercel.app';
 
-  let title = 'Spoluvíc — Najdi lidi pro společné aktivity';
-  let description = 'Platforma pro hledání lidí na společné aktivity. Žádní sledující, žádné lajky — jen dobré zážitky.';
+  let title = 'Spoluvíc — Spolu je toho víc';
+  let description = 'Najdi lidi na to, na co máš zrovna chuť — bez tlaku, bez velkých profilů. Spolu je toho vždycky víc.';
   let image = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&h=630&fit=crop';
   let url = siteUrl;
 

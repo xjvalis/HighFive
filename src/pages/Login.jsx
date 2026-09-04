@@ -84,7 +84,7 @@ export default function Login() {
           <img src="/hands.png" alt="Spoluvíc" className="w-16 h-16 object-contain block mx-auto mb-3"/>
           <h1 className="font-grotesk font-bold text-2xl">Spoluvíc</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {lang === 'cs' ? 'Najdi lidi pro společné aktivity' : 'Find people for shared activities'}
+            {lang === 'cs' ? 'Spolu je toho víc' : 'More, together'}
           </p>
         </div>
         <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-6">

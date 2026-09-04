@@ -88,7 +88,7 @@ function SplashScreen() {
         Spoluvíc
       </h1>
       <p style={{ fontSize: '13px', color: '#888', textAlign: 'center', maxWidth: '240px', margin: 0, lineHeight: '1.5' }}>
-        {lang === 'cs' ? 'Platforma pro hledání událostí a přátel na základě zájmů.' : 'Find events and friends based on shared interests.'}
+        {lang === 'cs' ? 'Spolu je toho víc' : 'More, together'}
       </p>
     </div>
   );

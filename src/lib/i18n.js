@@ -75,7 +75,7 @@ export const translations = {
     hotRightNow: "Hot Right Now",
     justPosted: "Just Posted",
     communityTitle: "Community",
-    communityText: "Spoluvíc is for finding real people to do things with. No followers, no likes - just good times. 🙌",
+    communityText: "Together is always more. Find people for whatever you're in the mood for today - no pressure, no elaborate profiles. Just good company when you want it. 🙌",
 
     motivationMessages: (todayCount, activePeople, newToday, firstTimers) => [
       `${activePeople} people looking for someone to go out with today`,
@@ -364,7 +364,7 @@ export const translations = {
     hotRightNow: "Hot právě teď",
     justPosted: "Právě přidáno",
     communityTitle: "Komunita",
-    communityText: "Spoluvíc je o tom najít si kamarády na společné aktivity. Žádní sledující, žádné lajky. Pouze komunita.",
+    communityText: "Spolu je toho vždycky víc. Najdeš tu lidi na to, na co máš zrovna chuť - bez tlaku, bez velkých profilů. Jen dobrá parta, když ji potřebuješ. 🙌",
 
     motivationMessages: (todayCount, activePeople, newToday, firstTimers) => [
       `${activePeople} lidí dneska hledá parťáka`,
