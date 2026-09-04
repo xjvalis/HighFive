@@ -9,6 +9,7 @@ import { CurrentUserProvider, useCurrentUser } from '@/contexts/CurrentUserConte
 import { useState, useEffect, useContext, lazy, Suspense } from 'react';
 import { LanguageContext } from '@/lib/language';
 import { isNative, handleNativeAuthCallback } from '@/lib/nativeAuth';
+import SetNewPasswordScreen from '@/components/auth/SetNewPasswordScreen';
 
 // Route-level code splitting — only the page the user actually lands on
 // (plus AppLayout/Home for the common case) ships on first load.
@@ -107,7 +108,7 @@ const rememberSplashSeen = () => {
 };
 
 function AppContent() {
-  const { loading } = useCurrentUser();
+  const { loading, isPasswordRecovery } = useCurrentUser();
   const [seen] = useState(splashAlreadySeen);
   // On repeat opens skip the branding delay, but still hold while auth resolves:
   // that gate is what stops the app rendering a signed-out shell (and a blank
@@ -126,6 +127,7 @@ function AppContent() {
   useEffect(() => { if (!showSplash) rememberSplashSeen(); }, [showSplash]);
 
   if (showSplash) return <SplashScreen />;
+  if (isPasswordRecovery) return <SetNewPasswordScreen />;
 
   return (
     <QueryClientProvider client={queryClientInstance}>

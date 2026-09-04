@@ -7,18 +7,26 @@ export function CurrentUserProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  // A password-recovery link signs the user in like a normal session, so
+  // without this flag they'd silently land on their feed with a live
+  // session and no prompt to actually set a new password — the reset link
+  // would look like it did nothing.
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) { setUser(session.user); fetchProfile(session.user); }
       else setLoading(false);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') setIsPasswordRecovery(true);
       if (session?.user) { setUser(session.user); fetchProfile(session.user); }
       else { setUser(null); setProfile(null); setLoading(false); }
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  const clearPasswordRecovery = () => setIsPasswordRecovery(false);
 
   async function fetchProfile(authUser) {
     const { data, error } = await supabase.from('user_profiles').select('*').eq('user_id', authUser.id).single();
@@ -42,7 +50,7 @@ export function CurrentUserProvider({ children }) {
   };
 
   return (
-    <Ctx.Provider value={{ user, profile, setProfile, updateProfile, loading }}>
+    <Ctx.Provider value={{ user, profile, setProfile, updateProfile, loading, isPasswordRecovery, clearPasswordRecovery }}>
       {children}
     </Ctx.Provider>
   );

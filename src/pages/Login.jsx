@@ -1,12 +1,19 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
+import { isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
-import { isNative, signInWithGoogleNative } from '@/lib/nativeAuth';
+import { isNative, signInWithGoogleNative, NATIVE_AUTH_REDIRECT } from '@/lib/nativeAuth';
+
+// Explicit redirect target for signup-confirmation and password-reset
+// emails — without this Supabase falls back to the dashboard's "Site URL",
+// which is easy to leave pointed at a dev default and never notice until a
+// real user's confirmation link dumps them on a broken address.
+const authRedirect = () => (isNative() ? NATIVE_AUTH_REDIRECT : window.location.origin + '/');
 
 export default function Login() {
   const { lang } = useContext(LanguageContext);
@@ -21,7 +28,14 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault(); setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    let { error } = await supabase.auth.signInWithPassword({ email, password });
+    // On a native cold start the network stack can still be warming up when
+    // the first request fires — that shows up as a retryable fetch error,
+    // not a real "wrong password", so it's worth one silent retry before
+    // making the user tap the button again.
+    if (error && isAuthRetryableFetchError(error)) {
+      ({ error } = await supabase.auth.signInWithPassword({ email, password }));
+    }
     if (error) { toast.error(lang === 'cs' ? 'Špatný email nebo heslo.' : 'Invalid email or password.'); setLoading(false); }
     else { navigate('/'); }
   };
@@ -31,7 +45,7 @@ export default function Login() {
     if (!name.trim()) { toast.error(lang === 'cs' ? 'Zadej své jméno.' : 'Please enter your name.'); return; }
     if (!agreedToTerms) { toast.error(lang === 'cs' ? 'Pro registraci musíš souhlasit s podmínkami.' : 'You must agree to the terms to register.'); return; }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name.trim() } } });
+    const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name.trim() }, emailRedirectTo: authRedirect() } });
     if (error) toast.error(error.message);
     else toast.success(lang === 'cs' ? 'Účet vytvořen! Zkontroluj email.' : 'Account created! Check your email.');
     setLoading(false);
@@ -39,7 +53,7 @@ export default function Login() {
 
   const handleReset = async (e) => {
     e.preventDefault(); setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/profile` });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: authRedirect() });
     if (error) toast.error(error.message); else setResetSent(true);
     setLoading(false);
   };
