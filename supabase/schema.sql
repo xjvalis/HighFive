@@ -73,20 +73,7 @@ create table public.events (
   updated_at timestamptz default now()
 );
 
--- Event chat (jen pro účastníky)
-create table public.event_chat (
-  id uuid primary key default uuid_generate_v4(),
-  event_id uuid references public.events(id) on delete cascade not null,
-  author_id uuid references auth.users(id) on delete set null,
-  author_email text not null,
-  author_name text,
-  author_avatar text,
-  content text not null,
-  is_archived boolean default false,
-  created_at timestamptz default now()
-);
-
--- Přímé zprávy
+-- Přímé zprávy (1:1 i hromadné oznámení organizátora — is_broadcast rozlišuje)
 create table public.direct_messages (
   id uuid primary key default uuid_generate_v4(),
   from_id uuid references auth.users(id) on delete set null,
@@ -97,6 +84,7 @@ create table public.direct_messages (
   to_email text not null,
   event_id uuid references public.events(id) on delete set null,
   event_title text,
+  is_broadcast boolean default false,
   content text not null,
   is_read boolean default false,
   created_at timestamptz default now()
@@ -161,7 +149,6 @@ create index events_location_idx on public.events using gist (
   st_point(longitude, latitude)
 ) where latitude is not null and longitude is not null;
 
-create index event_chat_event_id_idx on public.event_chat(event_id);
 create index direct_messages_from_email_idx on public.direct_messages(from_email);
 create index direct_messages_to_email_idx on public.direct_messages(to_email);
 create index notifications_user_id_idx on public.notifications(user_id);
@@ -173,7 +160,6 @@ create index comments_event_id_idx on public.comments(event_id);
 -- ============================================================
 alter table public.user_profiles enable row level security;
 alter table public.events enable row level security;
-alter table public.event_chat enable row level security;
 alter table public.direct_messages enable row level security;
 alter table public.notifications enable row level security;
 alter table public.comments enable row level security;
@@ -213,34 +199,6 @@ create policy "events_delete_own_or_admin" on public.events
   for delete using (
     organizer_id = auth.uid()
     or exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
-  );
-
--- EVENT CHAT — jen účastníci vidí zprávy
-create policy "event_chat_read_participants" on public.event_chat
-  for select using (
-    -- user je účastník eventu
-    exists (
-      select 1 from public.events e
-      where e.id = event_id
-      and (
-        auth.jwt()->>'email' = any(e.participants)
-        or e.organizer_id = auth.uid()
-      )
-    )
-    or exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
-  );
-
-create policy "event_chat_insert_participants" on public.event_chat
-  for insert with check (
-    author_id = auth.uid()
-    and exists (
-      select 1 from public.events e
-      where e.id = event_id
-      and (
-        auth.jwt()->>'email' = any(e.participants)
-        or e.organizer_id = auth.uid()
-      )
-    )
   );
 
 -- DIRECT MESSAGES
@@ -300,10 +258,10 @@ create policy "reports_update_admin" on public.reports
 -- ============================================================
 -- REALTIME — povol realtime pro tyto tabulky
 -- ============================================================
-alter publication supabase_realtime add table public.event_chat;
 alter publication supabase_realtime add table public.direct_messages;
 alter publication supabase_realtime add table public.notifications;
 alter publication supabase_realtime add table public.events;
+alter publication supabase_realtime add table public.comments;
 
 -- ============================================================
 -- TRIGGER — auto-vytvoř profil při registraci

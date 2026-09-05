@@ -32,16 +32,32 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
   const isFull = event.max_capacity && participants.length >= event.max_capacity;
 
   const sendMessage = async () => {
-    if (!emailMsg.trim()||participants.length===0||!user) return;
+    const recipients = participants.filter(email => email !== user?.email);
+    if (!emailMsg.trim()||recipients.length===0||!user) return;
     setEmailLoading(true);
     try {
-      for (const email of participants) {
-        if (email===user.email) continue;
-        const { error } = await supabase.from('direct_messages').insert({from_id:user.id,from_email:user.email,from_name:event.organizer_name||user.email,to_email:email,event_id:event.id,event_title:event.title,content:emailMsg.trim(),is_read:false});
-        if (error) throw error;
-      }
+      // Resolve each recipient's user_id first — direct_messages RLS gates
+      // reads on to_id = auth.uid(), so a row inserted with to_id left null
+      // is silently invisible to the recipient (it only ever shows up for
+      // the sender). Without this, "message all participants" looked like
+      // it worked but nobody on the other end ever saw it.
+      const { data: profiles, error: profilesError } = await supabase.from('user_profiles').select('user_id,user_email').in('user_email', recipients);
+      if (profilesError) throw profilesError;
+      const idByEmail = {};
+      (profiles || []).forEach(p => { idByEmail[p.user_email] = p.user_id; });
+
+      const content = emailMsg.trim();
+      const rows = recipients.map(email => ({
+        from_id: user.id, from_email: user.email, from_name: event.organizer_name || user.email,
+        to_id: idByEmail[email] || null, to_email: email,
+        event_id: event.id, event_title: event.title, is_broadcast: true,
+        content, is_read: false,
+      }));
+      const { error } = await supabase.from('direct_messages').insert(rows);
+      if (error) throw error;
+
       setEmailMsg('');
-      toast.success(tr.messageSentToAll?.(participants.length) || 'Zpráva odeslána všem účastníkům!');
+      toast.success(tr.messageSentToAll?.(recipients.length) || 'Zpráva odeslána všem účastníkům!');
     } catch {
       toast.error(lang === 'cs' ? 'Nepodařilo se odeslat zprávu všem účastníkům.' : 'Failed to message all participants.');
     } finally {

@@ -87,21 +87,24 @@ export function renderNotification(n, lang) {
     }
 
     case 'new_message':
-      return {
-        icon,
-        title: cz ? `💬 Nová zpráva od ${d.senderName}` : `💬 New message from ${d.senderName}`,
-        body: d.preview, // user-authored — verbatim
-      };
+      return d.isBroadcast
+        ? {
+            icon: '📢',
+            title: cz ? `📢 Zpráva organizátora: ${d.eventTitle}` : `📢 Organizer message: ${d.eventTitle}`,
+            body: d.preview, // user-authored — verbatim
+          }
+        : {
+            icon,
+            title: cz ? `💬 Nová zpráva od ${d.senderName}` : `💬 New message from ${d.senderName}`,
+            body: d.preview, // user-authored — verbatim
+          };
 
     case 'new_chat_message': {
-      const kindLabel = d.kind === 'discussion' ? (cz ? 'Diskuze' : 'Discussion') : 'Chat';
-      const collapsedBody = d.kind === 'discussion'
-        ? (cz ? 'V diskuzi jsou nové zprávy.' : 'There are new messages in the discussion.')
-        : (cz ? 'V chatu jsou nové zprávy.' : 'There are new messages in chat.');
+      const collapsedBody = cz ? 'V diskuzi jsou nové zprávy.' : 'There are new messages in the discussion.';
       const sender = d.senderName || (cz ? 'Někdo' : 'Someone');
       return {
         icon,
-        title: `💬 ${kindLabel}: ${d.eventTitle}`,
+        title: `💬 ${cz ? 'Diskuze' : 'Discussion'}: ${d.eventTitle}`,
         body: d.collapsed ? collapsedBody : `${sender}: ${d.preview}`, // sender/preview — verbatim
       };
     }

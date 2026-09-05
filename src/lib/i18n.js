@@ -255,10 +255,6 @@ export const translations = {
     detailAgeUpTo: "up to",
     detailAgeMinSuffix: "+",
 
-    // EventChat
-    chatTitle: "Event Chat",
-    chatOnlyForGoing: "Only for people going",
-    chatArchived: "Archived",
     pastEvents: "Past",
     pastEventsEmpty: "No past events yet",
     pastEventsHint: "Events you attended will appear here after they end",
@@ -266,12 +262,6 @@ export const translations = {
     eventArchivedNotif: "This event has already passed",
     noLongerGoing: "No longer happening",
     goingPast: "Happened",
-
-    chatCloses: "Closes",
-    chatEmpty: "👋 Chat is empty - say hi and share details!",
-    chatPlaceholder: "Type a message... (Enter to send)",
-    chatLoadFailed: "Failed to load the chat.",
-    chatSendFailed: "Failed to send the message.",
 
     // NotificationBell
     notifBellTitle: "Notifications",
@@ -544,10 +534,6 @@ export const translations = {
     detailAgeUpTo: "do",
     detailAgeMinSuffix: "+",
 
-    // EventChat
-    chatTitle: "Chat události",
-    chatOnlyForGoing: "Pouze pro účastníky",
-    chatArchived: "Archivováno",
     pastEvents: "Proběhlé",
     pastEventsEmpty: "Zatím žádné proběhlé akce",
     pastEventsHint: "Akce, kterých jsi se zúčastnil/a, zobrazí se zde po skončení",
@@ -555,12 +541,6 @@ export const translations = {
     eventArchivedNotif: "Tato akce již proběhla",
     noLongerGoing: "Proběhlo",
     goingPast: "Proběhlo",
-
-    chatCloses: "Uzavírá se",
-    chatEmpty: "👋 Chat je prázdný - pozdrav ostatní!",
-    chatPlaceholder: "Napiš zprávu... (Enter pro odeslání)",
-    chatLoadFailed: "Nepodařilo se načíst chat.",
-    chatSendFailed: "Nepodařilo se odeslat zprávu.",
 
     // NotificationBell
     notifBellTitle: "Oznámení",

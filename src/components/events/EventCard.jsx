@@ -97,11 +97,11 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
         {event.date && <span className="flex-shrink-0">{format(new Date(event.date), 'HH:mm')}</span>}
       </div>
 
-      {(!isFull || isJoined) && (
-        <div className="flex items-center" style={{ marginTop: 9, gap: 12 }} onClick={e => e.stopPropagation()}>
-          <Link to={`/event/${event.id}`} style={{ font: "400 11.5px 'Outfit', sans-serif", color: 'var(--sv-link)' }}>
-            {lang === 'cs' ? 'Zobrazit chat' : 'View chat'}
-          </Link>
+      <div className="flex items-center" style={{ marginTop: 9, gap: 12 }} onClick={e => e.stopPropagation()}>
+        <Link to={`/event/${event.id}`} style={{ font: "400 11.5px 'Outfit', sans-serif", color: 'var(--sv-link)' }}>
+          {lang === 'cs' ? 'Diskuze' : 'Discussion'}
+        </Link>
+        {(!isFull || isJoined) && (
           <button
             onClick={handleJoinClick}
             disabled={joining}
@@ -118,8 +118,8 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
               ? <Loader2 className="w-3.5 h-3.5 animate-spin"/>
               : isJoined ? (lang === 'cs' ? 'Jdeš' : 'Going') : (lang === 'cs' ? 'Jdu' : 'Go')}
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

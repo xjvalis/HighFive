@@ -11,7 +11,6 @@ import { LanguageContext } from '@/lib/language';
 import { useT } from '@/lib/i18n';
 import { Textarea } from '@/components/ui/textarea';
 import { motion } from 'framer-motion';
-import EventChat from '@/components/events/EventChat';
 import AttendanceMarker from '@/components/events/AttendanceMarker';
 import ParticipantsPanel from '@/components/events/ParticipantsPanel';
 import ReportModal from '@/components/events/ReportModal';
@@ -71,6 +70,12 @@ export default function EventDetail() {
       if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se načíst komentáře.' : 'Failed to load comments.'); return; }
       setComments(data||[]);
     });
+
+    const ch = supabase.channel(`comments-${id}-${Math.random().toString(36).slice(2)}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments', filter: `event_id=eq.${id}` },
+        p => setComments(prev => prev.find(c => c.id === p.new.id) ? prev : [...prev, p.new]))
+      .subscribe();
+    return () => supabase.removeChannel(ch);
   }, [id]);
 
   const isJoined = user && event?.participants?.includes(user.email);
@@ -236,7 +241,6 @@ export default function EventDetail() {
       </div>
 
       <AttendanceMarker event={event} onMarked={() => {}}/>
-      <EventChat event={event} user={user} profile={profile}/>
 
       <div className="mt-4" style={{ ...svCard, padding: 18 }}>
         <h2 style={{ font: "500 15px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginBottom: 14 }}>{tr.detailDiscussion} ({comments.length})</h2>

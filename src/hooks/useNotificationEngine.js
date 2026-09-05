@@ -5,8 +5,9 @@ import { supabase } from '@/lib/supabaseClient';
 // inserting one row per message: the first message gets a specific preview,
 // any further message while that notification is still unread just bumps the
 // data payload (marked `collapsed: true`) rather than spamming new rows.
-// `kind` distinguishes event chat from discussion comments (both use type
-// 'new_chat_message'); rendering is done at read time via notifTemplates.js.
+// `kind` is always 'discussion' (type is still 'new_chat_message' for
+// backwards compat with older notification rows); rendering is done at read
+// time via notifTemplates.js.
 async function notifyOrCollapse({ userId, userEmail, eventId, eventTitle, kind, senderName, preview }) {
   const { data: existing } = await supabase.from('notifications')
     .select('id, data')
@@ -38,36 +39,24 @@ export function useNotificationEngine(user) {
     channelsRef.current.forEach(c => supabase.removeChannel(c));
     channelsRef.current = [];
 
-    // New DM notification
+    // New DM notification — carries event context through so a broadcast
+    // from an organizer ("message all participants") renders differently
+    // than a personal 1:1 message (see notifTemplates.js).
     const dmCh = supabase.channel(`notif-dm-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages' },
         async (p) => {
           if (p.new.to_email !== user.email) return;
           await supabase.from('notifications').insert({
             user_id: user.id, user_email: user.email, type: 'new_message',
-            data: { senderName: p.new.from_name || p.new.from_email, preview: p.new.content?.slice(0, 80) },
+            data: {
+              senderName: p.new.from_name || p.new.from_email, preview: p.new.content?.slice(0, 80),
+              isBroadcast: !!p.new.is_broadcast, eventTitle: p.new.event_title || null,
+            },
             is_read: false,
           });
         })
       .subscribe();
     channelsRef.current.push(dmCh);
-
-    // New event chat message notification (collapses repeat messages)
-    const chatCh = supabase.channel(`notif-chat-${Math.random().toString(36).slice(2)}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'event_chat' },
-        async (p) => {
-          const msg = p.new;
-          if (msg.author_email === user.email) return;
-          const { data: ev } = await supabase.from('events').select('title,participants,organizer_email').eq('id', msg.event_id).single();
-          if (!ev) return;
-          if (!ev.participants?.includes(user.email) && ev.organizer_email !== user.email) return;
-          await notifyOrCollapse({
-            userId: user.id, userEmail: user.email, eventId: msg.event_id, eventTitle: ev.title,
-            kind: 'chat', senderName: msg.author_name || null, preview: msg.content?.slice(0, 60),
-          });
-        })
-      .subscribe();
-    channelsRef.current.push(chatCh);
 
     // New discussion comment notification (collapses repeat comments)
     const commentCh = supabase.channel(`notif-comment-${Math.random().toString(36).slice(2)}`)

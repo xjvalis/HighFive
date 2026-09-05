@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
@@ -8,7 +8,6 @@ import EmptyState from '@/components/ui/EmptyState';
 import { useT } from '@/lib/i18n';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { toast } from 'sonner';
-import EventChat from '@/components/events/EventChat';
 import { format } from 'date-fns';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
 import { SvIcon } from '@/components/icons/SvIcon';
@@ -18,38 +17,26 @@ import { svPageTitle, svCard, svSectionLabel } from '@/lib/svStyles';
 
 function PastEventCard({ event }) {
   const { lang } = useContext(LanguageContext);
-  const [chatOpen, setChatOpen] = useState(false);
   const cat = getCategoryStyle(event.category);
 
   return (
-    <div style={{ ...svCard, overflow: 'hidden', opacity: 0.75 }}>
-      <div style={{ padding: '12px 14px' }}>
-        <div className="flex items-center" style={{ gap: 5, marginBottom: 6 }}>
-          <span className="flex items-center flex-shrink-0" style={{ gap: 5, background: cat.bg, color: cat.ink, borderRadius: 'var(--sv-r-pill)', padding: '3px 8px', font: "400 10px 'Outfit', sans-serif" }}>
-            <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 10 }}>{cat.emoji}</span>
-            {getCategoryLabel(event.category, lang)}
-          </span>
-          <span style={{ font: "400 10px 'Outfit', sans-serif", color: 'var(--sv-meta)', background: 'var(--sv-surface-muted)', borderRadius: 'var(--sv-r-pill)', padding: '3px 8px' }}>
-            {lang === 'cs' ? 'Proběhlé' : 'Past'}
-          </span>
-        </div>
-        <h3 className="line-clamp-1" style={{ font: "500 14.5px 'Outfit', sans-serif", letterSpacing: '-0.015em', color: 'var(--sv-ink)' }}>{event.title}</h3>
-        <div className="flex items-center flex-wrap" style={{ marginTop: 5, gap: 12, font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
-          <span className="flex items-center gap-1 truncate max-w-[160px]"><SvIcon name="pin" size={11} style={{ color: '#B4AEA6', flexShrink: 0 }}/> {event.location}</span>
-          <span>{format(new Date(event.date), 'EEE d MMM · HH:mm')}</span>
-          <span className="flex items-center gap-1"><SvIcon name="users" size={11} style={{ color: '#B4AEA6' }}/>{event.participants?.length || 0}</span>
-        </div>
-        <button onClick={() => setChatOpen(v => !v)} className="flex items-center gap-1" style={{ marginTop: 9, font: "400 11.5px 'Outfit', sans-serif", color: 'var(--sv-link)' }}>
-          <SvIcon name="message" size={12}/>
-          {chatOpen ? (lang === 'cs' ? 'Skrýt chat' : 'Hide chat') : (lang === 'cs' ? 'Zobrazit chat' : 'Show chat')}
-        </button>
+    <Link to={`/event/${event.id}`} style={{ ...svCard, display: 'block', padding: '12px 14px', opacity: 0.75 }}>
+      <div className="flex items-center" style={{ gap: 5, marginBottom: 6 }}>
+        <span className="flex items-center flex-shrink-0" style={{ gap: 5, background: cat.bg, color: cat.ink, borderRadius: 'var(--sv-r-pill)', padding: '3px 8px', font: "400 10px 'Outfit', sans-serif" }}>
+          <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 10 }}>{cat.emoji}</span>
+          {getCategoryLabel(event.category, lang)}
+        </span>
+        <span style={{ font: "400 10px 'Outfit', sans-serif", color: 'var(--sv-meta)', background: 'var(--sv-surface-muted)', borderRadius: 'var(--sv-r-pill)', padding: '3px 8px' }}>
+          {lang === 'cs' ? 'Proběhlé' : 'Past'}
+        </span>
       </div>
-      {chatOpen && (
-        <div style={{ borderTop: '1px solid var(--sv-hairline)' }}>
-          <EventChat event={event} user={null} profile={null} readOnly />
-        </div>
-      )}
-    </div>
+      <h3 className="line-clamp-1" style={{ font: "500 14.5px 'Outfit', sans-serif", letterSpacing: '-0.015em', color: 'var(--sv-ink)' }}>{event.title}</h3>
+      <div className="flex items-center flex-wrap" style={{ marginTop: 5, gap: 12, font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
+        <span className="flex items-center gap-1 truncate max-w-[160px]"><SvIcon name="pin" size={11} style={{ color: '#B4AEA6', flexShrink: 0 }}/> {event.location}</span>
+        <span>{format(new Date(event.date), 'EEE d MMM · HH:mm')}</span>
+        <span className="flex items-center gap-1"><SvIcon name="users" size={11} style={{ color: '#B4AEA6' }}/>{event.participants?.length || 0}</span>
+      </div>
+    </Link>
   );
 }
 

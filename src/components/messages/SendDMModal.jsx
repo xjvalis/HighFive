@@ -2,10 +2,11 @@ import { useState, useContext } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import { Send, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { LanguageContext } from '@/lib/language';
+import { SvIcon } from '@/components/icons/SvIcon';
+import { svField } from '@/lib/svStyles';
 
 export default function SendDMModal({ open, onClose, toEmail, toName, fromUser, fromProfile, event }) {
   const { lang } = useContext(LanguageContext);
@@ -25,13 +26,18 @@ export default function SendDMModal({ open, onClose, toEmail, toName, fromUser, 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle className="font-grotesk">{lang === 'cs' ? 'Soukromá zpráva' : 'Direct message'} → {toName}</DialogTitle></DialogHeader>
-        {event&&<div className="bg-secondary/60 rounded-xl px-3 py-2 text-xs text-muted-foreground mb-1">📅 {lang === 'cs' ? 'Ohledně události:' : 'Regarding event:'} <span className="font-medium text-foreground">{event.title}</span></div>}
-        <Textarea value={content} onChange={e=>setContent(e.target.value)} placeholder={lang === 'cs' ? 'Napiš svou zprávu...' : 'Write your message...'} className="resize-none min-h-[120px] rounded-xl" autoFocus/>
+      <DialogContent className="max-w-md" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+        <DialogHeader><DialogTitle style={{ font: "500 15px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{lang === 'cs' ? 'Soukromá zpráva' : 'Direct message'} → {toName}</DialogTitle></DialogHeader>
+        {event && (
+          <div className="flex items-center gap-1.5 mb-1" style={{ background: '#F0EAFC', borderRadius: 10, padding: '8px 12px', font: "300 11.5px 'Outfit', sans-serif", color: '#5A4A83' }}>
+            <SvIcon name="calendar" size={12} style={{ color: 'var(--sv-brand-purple)' }}/>
+            {lang === 'cs' ? 'Ohledně události:' : 'Regarding event:'} <span style={{ fontWeight: 500, color: '#4A3A73' }}>{event.title}</span>
+          </div>
+        )}
+        <Textarea value={content} onChange={e=>setContent(e.target.value)} placeholder={lang === 'cs' ? 'Napiš svou zprávu...' : 'Write your message...'} className="resize-none min-h-[120px]" style={svField} autoFocus/>
         <div className="flex gap-2 justify-end">
-          <Button variant="outline" onClick={onClose} className="rounded-xl">{lang === 'cs' ? 'Zrušit' : 'Cancel'}</Button>
-          <Button onClick={handleSend} disabled={sending||!content.trim()} className="rounded-xl gap-2">{sending?<Loader2 className="w-4 h-4 animate-spin"/>:<Send className="w-4 h-4"/>}{lang === 'cs' ? 'Odeslat' : 'Send'}</Button>
+          <button onClick={onClose} style={{ background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)', borderRadius: 'var(--sv-r-pill)', padding: '8px 16px', font: "500 12.5px 'Outfit', sans-serif" }}>{lang === 'cs' ? 'Zrušit' : 'Cancel'}</button>
+          <button onClick={handleSend} disabled={sending||!content.trim()} className="flex items-center gap-2" style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 'var(--sv-r-pill)', padding: '8px 16px', font: "500 12.5px 'Outfit', sans-serif", opacity: (sending||!content.trim())?0.5:1 }}>{sending?<Loader2 className="w-4 h-4 animate-spin"/>:<Send className="w-4 h-4"/>}{lang === 'cs' ? 'Odeslat' : 'Send'}</button>
         </div>
       </DialogContent>
     </Dialog>

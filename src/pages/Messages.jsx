@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect, useRef, useContext } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useT } from '@/lib/i18n';
 import { LanguageContext } from '@/lib/language';
 import EmptyState from '@/components/ui/EmptyState';
+import { SvIcon } from '@/components/icons/SvIcon';
 import { svPageTitle, svCard, svField } from '@/lib/svStyles';
 
 export default function Messages() {
@@ -122,6 +123,11 @@ export default function Messages() {
                 <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#F0EAFC', color: 'var(--sv-brand-purple)', font: "500 13px 'Outfit', sans-serif" }}>{pName(t.partnerEmail)[0]?.toUpperCase()||'?'}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between"><span style={{ font: `${t.unread>0?500:400} 12.5px 'Outfit', sans-serif`, color: 'var(--sv-ink)' }}>{pName(t.partnerEmail)}</span>{last&&<span style={{ font: "400 10px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)' }}>{format(new Date(last.created_at),'HH:mm')}</span>}</div>
+                  {last?.event_title && (
+                    <p className="truncate" style={{ font: "500 10px 'Outfit', sans-serif", color: 'var(--sv-brand-purple)', marginTop: 1 }}>
+                      {last.is_broadcast ? (lang==='cs'?'Zpráva organizátora':'Organizer message') : (lang==='cs'?'K akci':'About event')} · {last.event_title}
+                    </p>
+                  )}
                   <div className="flex items-center justify-between"><p className="truncate max-w-[200px]" style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>{last?.content||''}</p>{t.unread>0&&<span className="flex items-center justify-center flex-shrink-0" style={{ minWidth: 17, height: 17, borderRadius: 999, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', font: "500 10px 'Outfit', sans-serif", padding: '0 4px' }}>{t.unread}</span>}</div>
                 </div>
               </button>
@@ -134,11 +140,19 @@ export default function Messages() {
             {threadMessages.map(msg=>{
               const mine = msg.from_email===user.email;
               return (
-                <div key={msg.id} className={`flex gap-2 ${mine?'flex-row-reverse':''}`}>
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: mine ? '#F0EAFC' : 'var(--sv-surface-muted)', color: mine ? 'var(--sv-brand-purple)' : 'var(--sv-ink-soft)', font: "500 11px 'Outfit', sans-serif" }}>{(mine?(profile?.display_name||user.email):pName(msg.from_email))[0]?.toUpperCase()}</div>
-                  <div className={`max-w-[70%] flex flex-col ${mine?'items-end':'items-start'}`}>
-                    <div style={{ padding: '8px 12px', borderRadius: 14, font: "300 12.5px 'Outfit', sans-serif", background: mine ? 'var(--sv-action-bg)' : 'var(--sv-surface-muted)', color: mine ? 'var(--sv-action-ink)' : 'var(--sv-ink-soft)' }}>{msg.content}</div>
-                    <span style={{ font: "400 10px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)', marginTop: 3 }}>{format(new Date(msg.created_at),'HH:mm')}</span>
+                <div key={msg.id} className={`flex flex-col ${mine?'items-end':'items-start'}`} style={{ gap: 4 }}>
+                  {msg.event_title && (
+                    <Link to={`/event/${msg.event_id}`} className="flex items-center" style={{ gap: 4, font: "500 10px 'Outfit', sans-serif", color: 'var(--sv-brand-purple)', background: '#F0EAFC', borderRadius: 'var(--sv-r-pill)', padding: '3px 9px' }}>
+                      <SvIcon name="calendar" size={9}/>
+                      {msg.is_broadcast ? (lang==='cs'?'Zpráva organizátora':'Organizer message') : (lang==='cs'?'K akci':'About event')} · {msg.event_title}
+                    </Link>
+                  )}
+                  <div className={`flex gap-2 ${mine?'flex-row-reverse':''}`}>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: mine ? '#F0EAFC' : 'var(--sv-surface-muted)', color: mine ? 'var(--sv-brand-purple)' : 'var(--sv-ink-soft)', font: "500 11px 'Outfit', sans-serif" }}>{(mine?(profile?.display_name||user.email):pName(msg.from_email))[0]?.toUpperCase()}</div>
+                    <div className="max-w-[70%] flex flex-col" style={{ alignItems: mine?'flex-end':'flex-start' }}>
+                      <div style={{ padding: '8px 12px', borderRadius: 14, font: "300 12.5px 'Outfit', sans-serif", background: mine ? 'var(--sv-action-bg)' : 'var(--sv-surface-muted)', color: mine ? 'var(--sv-action-ink)' : 'var(--sv-ink-soft)' }}>{msg.content}</div>
+                      <span style={{ font: "400 10px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)', marginTop: 3 }}>{format(new Date(msg.created_at),'HH:mm')}</span>
+                    </div>
                   </div>
                 </div>
               );
