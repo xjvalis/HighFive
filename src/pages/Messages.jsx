@@ -44,7 +44,7 @@ export default function Messages() {
         setLoading(false);
       });
 
-    const ch = supabase.channel('dm-page')
+    const ch = supabase.channel(`dm-page-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'direct_messages'},p=>{
         const msg=p.new;
         if (msg.from_email===user.email||msg.to_email===user.email)

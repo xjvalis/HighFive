@@ -26,7 +26,7 @@ export default function NotificationBell() {
       setNotifications(data||[]);
     });
 
-    const ch = supabase.channel('bell-notifs')
+    const ch = supabase.channel(`bell-notifs-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications'},p=>{if(p.new.user_id===user.id)setNotifications(prev=>[p.new,...prev]);})
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'notifications'},p=>setNotifications(prev=>prev.map(n=>n.id===p.new.id?p.new:n)))
       .subscribe();

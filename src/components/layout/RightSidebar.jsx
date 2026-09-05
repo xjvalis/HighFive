@@ -35,7 +35,7 @@ export default function RightSidebar() {
         setRecentEvents(data || []);
       });
 
-    const ch = supabase.channel('sidebar-events')
+    const ch = supabase.channel(`sidebar-events-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events' },
         p => setRecentEvents(prev => [p.new, ...prev].slice(0, 5)))
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'events' },

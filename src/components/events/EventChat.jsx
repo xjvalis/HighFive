@@ -31,7 +31,7 @@ export default function EventChat({ event, user, profile, readOnly = false }) {
         setMessages(data || []); setLoading(false);
       });
 
-    const ch = supabase.channel(`chat-${event.id}`)
+    const ch = supabase.channel(`chat-${event.id}-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'event_chat', filter: `event_id=eq.${event.id}` },
         p => { setMessages(prev => prev.find(m => m.id === p.new.id) ? prev : [...prev, p.new]); })
       .subscribe();

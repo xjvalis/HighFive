@@ -39,7 +39,7 @@ export function useNotificationEngine(user) {
     channelsRef.current = [];
 
     // New DM notification
-    const dmCh = supabase.channel('notif-dm')
+    const dmCh = supabase.channel(`notif-dm-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages' },
         async (p) => {
           if (p.new.to_email !== user.email) return;
@@ -53,7 +53,7 @@ export function useNotificationEngine(user) {
     channelsRef.current.push(dmCh);
 
     // New event chat message notification (collapses repeat messages)
-    const chatCh = supabase.channel('notif-chat')
+    const chatCh = supabase.channel(`notif-chat-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'event_chat' },
         async (p) => {
           const msg = p.new;
@@ -70,7 +70,7 @@ export function useNotificationEngine(user) {
     channelsRef.current.push(chatCh);
 
     // New discussion comment notification (collapses repeat comments)
-    const commentCh = supabase.channel('notif-comment')
+    const commentCh = supabase.channel(`notif-comment-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments' },
         async (p) => {
           const comment = p.new;
