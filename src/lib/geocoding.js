@@ -1,43 +1,51 @@
 // Shared geocoding helpers.
 //
-// Uses Mapbox when VITE_MAPBOX_TOKEN is set (better POI coverage in CZ, proper
-// rate limits) and otherwise falls back to Nominatim/OSM, which needs no key.
-// The fallback matters: without it a missing token silently returns zero
-// results, which looks exactly like "the location field is broken".
-// Mapbox failures also fall through to Nominatim rather than returning nothing.
+// Uses the Mapy.cz REST API (Seznam.cz) when VITE_MAPY_CZ_API_KEY is set —
+// much better address/POI coverage for Czechia than global providers — and
+// otherwise falls back to Nominatim/OSM, which needs no key. The fallback
+// matters: without it a missing/invalid key silently returns zero results,
+// which looks exactly like "the location field is broken". Mapy.cz failures
+// also fall through to Nominatim rather than returning nothing.
+//
+// API reference: https://api.mapy.cz/openapi (suggest / geocode / rgeocode).
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-const MAPBOX_BASE = 'https://api.mapbox.com/search/geocode/v6';
+const MAPY_KEY = import.meta.env.VITE_MAPY_CZ_API_KEY;
+const MAPY_BASE = 'https://api.mapy.cz/v1';
 const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org';
 
-export const usingMapbox = !!MAPBOX_TOKEN;
+export const usingMapyCz = !!MAPY_KEY;
 
-/* ---------------------------------- Mapbox --------------------------------- */
+/* --------------------------------- Mapy.cz --------------------------------- */
 
-const POI_EMOJI = {
-  cafe: '🍽️', restaurant: '🍽️', bar: '🍺', pub: '🍺', park: '🌳', garden: '🌳',
-  sports_club: '🏋️', gym: '🏋️', library: '📚', theatre: '🎭', cinema: '🎭',
-  hospital: '🏥', clinic: '🏥', museum: '🏛️', hotel: '🏨', shop: '🛍️',
-};
-
-function mapboxEmoji(feature) {
-  for (const cat of feature.properties?.poi_category || []) {
-    if (POI_EMOJI[cat]) return POI_EMOJI[cat];
+function mapyEmoji(item) {
+  const type = item.type || '';
+  const text = `${item.name || ''} ${item.location || ''}`.toLowerCase();
+  if (type.startsWith('poi')) {
+    if (/restaurace|café|kavárna|cafe|bistro/.test(text)) return '🍽️';
+    if (/bar|pivnice|hospoda|pub/.test(text)) return '🍺';
+    if (/park|zahrada|garden/.test(text)) return '🌳';
+    if (/fitness|posilovna|gym|sport/.test(text)) return '🏋️';
+    if (/knihovna|library/.test(text)) return '📚';
+    if (/divadlo|kino|theatre|cinema/.test(text)) return '🎭';
+    if (/nemocnice|klinika|hospital|clinic/.test(text)) return '🏥';
+    if (/muzeum|museum|galerie/.test(text)) return '🏛️';
+    if (/hotel|hostel/.test(text)) return '🏨';
+    if (/obchod|shop|store/.test(text)) return '🛍️';
+    return '📍';
   }
-  const type = feature.properties?.feature_type;
-  if (type === 'poi' || type === 'address' || type === 'street') return '📍';
-  return '🏙️';
+  if (type === 'regional.address' || type === 'regional.street') return '📍';
+  if (type.startsWith('regional')) return '🏙️';
+  return '📍';
 }
 
-function fromMapbox(feature) {
-  const p = feature.properties || {};
-  const [lng, lat] = feature.geometry?.coordinates || [];
+function fromMapy(item) {
+  const pos = item.position || {};
   return {
-    id: p.mapbox_id,
-    label: p.name_preferred || p.name || p.full_address || p.place_formatted,
-    sublabel: p.place_formatted || '',
-    lat, lng,
-    emoji: mapboxEmoji(feature),
+    id: `mapy-${item.type}-${pos.lon}-${pos.lat}`,
+    label: item.name,
+    sublabel: item.location || '',
+    lat: pos.lat, lng: pos.lon,
+    emoji: mapyEmoji(item),
   };
 }
 
@@ -98,19 +106,18 @@ async function nominatimSearch(query, lang, limit) {
 export async function searchPlaces(query, { lang = 'cs', limit = 8 } = {}) {
   if (!query?.trim()) return [];
 
-  if (MAPBOX_TOKEN) {
+  if (MAPY_KEY) {
     try {
       const params = new URLSearchParams({
-        q: query, access_token: MAPBOX_TOKEN, language: lang, limit: String(limit),
-        types: 'poi,address,street,place,locality,neighborhood',
+        query, apikey: MAPY_KEY, lang, limit: String(limit),
       });
-      const res = await fetch(`${MAPBOX_BASE}/forward?${params}`);
-      if (!res.ok) throw new Error(`Mapbox ${res.status}`);
+      const res = await fetch(`${MAPY_BASE}/suggest?${params}`);
+      if (!res.ok) throw new Error(`Mapy.cz ${res.status}`);
       const data = await res.json();
-      const results = (data.features || []).map(fromMapbox).filter(r => r.lat && r.lng);
+      const results = (data.items || []).map(fromMapy).filter(r => r.lat && r.lng);
       if (results.length) return results;
     } catch (err) {
-      console.warn('[geocoding] Mapbox failed, falling back to Nominatim:', err);
+      console.warn('[geocoding] Mapy.cz failed, falling back to Nominatim:', err);
     }
   }
 
@@ -123,19 +130,22 @@ export async function searchPlaces(query, { lang = 'cs', limit = 8 } = {}) {
 }
 
 export async function reverseGeocodeCity(lat, lng, lang = 'cs') {
-  if (MAPBOX_TOKEN) {
+  if (MAPY_KEY) {
     try {
       const params = new URLSearchParams({
-        longitude: String(lng), latitude: String(lat), access_token: MAPBOX_TOKEN,
-        language: lang, types: 'place',
+        lon: String(lng), lat: String(lat), apikey: MAPY_KEY, lang,
       });
-      const res = await fetch(`${MAPBOX_BASE}/reverse?${params}`);
-      if (!res.ok) throw new Error(`Mapbox ${res.status}`);
+      const res = await fetch(`${MAPY_BASE}/rgeocode?${params}`);
+      if (!res.ok) throw new Error(`Mapy.cz ${res.status}`);
       const data = await res.json();
-      const name = data.features?.[0]?.properties?.name;
+      const item = data.items?.[0];
+      // The result item itself is usually the address/street; the city name
+      // lives inside regionalStructure, not as a sibling top-level item.
+      const municipality = item?.regionalStructure?.find(r => r.type === 'regional.municipality');
+      const name = municipality?.name || item?.name;
       if (name) return name;
     } catch (err) {
-      console.warn('[geocoding] Mapbox reverse failed, falling back:', err);
+      console.warn('[geocoding] Mapy.cz reverse failed, falling back:', err);
     }
   }
 

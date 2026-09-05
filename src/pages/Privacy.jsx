@@ -68,7 +68,7 @@ export default function Privacy() {
           <ul className="list-disc pl-5 space-y-1" style={{ font: "300 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', lineHeight: 1.6 }}>
             <li><strong>Supabase</strong> - hosting databáze, autentizace a ukládání souborů (fotky).</li>
             <li><strong>Stripe</strong> - zpracování plateb za placené tarify.</li>
-            <li><strong>Mapbox</strong> - vyhledávání a zobrazování míst konání akcí.</li>
+            <li><strong>Mapy.cz (Seznam.cz)</strong> - vyhledávání a zobrazování míst konání akcí.</li>
             <li><strong>Resend</strong> - odesílání e-mailových notifikací.</li>
             <li>Případně další poskytovatelé infrastruktury (hosting) - vždy jen v rozsahu nutném pro provoz Služby.</li>
           </ul>

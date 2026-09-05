@@ -7,6 +7,8 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useContext } from "react";
 import { LanguageContext } from "@/lib/language";
 
+const MAPY_KEY = import.meta.env.VITE_MAPY_CZ_API_KEY;
+
 // Fix default marker icons for leaflet with vite
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -63,10 +65,17 @@ export default function EventMap({ events, userLocation, radius }) {
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={true}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        {MAPY_KEY ? (
+          <TileLayer
+            attribution='&copy; <a href="https://mapy.cz/">Mapy.cz</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url={`https://api.mapy.cz/v1/maptiles/basic/256/{z}/{x}/{y}?apikey=${MAPY_KEY}`}
+          />
+        ) : (
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        )}
 
         <RecenterMap center={center} />
 
