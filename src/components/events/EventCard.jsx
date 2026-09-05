@@ -97,7 +97,7 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
         {event.date && <span className="flex-shrink-0">{format(new Date(event.date), 'HH:mm')}</span>}
       </div>
 
-      {!isFull && (
+      {(!isFull || isJoined) && (
         <div className="flex items-center" style={{ marginTop: 9, gap: 12 }} onClick={e => e.stopPropagation()}>
           <Link to={`/event/${event.id}`} style={{ font: "400 11.5px 'Outfit', sans-serif", color: 'var(--sv-link)' }}>
             {lang === 'cs' ? 'Zobrazit chat' : 'View chat'}
