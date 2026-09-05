@@ -38,7 +38,7 @@ export default function LeftSidebar() {
               key={path}
               to={path}
               style={{
-                display: "flex", alignItems: "center", gap: 9, padding: "7px 12px",
+                display: "flex", alignItems: "center", gap: 9, padding: "7px 12px 7px 0",
                 fontSize: 12.5, fontWeight: active ? 500 : 400,
                 color: active ? 'var(--sv-ink)' : 'var(--sv-muted)',
                 background: active ? '#FFF3E6' : 'transparent',

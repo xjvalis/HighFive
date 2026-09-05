@@ -4,7 +4,7 @@ const RING = [[2, 4], [1, 6], [0, 8], [0, 8], [0, 8], [0, 8], [1, 6], [2, 4]];
 export function PixelCircle({ size = 40, color = "#FFB84D" }) {
   const B = 8;
   return (
-    <svg viewBox="0 0 64 64" width={size} height={size} shapeRendering="crispEdges" fill={color} aria-hidden>
+    <svg viewBox="0 0 64 64" width={size} height={size} shapeRendering="crispEdges" fill={color} aria-hidden style={{ display: "block", margin: "0 auto" }}>
       {RING.map(([o, w], i) => {
         const edge = i === 0 || i === RING.length - 1;
         return edge

@@ -6,20 +6,25 @@ import { CATEGORIES, getCategoryLabel } from '@/lib/categories';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
 import { useT } from '@/lib/i18n';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { ArrowLeft, ImagePlus, Loader2, Crown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { PixelCircle } from '@/components/ui/EmptyState';
 import PremiumModal from '@/components/premium/PremiumModal';
 import LocationAutocomplete from '@/components/events/LocationAutocomplete';
 import DateTimePicker from '@/components/ui/DateTimePicker';
 import { toast } from 'sonner';
 
-// Required field label — single asterisk, no double
+const fieldStyle = {
+  width: '100%', background: 'var(--sv-surface)', border: '1px solid var(--sv-hairline)',
+  borderRadius: 10, boxShadow: 'none', font: "300 13px 'Outfit', sans-serif", color: 'var(--sv-ink)',
+};
+const labelStyle = { display: 'block', marginBottom: 6, font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' };
+const metaStyle = { font: "300 11px 'Outfit', sans-serif", color: 'var(--sv-meta)' };
+
+// Required field marker — meta gray, not a new accent color (palette is closed)
 function Req({ children }) {
-  return <span className="flex items-center gap-1">{children}<span className="text-red-500 text-sm leading-none">*</span></span>;
+  return <span className="flex items-center gap-1">{children}<span style={{ color: 'var(--sv-meta)' }}>*</span></span>;
 }
 
 export default function CreateEvent() {
@@ -133,75 +138,100 @@ export default function CreateEvent() {
   if (!user && !userLoading) return null;
 
   if (!canCreate()) return (
-    <div className="max-w-lg mx-auto text-center py-16">
-      <p className="text-5xl mb-4">🔒</p>
-      <h2 className="font-grotesk font-bold text-xl mb-2">{tr.createWeeklyLimitTitle}</h2>
-      <p className="text-muted-foreground mb-6">{tr.createWeeklyLimitDesc}</p>
-      <Button onClick={() => setShowPremium(true)} className="rounded-xl gap-2"><Crown className="w-4 h-4"/>{tr.createViewPlans}</Button>
+    <div className="max-w-lg mx-auto text-center" style={{ padding: '48px 0 12px' }}>
+      <div className="flex justify-center mb-3"><PixelCircle size={40} color="var(--sv-empty-dot)" /></div>
+      <h2 style={{ font: "500 15px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginBottom: 6 }}>{tr.createWeeklyLimitTitle}</h2>
+      <p style={{ ...metaStyle, marginBottom: 20 }}>{tr.createWeeklyLimitDesc}</p>
+      <button
+        onClick={() => setShowPremium(true)}
+        className="inline-flex items-center gap-1.5 transition-opacity hover:opacity-90"
+        style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', font: "500 12px 'Outfit', sans-serif", padding: '8px 16px', borderRadius: 'var(--sv-r-pill)' }}
+      >
+        <Crown className="w-3.5 h-3.5"/>{tr.createViewPlans}
+      </button>
       <PremiumModal open={showPremium} onClose={() => setShowPremium(false)} profile={profile} onUpgrade={u => updateProfile(u)}/>
     </div>
   );
 
   return (
-    <div className="max-w-xl mx-auto">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors">
-        <ArrowLeft className="w-4 h-4"/>{tr.createBack}
+    <div className="max-w-xl mx-auto pt-2" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 mb-4 transition-colors" style={{ ...metaStyle, fontWeight: 400 }}>
+        <ArrowLeft className="w-3.5 h-3.5"/>{tr.createBack}
       </button>
-      <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-6">
-        <h1 className="font-grotesk font-bold text-2xl mb-1">{tr.createTitle}</h1>
-        <p className="text-sm text-muted-foreground mb-1">{tr.createSubtitle}</p>
-        <p className="text-xs text-muted-foreground mb-4">{lang === 'cs' ? 'Pole označená * jsou povinná' : 'Fields marked * are required'}</p>
+      <div style={{ background: 'var(--sv-surface)', border: '1px solid var(--sv-hairline)', borderRadius: 'var(--sv-r-card)', padding: 22 }}>
+        <h1 style={{ font: "500 19px 'Outfit', sans-serif", letterSpacing: '-0.03em', color: 'var(--sv-ink)', marginBottom: 4 }}>{tr.createTitle}</h1>
+        <p style={{ ...metaStyle, marginBottom: 2 }}>{tr.createSubtitle}</p>
+        <p style={{ ...metaStyle, marginBottom: 18 }}>{lang === 'cs' ? 'Pole označená * jsou povinná' : 'Fields marked * are required'}</p>
         <PremiumModal open={showPremium} onClose={() => setShowPremium(false)} profile={profile} onUpgrade={u => updateProfile(u)}/>
         <form onSubmit={handleSubmit} className="space-y-5">
 
           <div>
-            <Label className="text-sm font-medium mb-1.5 block"><Req>{tr.createFieldTitle}</Req></Label>
-            <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder={tr.createFieldTitlePlaceholder} required className="rounded-xl"/>
+            <label style={labelStyle}><Req>{tr.createFieldTitle}</Req></label>
+            <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder={tr.createFieldTitlePlaceholder} required style={fieldStyle}/>
           </div>
 
           <div>
-            <Label className="text-sm font-medium mb-2 block"><Req>{tr.createFieldCategory}</Req></Label>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map(cat => (
-                <button key={cat.name} type="button" onClick={() => setForm(f => ({ ...f, category: cat.name }))}
-                  style={form.category === cat.name ? { background: cat.bg, color: cat.ink } : undefined}
-                  className={cn('px-3 py-1.5 rounded-xl text-sm font-medium transition-all border', form.category === cat.name ? 'border-transparent shadow-sm' : 'border-border text-muted-foreground hover:bg-secondary')}>
-                  {cat.emoji} {getCategoryLabel(cat.name, lang)}
-                </button>
-              ))}
+            <label style={{ ...labelStyle, marginBottom: 9 }}><Req>{tr.createFieldCategory}</Req></label>
+            <div className="flex flex-wrap" style={{ gap: 6 }}>
+              {CATEGORIES.map(cat => {
+                const active = form.category === cat.name;
+                return (
+                  <button
+                    key={cat.name} type="button" onClick={() => setForm(f => ({ ...f, category: cat.name }))}
+                    className="flex items-center transition-all"
+                    style={{
+                      gap: 5, padding: '6px 12px', borderRadius: 'var(--sv-r-pill)',
+                      font: `${active ? 500 : 400} 12px 'Outfit', sans-serif`,
+                      background: active ? cat.bg : 'var(--sv-surface-muted)',
+                      color: active ? cat.ink : 'var(--sv-meta)',
+                    }}
+                  >
+                    <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 12 }}>{cat.emoji}</span>
+                    {getCategoryLabel(cat.name, lang)}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           <div>
-            <Label className="text-sm font-medium mb-1.5 block"><Req>{tr.createFieldDescription}</Req></Label>
-            <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder={tr.createFieldDescriptionPlaceholder} required className="rounded-xl resize-none min-h-[100px]"/>
+            <label style={labelStyle}><Req>{tr.createFieldDescription}</Req></label>
+            <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder={tr.createFieldDescriptionPlaceholder} required className="resize-none min-h-[100px]" style={fieldStyle}/>
           </div>
 
           <div>
-            <Label className="text-sm font-medium mb-1.5 block"><Req>{tr.createFieldLocation}</Req></Label>
+            <label style={labelStyle}><Req>{tr.createFieldLocation}</Req></label>
             <LocationAutocomplete value={form.location} onChange={({ location, latitude, longitude }) => setForm(f => ({ ...f, location, latitude, longitude }))} placeholder={tr.createFieldLocationPlaceholder}/>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-sm font-medium mb-1.5 block"><Req>{tr.createFieldDate}</Req></Label>
+              <label style={labelStyle}><Req>{tr.createFieldDate}</Req></label>
               <DateTimePicker value={form.date} onChange={handleDateChange} placeholder={lang === 'cs' ? 'Datum a čas' : 'Date & time'} minDate={new Date().toISOString()}/>
             </div>
             <div>
-              <Label className="text-sm font-medium mb-1.5 block">
+              <label style={labelStyle}>
                 {tr.createFieldEndTime || (lang === 'cs' ? 'Konec akce' : 'End time')}
-                <span className="text-muted-foreground font-normal text-xs ml-1">(max 24h)</span>
-              </Label>
+                <span style={{ color: 'var(--sv-meta)', fontWeight: 400, marginLeft: 4 }}>(max 24h)</span>
+              </label>
               <DateTimePicker value={form.end_time} onChange={handleEndTimeChange} placeholder={lang === 'cs' ? 'Konec' : 'End time'} minDate={form.date || new Date().toISOString()}/>
-              {endTimeError && <p className="text-xs text-red-500 mt-1">{endTimeError}</p>}
+              {endTimeError && <p style={{ font: "300 11px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginTop: 4 }}>{endTimeError}</p>}
             </div>
           </div>
 
           <div>
-            <Label className="text-sm font-medium mb-1.5 block"><Req>{tr.createFieldCapacity}</Req></Label>
+            <label style={labelStyle}><Req>{tr.createFieldCapacity}</Req></label>
             <div className="flex gap-2">
-              <Input type="number" value={form.max_capacity === 'unlimited' ? '' : form.max_capacity} onChange={e => setForm(f => ({ ...f, max_capacity: e.target.value }))} placeholder={lang === 'cs' ? 'Počet lidí' : 'Number of people'} min="2" disabled={form.max_capacity === 'unlimited'} required={form.max_capacity !== 'unlimited'} className="rounded-xl flex-1"/>
-              <button type="button" onClick={() => setForm(f => ({ ...f, max_capacity: f.max_capacity === 'unlimited' ? '' : 'unlimited' }))} className={cn('px-3 rounded-xl text-sm font-medium border transition-all flex-shrink-0', form.max_capacity === 'unlimited' ? 'bg-primary text-primary-foreground border-transparent' : 'border-border text-muted-foreground hover:bg-secondary')}>
+              <Input type="number" value={form.max_capacity === 'unlimited' ? '' : form.max_capacity} onChange={e => setForm(f => ({ ...f, max_capacity: e.target.value }))} placeholder={lang === 'cs' ? 'Počet lidí' : 'Number of people'} min="2" disabled={form.max_capacity === 'unlimited'} required={form.max_capacity !== 'unlimited'} className="flex-1" style={fieldStyle}/>
+              <button
+                type="button" onClick={() => setForm(f => ({ ...f, max_capacity: f.max_capacity === 'unlimited' ? '' : 'unlimited' }))}
+                className="flex-shrink-0 transition-all"
+                style={{
+                  padding: '0 14px', borderRadius: 10, font: "500 12px 'Outfit', sans-serif",
+                  background: form.max_capacity === 'unlimited' ? 'var(--sv-action-bg)' : 'var(--sv-surface-muted)',
+                  color: form.max_capacity === 'unlimited' ? 'var(--sv-action-ink)' : 'var(--sv-meta)',
+                }}
+              >
                 ∞ {lang === 'cs' ? 'Neomezeno' : 'Unlimited'}
               </button>
             </div>
@@ -209,16 +239,16 @@ export default function CreateEvent() {
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <Label className="text-sm font-medium mb-1.5 block">{lang === 'cs' ? 'Min. věk' : 'Min. age'}</Label>
-              <Input type="number" min="13" max="100" value={form.age_min || ''} onChange={e => setForm(f => ({ ...f, age_min: e.target.value }))} placeholder="13" className="rounded-xl"/>
+              <label style={labelStyle}>{lang === 'cs' ? 'Min. věk' : 'Min. age'}</label>
+              <Input type="number" min="13" max="100" value={form.age_min || ''} onChange={e => setForm(f => ({ ...f, age_min: e.target.value }))} placeholder="13" style={fieldStyle}/>
             </div>
             <div>
-              <Label className="text-sm font-medium mb-1.5 block">{lang === 'cs' ? 'Max. věk' : 'Max. age'}</Label>
-              <Input type="number" min="13" max="120" value={form.age_max || ''} onChange={e => setForm(f => ({ ...f, age_max: e.target.value }))} placeholder="99" className="rounded-xl"/>
+              <label style={labelStyle}>{lang === 'cs' ? 'Max. věk' : 'Max. age'}</label>
+              <Input type="number" min="13" max="120" value={form.age_max || ''} onChange={e => setForm(f => ({ ...f, age_max: e.target.value }))} placeholder="99" style={fieldStyle}/>
             </div>
             <div>
-              <Label className="text-sm font-medium mb-1.5 block">{lang === 'cs' ? 'Pro koho' : 'For whom'}</Label>
-              <select value={form.gender_recommendation || 'Everyone'} onChange={e => setForm(f => ({ ...f, gender_recommendation: e.target.value }))} className="w-full h-9 rounded-xl border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+              <label style={labelStyle}>{lang === 'cs' ? 'Pro koho' : 'For whom'}</label>
+              <select value={form.gender_recommendation || 'Everyone'} onChange={e => setForm(f => ({ ...f, gender_recommendation: e.target.value }))} className="w-full h-9 px-3" style={{ ...fieldStyle, height: 36 }}>
                 <option value="Everyone">{lang === 'cs' ? 'Všichni' : 'Everyone'}</option>
                 <option value="Male">{lang === 'cs' ? 'Muži' : 'Men'}</option>
                 <option value="Female">{lang === 'cs' ? 'Ženy' : 'Women'}</option>
@@ -228,23 +258,30 @@ export default function CreateEvent() {
           </div>
 
           <div>
-            <Label className="text-sm font-medium mb-1.5 block">{tr.createCoverImage}</Label>
+            <label style={labelStyle}>{tr.createCoverImage}</label>
             {form.image_url ? (
-              <div className="relative rounded-xl overflow-hidden h-40">
+              <div className="relative overflow-hidden h-40" style={{ borderRadius: 10 }}>
                 <img src={form.image_url} alt="Cover" className="w-full h-full object-cover"/>
-                <button type="button" onClick={() => setForm(f => ({ ...f, image_url: '' }))} className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-lg">{tr.createRemoveImage}</button>
+                <button type="button" onClick={() => setForm(f => ({ ...f, image_url: '' }))} className="absolute top-2 right-2" style={{ background: 'rgba(58,52,63,0.6)', color: '#fff', font: "400 11px 'Outfit', sans-serif", padding: '4px 10px', borderRadius: 'var(--sv-r-pill)' }}>{tr.createRemoveImage}</button>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-border rounded-xl cursor-pointer hover:bg-secondary/50 transition-colors">
-                {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground"/> : <><ImagePlus className="w-5 h-5 text-muted-foreground mb-1"/><span className="text-xs text-muted-foreground">{tr.createUploadClick}</span></>}
+              <label className="flex flex-col items-center justify-center h-28 cursor-pointer transition-colors" style={{ border: '1px dashed var(--sv-hairline)', borderRadius: 10, background: 'var(--sv-surface-muted)' }}>
+                {uploadingImage
+                  ? <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--sv-meta)' }}/>
+                  : <><ImagePlus className="w-4 h-4 mb-1" style={{ color: 'var(--sv-meta)' }}/><span style={metaStyle}>{tr.createUploadClick}</span></>}
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload}/>
               </label>
             )}
           </div>
 
-          <Button type="submit" disabled={loading || !form.title || !form.category || !form.location || !form.date || !form.description || !!endTimeError} className="w-full rounded-xl py-3 font-semibold text-base gap-2">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : '🙌'} {loading ? tr.createPosting : tr.createPostBtn}
-          </Button>
+          <button
+            type="submit" disabled={loading || !form.title || !form.category || !form.location || !form.date || !form.description || !!endTimeError}
+            className="w-full flex items-center justify-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 'var(--sv-r-pill)', padding: '11px 0', font: "500 13px 'Outfit', sans-serif" }}
+          >
+            {loading && <Loader2 className="w-4 h-4 animate-spin"/>}
+            {loading ? tr.createPosting : tr.createPostBtn}
+          </button>
         </form>
       </div>
     </div>
