@@ -155,7 +155,8 @@ export default function Profile() {
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map(cat => (
                   <button key={cat.name} type="button" onClick={() => toggleCategory(cat.name)}
-                    className={cn('px-2.5 py-1 rounded-lg text-xs font-medium transition-all border', (form.favorite_categories || []).includes(cat.name) ? cat.color + ' border-transparent' : 'border-border text-muted-foreground hover:bg-secondary')}>
+                    style={(form.favorite_categories || []).includes(cat.name) ? { background: cat.bg, color: cat.ink } : undefined}
+                    className={cn('px-2.5 py-1 rounded-lg text-xs font-medium transition-all border', (form.favorite_categories || []).includes(cat.name) ? 'border-transparent' : 'border-border text-muted-foreground hover:bg-secondary')}>
                     {cat.emoji} {getCategoryLabel(cat.name, lang)}
                   </button>
                 ))}
@@ -173,7 +174,7 @@ export default function Profile() {
               <div className="flex flex-wrap gap-1.5">
                 {profile.favorite_categories.map(c => {
                   const cat = CATEGORIES.find(cat => cat.name === c);
-                  return cat ? <span key={c} className={cn('px-2 py-0.5 rounded-lg text-xs font-medium', cat.color)}>{cat.emoji} {getCategoryLabel(c, lang)}</span> : null;
+                  return cat ? <span key={c} className="px-2 py-0.5 rounded-lg text-xs font-medium" style={{ background: cat.bg, color: cat.ink }}>{cat.emoji} {getCategoryLabel(c, lang)}</span> : null;
                 })}
               </div>
             )}

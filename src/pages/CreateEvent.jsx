@@ -164,7 +164,8 @@ export default function CreateEvent() {
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map(cat => (
                 <button key={cat.name} type="button" onClick={() => setForm(f => ({ ...f, category: cat.name }))}
-                  className={cn('px-3 py-1.5 rounded-xl text-sm font-medium transition-all border', form.category === cat.name ? cat.color + ' border-transparent shadow-sm' : 'border-border text-muted-foreground hover:bg-secondary')}>
+                  style={form.category === cat.name ? { background: cat.bg, color: cat.ink } : undefined}
+                  className={cn('px-3 py-1.5 rounded-xl text-sm font-medium transition-all border', form.category === cat.name ? 'border-transparent shadow-sm' : 'border-border text-muted-foreground hover:bg-secondary')}>
                   {cat.emoji} {getCategoryLabel(cat.name, lang)}
                 </button>
               ))}

@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Plus, Menu, X, Home, TrendingUp, Star, Calendar, User, Shield, Loader2, MessageSquare } from "lucide-react";
+import { Plus, Menu, X, Home, TrendingUp, Star, Calendar, User, Shield, Loader2, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { useLanguage } from "@/lib/language";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
@@ -11,6 +9,8 @@ import NotificationBell from "@/components/layout/NotificationBell";
 import FeedbackModal from "@/components/layout/FeedbackModal";
 import { supabase } from "@/lib/supabaseClient";
 import { getCategoryStyle, CATEGORIES, getCategoryLabel } from "@/lib/categories";
+import { SpoluvicLockup } from "@/components/brand/SpoluvicLogo";
+import { SvIcon } from "@/components/icons/SvIcon";
 import { format } from "date-fns";
 import { useContext } from "react";
 import { LanguageContext } from "@/lib/language";
@@ -22,7 +22,8 @@ function LangSwitcher() {
   return (
     <button
       onClick={() => setLang(lang === 'cs' ? 'en' : 'cs')}
-      className="px-2 py-1.5 rounded-xl hover:bg-secondary transition-colors text-xs font-semibold text-muted-foreground hover:text-foreground"
+      style={{ font: "400 10px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)' }}
+      className="px-2 py-1.5 rounded-xl hover:bg-[var(--sv-surface-muted)] transition-colors"
     >
       {lang === 'cs' ? 'CZ' : 'EN'}
     </button>
@@ -90,21 +91,22 @@ function DesktopSearch() {
   return (
     <div ref={containerRef} className="relative w-full max-w-sm">
       <form onSubmit={handleSubmit}>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"/>
-          {loading
-            ? <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 animate-spin text-muted-foreground"/>
-            : query
-              ? <button type="button" onClick={() => { setQuery(''); setResults([]); setOpen(false); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"><X className="w-3.5 h-3.5"/></button>
-              : null
-          }
-          <Input
+        <div className="relative flex items-center gap-2 rounded-full px-3.5 py-1.5" style={{ background: 'var(--sv-surface-muted)' }}>
+          <SvIcon name="search" size={13} style={{ color: 'var(--sv-placeholder)', flexShrink: 0 }}/>
+          <input
             value={query}
             onChange={handleInput}
             onFocus={() => results.length > 0 && setOpen(true)}
             placeholder={tr.searchPlaceholder}
-            className="pl-9 pr-8 bg-secondary/50 border-0 h-9 text-sm rounded-full focus-visible:ring-1"
+            style={{ font: "300 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}
+            className="flex-1 min-w-0 bg-transparent border-0 outline-none placeholder:text-[var(--sv-placeholder)]"
           />
+          {loading
+            ? <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" style={{ color: 'var(--sv-placeholder)' }}/>
+            : query
+              ? <button type="button" onClick={() => { setQuery(''); setResults([]); setOpen(false); }} className="flex-shrink-0" style={{ color: 'var(--sv-placeholder)' }}><X className="w-3.5 h-3.5"/></button>
+              : null
+          }
         </div>
       </form>
 
@@ -115,7 +117,7 @@ function DesktopSearch() {
             return (
               <button key={event.id} onClick={() => handleSelect(event)}
                 className="flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-secondary transition-colors border-b border-border/40 last:border-0">
-                <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0", cat.color)}>{cat.emoji}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0" style={{ background: cat.bg, color: cat.ink }}>{cat.emoji}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{event.title}</p>
                   <p className="text-xs text-muted-foreground truncate">{event.location} · {event.date ? format(new Date(event.date), 'EEE d MMM') : ''}</p>
@@ -125,7 +127,7 @@ function DesktopSearch() {
           })}
           <button onClick={() => { setOpen(false); navigate(`/?search=${encodeURIComponent(query)}`); }}
             className="flex items-center gap-2 w-full px-4 py-2.5 text-xs text-primary font-medium hover:bg-secondary transition-colors">
-            <Search className="w-3.5 h-3.5"/>
+            <SvIcon name="search" size={13}/>
             {lang === 'cs' ? `Všechny výsledky pro "${query}"` : `See all results for "${query}"`}
           </button>
         </div>
@@ -152,7 +154,7 @@ function MobileDrawer({ open, onClose, tr, lang, profile, onFeedback }) {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}/>
       <div className="absolute left-0 top-0 bottom-0 w-72 bg-card shadow-2xl flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <div className="flex items-center gap-2"><img src="/hands.png" alt="Spoluvíc" className="w-7 h-7 object-contain"/><span className="font-grotesk font-bold text-lg">Spoluvíc</span></div>
+          <SpoluvicLockup variant="orange" height={20} color="var(--sv-ink)"/>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-secondary"><X className="w-5 h-5"/></button>
         </div>
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
@@ -206,30 +208,32 @@ export default function TopNav() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-md border-b border-border/60" style={{ paddingTop: "env(safe-area-inset-top)", height: "calc(56px + env(safe-area-inset-top))" }}>
-        <div className="max-w-7xl mx-auto px-4 h-full flex items-center gap-3">
-          <button onClick={() => setDrawerOpen(true)} className="xl:hidden p-2.5 -ml-2 rounded-xl hover:bg-secondary transition-colors flex-shrink-0">
-            <Menu className="w-5 h-5"/>
+      <header
+        className="fixed top-0 left-0 right-0 z-30 border-b"
+        style={{ paddingTop: "env(safe-area-inset-top)", height: "calc(56px + env(safe-area-inset-top))", background: 'var(--sv-bg)', borderColor: 'var(--sv-hairline)' }}
+      >
+        <div className="max-w-7xl mx-auto px-4 h-full flex items-center gap-4">
+          <button onClick={() => setDrawerOpen(true)} className="xl:hidden p-2.5 -ml-2 rounded-xl hover:bg-[var(--sv-surface-muted)] transition-colors flex-shrink-0">
+            <Menu className="w-5 h-5" style={{ color: 'var(--sv-ink)' }}/>
           </button>
-          <Link to="/" className="font-grotesk font-bold text-base flex-shrink-0 flex items-center gap-2">
-            <img src="/hands.png" alt="Spoluvíc" className="w-7 h-7 object-contain"/>
-            <span>Spoluvíc</span>
+          <Link to="/" className="flex-shrink-0">
+            <SpoluvicLockup variant="orange" height={20} color="var(--sv-ink)"/>
           </Link>
           <div className="hidden xl:flex flex-1 justify-center">
             <DesktopSearch/>
           </div>
           <div className="flex-1 xl:hidden"/>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button onClick={() => setSearchOpen(true)} className="xl:hidden p-2 rounded-xl hover:bg-secondary transition-colors">
-              <Search className="w-5 h-5 text-muted-foreground"/>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button onClick={() => setSearchOpen(true)} className="xl:hidden p-2 rounded-xl hover:bg-[var(--sv-surface-muted)] transition-colors">
+              <SvIcon name="search" size={18} style={{ color: 'var(--sv-meta)' }}/>
             </button>
             <LangSwitcher/>
             <NotificationBell/>
             {user ? (
               <button className="hidden xl:flex items-center justify-center w-9 h-9 rounded-full hover:opacity-80 transition-opacity" onClick={() => navigate('/profile')}>
                 {profile?.avatar_url
-                  ? <img src={profile.avatar_url} alt="avatar" className="w-8 h-8 rounded-full object-cover"/>
-                  : <div className="w-8 h-8 rounded-full bg-lavender border-2 border-violet-200 flex items-center justify-center hover:bg-violet-100 transition-colors" title={lang === 'cs' ? 'Můj profil' : 'My profile'}><User className="w-4 h-4 text-violet-600"/></div>
+                  ? <img src={profile.avatar_url} alt="avatar" className="w-6 h-6 rounded-full object-cover"/>
+                  : <div className="w-6 h-6 rounded-full flex items-center justify-center transition-colors" style={{ background: '#F0EAFC' }} title={lang === 'cs' ? 'Můj profil' : 'My profile'}><User className="w-3.5 h-3.5" style={{ color: 'var(--sv-brand-purple)' }}/></div>
                 }
               </button>
             ) : (
@@ -238,8 +242,13 @@ export default function TopNav() {
                 {tr.login}
               </Button>
             )}
-            <button onClick={() => navigate(user ? '/create' : '/login')} className="hidden xl:flex items-center justify-center w-8 h-8 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
-              <Plus className="w-4 h-4"/>
+            <button
+              onClick={() => navigate(user ? '/create' : '/login')}
+              className="hidden xl:flex items-center gap-1.5 rounded-full transition-opacity hover:opacity-90"
+              style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', font: "500 11.5px 'Outfit', sans-serif", padding: '7px 14px' }}
+            >
+              <Plus className="w-3.5 h-3.5"/>
+              {lang === 'cs' ? 'Přidat' : 'Add'}
             </button>
           </div>
         </div>

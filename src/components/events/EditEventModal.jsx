@@ -88,8 +88,9 @@ export default function EditEventModal({ event, open, onClose, onSaved }) {
               <div className="flex flex-wrap gap-1.5">
                 {CATEGORIES.map(cat => (
                   <button key={cat.name} type="button" onClick={() => setForm(f => ({ ...f, category: cat.name }))}
+                    style={form.category === cat.name ? { background: cat.bg, color: cat.ink } : undefined}
                     className={cn("px-2.5 py-1 rounded-xl text-xs font-medium transition-all border",
-                      form.category === cat.name ? cat.color + " border-transparent shadow-sm" : "border-border text-muted-foreground hover:bg-secondary"
+                      form.category === cat.name ? "border-transparent shadow-sm" : "border-border text-muted-foreground hover:bg-secondary"
                     )}>
                     {cat.emoji} {cat.name}
                   </button>

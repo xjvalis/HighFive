@@ -6,7 +6,6 @@ import FeedList from '@/components/events/FeedList';
 import EventFilter from '@/components/events/EventFilter';
 import LocationPicker from '@/components/events/LocationPicker';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
@@ -17,6 +16,7 @@ import PremiumModal from '@/components/premium/PremiumModal';
 import { lazy, Suspense } from 'react';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { getCurrentPosition } from '@/lib/nativeGeolocation';
+import EmptyState from '@/components/ui/EmptyState';
 const EventMap = lazy(() => import('@/components/events/EventMap'));
 
 const PAGE_SIZE = 15;
@@ -152,7 +152,7 @@ export default function Home() {
       });
     }
     return evts;
-     
+
   }, [events, sort, radius, userLocation]);
 
   const mapEvents = events.filter(e => e.latitude && e.longitude && (!userLocation || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius));
@@ -216,18 +216,16 @@ export default function Home() {
       </div>
     );
     if (sort === 'rightNow' && filteredEvents.length === 0) return (
-      <div className="text-center py-10">
-        <p className="text-3xl mb-2">🔴</p>
-        <p className="font-grotesk font-semibold text-sm">{tr.sortRightNow || 'Právě teď'}</p>
-        <p className="text-xs text-muted-foreground mt-1">{lang === 'cs' ? 'Právě teď neprobíhají žádné akce.' : 'No events happening right now.'}</p>
-      </div>
+      <EmptyState
+        title={lang === 'cs' ? 'Dál už dneska nic' : 'Nothing else today'}
+        note={lang === 'cs' ? 'Klidně přidej něco na večer.' : 'Feel free to add something for tonight.'}
+      />
     );
     if (filteredEvents.length === 0) return (
-      <div className="text-center py-10">
-        <p className="text-3xl mb-2">🙌</p>
-        <p className="font-grotesk font-semibold text-sm">{tr.noEventsYet}</p>
-        <p className="text-xs text-muted-foreground mt-1">{tr.noEventsFirstPost}</p>
-      </div>
+      <EmptyState
+        title={lang === 'cs' ? 'Zatím žádné události' : 'No events yet'}
+        note={lang === 'cs' ? 'Buď první, kdo něco přidá.' : 'Be the first to add something.'}
+      />
     );
     return (
       <>
@@ -248,29 +246,45 @@ export default function Home() {
       )}
 
       {/* Header */}
-      <div className="mb-2">
-        <div className="flex items-center justify-between mb-1.5">
-          <h1 className="font-grotesk font-bold text-base sm:text-xl">{activeCategory || tr.whatsHappening}</h1>
-          <div className="flex items-center gap-1.5">
-            <div className="flex items-center bg-secondary rounded-lg p-0.5">
-              <button onClick={()=>setShowMap(false)} style={{height:'28px'}} className={cn('flex items-center gap-1 px-2.5 rounded-md text-xs font-medium transition-all',!showMap?'bg-card shadow-sm':'text-muted-foreground')}><List className="w-3 h-3"/>{tr.viewList}</button>
-              <button onClick={()=>setShowMap(true)} style={{height:'28px'}} className={cn('flex items-center gap-1 px-2.5 rounded-md text-xs font-medium transition-all',showMap?'bg-card shadow-sm':'text-muted-foreground')}><Map className="w-3 h-3"/>{tr.viewMap}</button>
+      <div className="mb-3" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+        <div className="flex items-baseline justify-between mb-3">
+          <h1 style={{ font: "500 19px 'Outfit', sans-serif", letterSpacing: '-0.03em', color: 'var(--sv-ink)' }}>
+            {activeCategory || tr.whatsHappening}
+          </h1>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span style={{ font: "400 10px 'IBM Plex Mono', monospace", letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--sv-meta)' }}>
+              {userLocation ? `${radius} km` : (lang === 'cs' ? 'poloha nenastavena' : 'location not set')}
+            </span>
+            <div className="flex items-center rounded-lg p-0.5" style={{ background: 'var(--sv-surface-muted)' }}>
+              <button onClick={()=>setShowMap(false)} className="flex items-center gap-1 px-2 rounded-md text-xs transition-all" style={{height:'26px', color: !showMap ? 'var(--sv-ink)' : 'var(--sv-meta)', background: !showMap ? 'var(--sv-surface)' : 'transparent'}}><List className="w-3 h-3"/>{tr.viewList}</button>
+              <button onClick={()=>setShowMap(true)} className="flex items-center gap-1 px-2 rounded-md text-xs transition-all" style={{height:'26px', color: showMap ? 'var(--sv-ink)' : 'var(--sv-meta)', background: showMap ? 'var(--sv-surface)' : 'transparent'}}><Map className="w-3 h-3"/>{tr.viewMap}</button>
             </div>
             <EventFilter filters={filters} onChange={setFilters}/>
           </div>
         </div>
         {!showMap && (
-          <div className="flex gap-0.5 bg-secondary/80 rounded-lg p-0.5 overflow-x-auto no-scrollbar">
-            {SORT_TABS.map(opt => (
-              <button key={opt.value} onClick={() => { setSort(opt.value); setEvents([]); }} style={{height:'28px'}} className={cn('flex-shrink-0 flex items-center px-2.5 rounded-md text-xs font-medium transition-all', sort === opt.value ? 'bg-card shadow-sm' : 'text-muted-foreground')}>
-                {opt.value === 'rightNow' ? (
-                  <span className="flex items-center gap-1">
-                    <span className={cn("w-1.5 h-1.5 rounded-full bg-rose-500 inline-block", sort === 'rightNow' && "animate-pulse")}></span>
-                    {opt.label}
-                  </span>
-                ) : opt.label}
-              </button>
-            ))}
+          <div className="flex overflow-x-auto no-scrollbar" style={{ gap: 5, whiteSpace: 'nowrap' }}>
+            {SORT_TABS.map(opt => {
+              const active = sort === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => { setSort(opt.value); setEvents([]); }}
+                  className="flex-shrink-0 flex items-center"
+                  style={{
+                    gap: 6, padding: '6px 12px', borderRadius: 'var(--sv-r-pill)',
+                    font: `${active ? 500 : 400} 11px 'Outfit', sans-serif`,
+                    color: active ? 'var(--sv-ink)' : 'var(--sv-meta)',
+                    background: active ? 'var(--sv-surface-muted)' : 'transparent',
+                  }}
+                >
+                  {opt.value === 'rightNow' && (
+                    <span className="inline-block flex-shrink-0" style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--sv-empty-dot)' }}/>
+                  )}
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

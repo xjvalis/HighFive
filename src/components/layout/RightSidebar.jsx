@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
-import { Flame, Clock, Users, Star } from 'lucide-react';
-import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
-import { format } from 'date-fns';
 import { useT } from '@/lib/i18n';
-import { useContext } from 'react';
-import { LanguageContext } from '@/lib/language';
 import { toast } from 'sonner';
+
+const cardStyle = { background: 'var(--sv-surface)', border: '1px solid var(--sv-hairline)', borderRadius: 'var(--sv-r-card)', padding: 12 };
 
 export default function RightSidebar() {
   const tr = useT();
@@ -56,59 +53,46 @@ export default function RightSidebar() {
   }, []);
 
   return (
-    <div className="space-y-4">
-      <div className="bg-gradient-to-br from-lavender to-sky rounded-2xl p-4">
-        <div className="flex items-center gap-2 mb-2"><Users className="w-4 h-4 text-violet-700"/><span className="font-grotesk font-semibold text-sm text-violet-700">{tr.communityTitle}</span></div>
-        <p className="text-xs text-violet-600/80 leading-relaxed">{tr.communityText}</p>
+    <div className="flex flex-col" style={{ gap: 8, fontFamily: "'Outfit', system-ui, sans-serif" }}>
+      <div style={{ background: '#F0EAFC', borderRadius: 'var(--sv-r-card)', padding: 12 }}>
+        <div style={{ font: "500 12px 'Outfit', sans-serif", color: '#4A3A73' }}>{tr.communityTitle}</div>
+        <div style={{ marginTop: 5, font: "300 11.5px 'Outfit', sans-serif", lineHeight: 1.5, color: '#5A4A83' }}>{tr.communityText}</div>
       </div>
-      <div className="bg-card rounded-2xl p-4 shadow-sm border border-border/60">
-        <div className="flex items-center gap-2 mb-3"><Flame className="w-4 h-4 text-orange-500"/><span className="font-grotesk font-semibold text-sm">{tr.hotRightNow}</span></div>
-        <div className="space-y-3">
-          {hotEvents.map((e, i) => <HotSnippet key={e.id} event={e} rank={i + 1}/>)}
-          {hotEvents.length === 0 && <p className="text-xs text-muted-foreground">{tr.noEventsYet}</p>}
+
+      <div style={cardStyle}>
+        <div className="flex items-center gap-1.5" style={{ font: "500 11.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>
+          <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 12 }}>🔥</span>{tr.hotRightNow}
+        </div>
+        <div className="flex flex-col mt-2" style={{ gap: 6 }}>
+          {hotEvents.map(e => <EventLine key={e.id} event={e}/>)}
+          {hotEvents.length === 0 && <p style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>{tr.noEventsYet}</p>}
         </div>
       </div>
-      <div className="bg-card rounded-2xl p-4 shadow-sm border border-border/60">
-        <div className="flex items-center gap-2 mb-3"><Clock className="w-4 h-4 text-sky-500"/><span className="font-grotesk font-semibold text-sm">{tr.justPosted}</span></div>
-        <div className="space-y-3">
-          {recentEvents.map(e => <RecentSnippet key={e.id} event={e}/>)}
-          {recentEvents.length === 0 && <p className="text-xs text-muted-foreground">{tr.noEventsYet}</p>}
+
+      <div style={cardStyle}>
+        <div className="flex items-center gap-1.5" style={{ font: "500 11.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>
+          <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 12 }}>🕐</span>{tr.justPosted}
+        </div>
+        <div className="flex flex-col mt-2" style={{ gap: 6 }}>
+          {recentEvents.map(e => <EventLine key={e.id} event={e}/>)}
+          {recentEvents.length === 0 && <p style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>{tr.noEventsYet}</p>}
         </div>
       </div>
     </div>
   );
 }
 
-function HotSnippet({ event, rank }) {
-  const { lang } = useContext(LanguageContext);
-  const cat = getCategoryStyle(event.category);
+function EventLine({ event }) {
+  const capacity = event.max_capacity ? `${event.participants?.length || 0}/${event.max_capacity}` : null;
   return (
-    <Link to={`/event/${event.id}`} className="flex gap-2 group">
-      <span className="text-xs font-bold text-muted-foreground w-4 flex-shrink-0 mt-0.5">{rank}</span>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium group-hover:text-primary transition-colors line-clamp-2 leading-snug">{event.title}</p>
-        <div className="flex items-center gap-2 mt-1">
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${cat.color}`}>{cat.emoji} {getCategoryLabel(event.category, lang)}</span>
-          <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground"><Users className="w-2.5 h-2.5"/>{event.participants?.length || 0}</span>
-          <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground"><Star className="w-2.5 h-2.5"/>{event.favorites_count || 0}</span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function RecentSnippet({ event }) {
-  const { lang } = useContext(LanguageContext);
-  const cat = getCategoryStyle(event.category);
-  return (
-    <Link to={`/event/${event.id}`} className="flex gap-2 group">
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium group-hover:text-primary transition-colors line-clamp-2 leading-snug">{event.title}</p>
-        <div className="flex items-center gap-1.5 mt-1">
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${cat.color}`}>{cat.emoji} {getCategoryLabel(event.category, lang)}</span>
-          <span className="text-[10px] text-muted-foreground">{event.created_at ? format(new Date(event.created_at), 'HH:mm') : ''}</span>
-        </div>
-      </div>
+    <Link to={`/event/${event.id}`} className="flex items-baseline justify-between gap-2 group">
+      <span
+        className="line-clamp-1 group-hover:opacity-70 transition-opacity"
+        style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}
+      >
+        {event.title}
+      </span>
+      {capacity && <span style={{ font: "400 10px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)', flexShrink: 0 }}>{capacity}</span>}
     </Link>
   );
 }

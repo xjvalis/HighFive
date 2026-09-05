@@ -139,7 +139,7 @@ export default function EventDetail() {
         <div className="p-6">
           <div className="flex items-start justify-between gap-3 mb-4">
             <div className="flex-1">
-              <span className={cn('text-xs px-2 py-0.5 rounded-full font-medium mb-2 inline-block',cat.color)}>{cat.emoji} {getCategoryLabel(event.category,lang)}</span>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium mb-2 inline-block" style={{ background: cat.bg, color: cat.ink }}>{cat.emoji} {getCategoryLabel(event.category,lang)}</span>
               <h1 className="font-grotesk font-bold text-2xl">{event.title}</h1>
             </div>
             <div className="flex items-center gap-1">

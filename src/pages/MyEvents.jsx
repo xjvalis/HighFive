@@ -27,7 +27,7 @@ function PastEventCard({ event }) {
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium', cat.color)}>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style={{ background: cat.bg, color: cat.ink }}>
                 {cat.emoji} {getCategoryLabel(event.category, lang)}
               </span>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground font-medium">

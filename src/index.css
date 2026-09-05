@@ -2,6 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Spoluvíc design tokens (design_handoff_spoluvic_web) ───────────────
+   Prefixed --sv- to avoid colliding with the pre-existing shadcn/ui tokens
+   below (only real clash is --muted: shadcn's is a bare HSL triplet for
+   hsl(var()), this system's is a literal hex — same name, incompatible
+   formats). Old tokens stay untouched for components not yet redesigned
+   (dialogs, modals, admin, etc.) — see design_handoff_spoluvic_web/README.md
+   for what each of these means and where it's used. */
+:root {
+  --sv-brand-orange: #FFB033;
+  --sv-brand-purple: #7C5CE0;
+  --sv-brand-overlap: #5A3FB0;
+
+  --sv-bg: #FDFCFA;
+  --sv-surface: #FFFFFF;
+  --sv-surface-muted: #F6F4F0;
+  --sv-hairline: #F1EEE8;
+
+  --sv-ink: #3A343F;
+  --sv-ink-soft: #4C4652;
+  --sv-muted: #77707C;
+  --sv-meta: #8C8790;
+  --sv-placeholder: #9A948C;
+
+  --sv-action-bg: #FFE7C2;
+  --sv-action-ink: #5C4A1E;
+  --sv-action-bg-quiet: #F6F4F0;
+  --sv-action-ink-quiet: #4C4652;
+  --sv-link: #3B4FE0;
+  --sv-link-visited: #5B3FA8;
+  --sv-empty-dot: #FFB84D;
+
+  --sv-r-card: 16px;
+  --sv-r-tile: 8px;
+  --sv-r-pill: 999px;
+  --sv-r-cell: 4px;
+
+  --sv-font-sans: 'Outfit', system-ui, sans-serif;
+  --sv-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --sv-font-emoji: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+}
+
 @layer base {
   :root {
     --background: 40 30% 97%;

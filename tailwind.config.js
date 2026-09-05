@@ -5,8 +5,13 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        inter: ['Inter', 'sans-serif'],
-        grotesk: ['Space Grotesk', 'sans-serif'],
+        // Both repointed at Outfit (Spoluvíc's single UI typeface) so the
+        // ~28 existing font-grotesk/font-inter call sites across the app
+        // don't all need touching individually — see design_handoff_spoluvic_web.
+        inter: ['Outfit', 'system-ui', 'sans-serif'],
+        grotesk: ['Outfit', 'system-ui', 'sans-serif'],
+        sans: ['Outfit', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
         lg: 'var(--radius)',

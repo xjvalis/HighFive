@@ -69,7 +69,7 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
     <div className="bg-card rounded-2xl border border-border/60 shadow-sm overflow-hidden">
       <button className="w-full flex items-start gap-3 p-4 text-left hover:bg-secondary/30 transition-colors" onClick={()=>setExpanded(e=>!e)}>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-1"><span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${cat.color}`}>{cat.emoji} {getCategoryLabel(event.category,lang)}</span>{isFull&&<span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground font-medium">{lang === 'cs' ? 'Plné' : 'Full'}</span>}</div>
+          <div className="flex items-center gap-1.5 mb-1"><span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style={{ background: cat.bg, color: cat.ink }}>{cat.emoji} {getCategoryLabel(event.category,lang)}</span>{isFull&&<span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground font-medium">{lang === 'cs' ? 'Plné' : 'Full'}</span>}</div>
           <p className="font-grotesk font-semibold text-sm text-foreground">{event.title}</p>
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3"/>{event.location}</span>

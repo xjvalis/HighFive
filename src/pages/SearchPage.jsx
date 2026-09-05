@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Search, X, Clock } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { getCategoryStyle } from '@/lib/categories';
-import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
@@ -140,7 +139,7 @@ export default function SearchPage({ onClose }) {
               return (
                 <button key={event.id} onClick={() => handleSelect(event)}
                   className="flex items-center gap-3 w-full px-3 py-3 rounded-2xl text-left hover:bg-secondary/60 transition-colors">
-                  <span className={cn("text-xs px-2 py-1 rounded-full font-medium flex-shrink-0", cat.color)}>
+                  <span className="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0" style={{ background: cat.bg, color: cat.ink }}>
                     {cat.emoji}
                   </span>
                   <div className="flex-1 min-w-0">
