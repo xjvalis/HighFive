@@ -4,33 +4,37 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import { useT } from '@/lib/i18n';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { CATEGORIES, getCategoryLabel } from '@/lib/categories';
-import { cn } from '@/lib/utils';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
 import { LogOut, Check, BadgeCheck, Bell, Camera, Loader2, Trash2 } from 'lucide-react';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import EventCard from '@/components/events/EventCard';
+import EmptyState from '@/components/ui/EmptyState';
 import PremiumModal from '@/components/premium/PremiumModal';
 import BadgesSection from '@/components/profile/BadgesSection';
+import { SvIcon } from '@/components/icons/SvIcon';
+import { svPageTitle, svCard, svField, svLabel, svMeta, svSectionLabel } from '@/lib/svStyles';
+
+const chip = { display: 'inline-flex', alignItems: 'center', gap: 4, font: "500 10.5px 'Outfit', sans-serif", padding: '3px 9px', borderRadius: 'var(--sv-r-pill)', background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)' };
+const ghostBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)', borderRadius: 'var(--sv-r-pill)', padding: '7px 14px', font: "500 12px 'Outfit', sans-serif" };
+const actionBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 'var(--sv-r-pill)', padding: '7px 14px', font: "500 12px 'Outfit', sans-serif" };
 
 function ReliabilityBadge({ score, noshowCount, lang }) {
   if (score === null || score === undefined || noshowCount === 0) {
-    return <span className="text-xs bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full font-medium">{lang === 'cs' ? 'Nováček' : 'New'}</span>;
+    return <span style={chip}>{lang === 'cs' ? 'Nováček' : 'New'}</span>;
   }
-  if (score >= 80) return <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">✓ {lang === 'cs' ? 'Spolehlivý' : 'Reliable'}</span>;
-  if (score >= 40) return <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">~ {lang === 'cs' ? 'Občas chybí' : 'Sometimes absent'}</span>;
-  return <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">✕ {lang === 'cs' ? 'Často chybí' : 'Often absent'}</span>;
+  if (score >= 80) return <span style={chip}><SvIcon name="star" size={9}/>{lang === 'cs' ? 'Spolehlivý' : 'Reliable'}</span>;
+  if (score >= 40) return <span style={chip}>{lang === 'cs' ? 'Občas chybí' : 'Sometimes absent'}</span>;
+  return <span style={{ ...chip, background: 'transparent', color: '#A9564C' }}>{lang === 'cs' ? 'Často chybí' : 'Often absent'}</span>;
 }
 
 export default function Profile() {
   const tr = useT();
   const { lang } = useContext(LanguageContext);
-  const { user, profile, setProfile, updateProfile, loading: userLoading } = useCurrentUser();
+  const { user, profile, updateProfile, loading: userLoading } = useCurrentUser();
   const navigate = useNavigate();
   const [myEvents, setMyEvents] = useState([]);
   const [editing, setEditing] = useState(false);
@@ -50,7 +54,7 @@ export default function Profile() {
       .then(({ data }) => setMyEvents(data || []));
   }, [user?.id]);
 
-  if (userLoading) return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-lavender border-t-violet-500 rounded-full animate-spin"/></div>;
+  if (userLoading) return <div className="flex items-center justify-center py-20"><div className="w-7 h-7 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--sv-hairline)', borderTopColor: 'var(--sv-brand-purple)' }}/></div>;
   if (!user) { navigate('/login'); return null; }
 
   const handleSave = async () => {
@@ -95,55 +99,54 @@ export default function Profile() {
   const joinedEvents = myEvents.filter(e => e.participants?.includes(user?.email) && e.organizer_email !== user?.email);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
+    <div className="max-w-2xl mx-auto space-y-4 pt-2" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
 
       {/* Main profile card */}
-      <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-4">
+      <div style={{ ...svCard, padding: 22 }}>
+        <div className="flex items-start justify-between mb-4 gap-3">
+          <div className="flex items-center gap-4 min-w-0">
             <label className="relative cursor-pointer group w-14 h-14 flex-shrink-0">
               <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload}/>
               {profile?.avatar_url
-                ? <img src={profile.avatar_url} alt="avatar" className="w-14 h-14 rounded-2xl object-cover"/>
-                : <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-lavender to-sky flex items-center justify-center text-violet-700 text-2xl font-bold">{user.email?.[0]?.toUpperCase() || '?'}</div>}
-              <div className="absolute inset-0 rounded-2xl bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                ? <img src={profile.avatar_url} alt="avatar" className="w-14 h-14 object-cover" style={{ borderRadius: 14 }}/>
+                : <div className="w-14 h-14 flex items-center justify-center" style={{ borderRadius: 14, background: '#F0EAFC', color: 'var(--sv-brand-purple)', font: "500 22px 'Outfit', sans-serif" }}>{user.email?.[0]?.toUpperCase() || '?'}</div>}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderRadius: 14, background: 'rgba(58,52,63,0.5)' }}>
                 {uploadingAvatar ? <Loader2 className="w-5 h-5 text-white animate-spin"/> : <Camera className="w-5 h-5 text-white"/>}
               </div>
             </label>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="font-grotesk font-bold text-xl">{profile?.display_name || user.email}</h1>
-                {profile?.is_verified && <BadgeCheck className="w-5 h-5 text-blue-500"/>}
-                {profile?.is_premium && <span className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full font-medium">Premium</span>}
-                {/* Reliability badge - always visible */}
+                <h1 style={{ ...svPageTitle, fontSize: 16 }}>{profile?.display_name || user.email}</h1>
+                {profile?.is_verified && <BadgeCheck className="w-4 h-4" style={{ color: 'var(--sv-brand-purple)' }}/>}
+                {profile?.is_premium && <span style={chip}>Premium</span>}
                 <ReliabilityBadge score={profile?.reliability_score} noshowCount={profile?.noshow_count || 0} lang={lang}/>
               </div>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
-              <p className="text-xs text-muted-foreground mt-1">{profile?.joined_events?.length || 0} {tr.eventsAttended} · {myEvents.length} {tr.eventsCreated}</p>
+              <p style={{ ...svMeta, marginTop: 2 }}>{user.email}</p>
+              <p style={{ ...svMeta, marginTop: 4 }}>{profile?.joined_events?.length || 0} {tr.eventsAttended} · {myEvents.length} {tr.eventsCreated}</p>
               {!profile?.is_premium && (
-                <div className="text-xs text-muted-foreground bg-secondary rounded-lg px-3 py-2 mt-2">
-                  {lang === 'cs' ? 'Plán' : 'Plan'}: <strong>{profile?.subscription_plan || 'free'}</strong> · {lang === 'cs' ? 'Přihlášení' : 'Joins'}: <strong>{profile?.monthly_join_count || 0}/3</strong> · {lang === 'cs' ? 'Vytvořené' : 'Created'}: <strong>{profile?.monthly_create_count || 0}/1</strong>
+                <div style={{ ...svMeta, background: 'var(--sv-surface-muted)', borderRadius: 8, padding: '6px 10px', marginTop: 8 }}>
+                  {lang === 'cs' ? 'Plán' : 'Plan'}: <strong style={{ color: 'var(--sv-ink-soft)' }}>{profile?.subscription_plan || 'free'}</strong> · {lang === 'cs' ? 'Přihlášení' : 'Joins'}: <strong style={{ color: 'var(--sv-ink-soft)' }}>{profile?.monthly_join_count || 0}/3</strong> · {lang === 'cs' ? 'Vytvořené' : 'Created'}: <strong style={{ color: 'var(--sv-ink-soft)' }}>{profile?.monthly_create_count || 0}/1</strong>
                 </div>
               )}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-shrink-0">
             {editing
-              ? <Button size="sm" onClick={handleSave} disabled={saving} className="rounded-xl gap-1.5">{saving ? <Loader2 className="w-3 h-3 animate-spin"/> : <Check className="w-3 h-3"/>}{tr.save}</Button>
-              : <Button size="sm" variant="outline" onClick={() => setEditing(true)} className="rounded-xl">{tr.edit}</Button>}
-            <Button size="sm" variant="ghost" onClick={() => supabase.auth.signOut()} className="rounded-xl" title={tr.logout}><LogOut className="w-4 h-4"/></Button>
+              ? <button onClick={handleSave} disabled={saving} style={{ ...actionBtn, opacity: saving ? 0.6 : 1 }}>{saving ? <Loader2 className="w-3 h-3 animate-spin"/> : <Check className="w-3 h-3"/>}{tr.save}</button>
+              : <button onClick={() => setEditing(true)} style={ghostBtn}>{tr.edit}</button>}
+            <button onClick={() => supabase.auth.signOut()} style={{ ...ghostBtn, padding: '7px 9px' }} title={tr.logout}><LogOut className="w-3.5 h-3.5"/></button>
           </div>
         </div>
 
         {editing ? (
           <div className="space-y-4">
-            <div><Label className="text-xs font-medium mb-1 block">{tr.displayName}</Label><Input value={form.display_name || ''} onChange={e => setForm(f => ({ ...f, display_name: e.target.value }))} className="rounded-xl"/></div>
-            <div><Label className="text-xs font-medium mb-1 block">{tr.bio}</Label><Textarea value={form.bio || ''} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} className="rounded-xl resize-none" placeholder={lang === 'cs' ? 'Napiš něco o sobě...' : 'Write something about yourself...'}/></div>
-            <div><Label className="text-xs font-medium mb-1 block">{tr.location}</Label><Input value={form.location || ''} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} className="rounded-xl" placeholder={lang === 'cs' ? 'Praha, Letná...' : 'Prague, Old Town...'}/></div>
+            <div><label style={svLabel}>{tr.displayName}</label><Input value={form.display_name || ''} onChange={e => setForm(f => ({ ...f, display_name: e.target.value }))} style={svField}/></div>
+            <div><label style={svLabel}>{tr.bio}</label><Textarea value={form.bio || ''} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} className="resize-none" style={svField} placeholder={lang === 'cs' ? 'Napiš něco o sobě...' : 'Write something about yourself...'}/></div>
+            <div><label style={svLabel}>{tr.location}</label><Input value={form.location || ''} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} style={svField} placeholder={lang === 'cs' ? 'Praha, Letná...' : 'Prague, Old Town...'}/></div>
             <div className="flex gap-3">
-              <div className="flex-1"><Label className="text-xs font-medium mb-1 block">{tr.age}</Label><Input type="number" min="13" max="120" value={form.age || ''} onChange={e => setForm(f => ({ ...f, age: e.target.value ? Number(e.target.value) : '' }))} className="rounded-xl" placeholder="28"/></div>
-              <div className="flex-1"><Label className="text-xs font-medium mb-1 block">{tr.gender}</Label>
-                <select value={form.gender || ''} onChange={e => setForm(f => ({ ...f, gender: e.target.value }))} className="w-full h-9 rounded-xl border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+              <div className="flex-1"><label style={svLabel}>{tr.age}</label><Input type="number" min="13" max="120" value={form.age || ''} onChange={e => setForm(f => ({ ...f, age: e.target.value ? Number(e.target.value) : '' }))} style={svField} placeholder="28"/></div>
+              <div className="flex-1"><label style={svLabel}>{tr.gender}</label>
+                <select value={form.gender || ''} onChange={e => setForm(f => ({ ...f, gender: e.target.value }))} className="w-full px-3" style={{ ...svField, height: 36 }}>
                   <option value="">{tr.genderPlaceholder}</option>
                   <option value="Muž">{tr.genderMale}</option>
                   <option value="Žena">{tr.genderFemale}</option>
@@ -151,30 +154,37 @@ export default function Profile() {
                 </select>
               </div>
             </div>
-            <div><Label className="text-xs font-medium mb-1 block">{tr.favoriteCategories}</Label>
-              <div className="flex flex-wrap gap-2">
-                {CATEGORIES.map(cat => (
-                  <button key={cat.name} type="button" onClick={() => toggleCategory(cat.name)}
-                    style={(form.favorite_categories || []).includes(cat.name) ? { background: cat.bg, color: cat.ink } : undefined}
-                    className={cn('px-2.5 py-1 rounded-lg text-xs font-medium transition-all border', (form.favorite_categories || []).includes(cat.name) ? 'border-transparent' : 'border-border text-muted-foreground hover:bg-secondary')}>
-                    {cat.emoji} {getCategoryLabel(cat.name, lang)}
-                  </button>
-                ))}
+            <div><label style={svLabel}>{tr.favoriteCategories}</label>
+              <div className="flex flex-wrap" style={{ gap: 6 }}>
+                {CATEGORIES.map(cat => {
+                  const active = (form.favorite_categories || []).includes(cat.name);
+                  return (
+                    <button key={cat.name} type="button" onClick={() => toggleCategory(cat.name)} className="flex items-center transition-all"
+                      style={{ gap: 5, padding: '6px 12px', borderRadius: 'var(--sv-r-pill)', font: `${active ? 500 : 400} 12px 'Outfit', sans-serif`, background: active ? cat.bg : 'var(--sv-surface-muted)', color: active ? cat.ink : 'var(--sv-meta)' }}>
+                      <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 12 }}>{cat.emoji}</span>
+                      {getCategoryLabel(cat.name, lang)}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
         ) : (
           <div>
-            {profile?.bio && <p className="text-sm text-foreground/80 mb-3">{profile.bio}</p>}
-            <div className="flex flex-wrap gap-3 mb-3">
-              {profile?.location && <p className="text-xs text-muted-foreground">📍 {profile.location}</p>}
-              {profile?.age && <p className="text-xs text-muted-foreground">🎂 {profile.age} {tr.yearsOld}</p>}
+            {profile?.bio && <p style={{ font: "300 13px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginBottom: 10 }}>{profile.bio}</p>}
+            <div className="flex flex-wrap gap-3 mb-2.5">
+              {profile?.location && <p style={svMeta} className="flex items-center gap-1"><SvIcon name="pin" size={11} style={{ color: '#B4AEA6' }}/>{profile.location}</p>}
+              {profile?.age && <p style={svMeta}>{profile.age} {tr.yearsOld}</p>}
             </div>
             {profile?.favorite_categories?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap" style={{ gap: 5 }}>
                 {profile.favorite_categories.map(c => {
                   const cat = CATEGORIES.find(cat => cat.name === c);
-                  return cat ? <span key={c} className="px-2 py-0.5 rounded-lg text-xs font-medium" style={{ background: cat.bg, color: cat.ink }}>{cat.emoji} {getCategoryLabel(c, lang)}</span> : null;
+                  return cat ? (
+                    <span key={c} className="flex items-center" style={{ gap: 4, background: cat.bg, color: cat.ink, borderRadius: 'var(--sv-r-pill)', padding: '3px 9px', font: "400 10.5px 'Outfit', sans-serif" }}>
+                      <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 10 }}>{cat.emoji}</span>{getCategoryLabel(c, lang)}
+                    </span>
+                  ) : null;
                 })}
               </div>
             )}
@@ -183,25 +193,24 @@ export default function Profile() {
 
         {/* Premium section */}
         {profile?.is_premium ? (
-          <div className="mt-5 rounded-2xl border border-violet-200/60 bg-violet-50/50 p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="font-grotesk font-semibold">Spoluvíc Premium</span>
-                <span className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full font-medium">{profile?.subscription_plan === 'creator' ? 'Creator' : 'Plus'}</span>
-              </div>
+          <div style={{ marginTop: 18, borderRadius: 'var(--sv-r-card)', background: '#F0EAFC', padding: 16 }}>
+            <div className="flex items-center gap-2 mb-3">
+              <span style={{ font: "500 13px 'Outfit', sans-serif", color: '#4A3A73' }}>Spoluvíc Premium</span>
+              <span style={{ ...chip, background: 'rgba(255,255,255,0.6)', color: '#4A3A73' }}>{profile?.subscription_plan === 'creator' ? 'Creator' : 'Plus'}</span>
             </div>
-            <Button size="sm" variant="outline" className="rounded-xl w-full" onClick={async () => {
+            <button className="w-full" style={{ ...ghostBtn, background: 'var(--sv-surface)', width: '100%' }} onClick={async () => {
               const { data } = await supabase.functions.invoke('stripe-billing-portal', { body: { return_url: window.location.origin + '/profile' } });
               if (data?.url) window.location.href = data.url;
-            }}>{lang === 'cs' ? 'Spravovat předplatné' : 'Manage subscription'}</Button>
+            }}>{lang === 'cs' ? 'Spravovat předplatné' : 'Manage subscription'}</button>
           </div>
         ) : (
-          <div className="mt-5 rounded-2xl overflow-hidden border border-violet-200/60 bg-violet-50/50 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowPremium(true)}>
-            <div className="px-5 py-4">
-              <div className="flex items-center justify-between mb-2"><span className="font-grotesk font-semibold">Spoluvíc Premium</span><span className="text-xs text-muted-foreground">{lang === 'cs' ? 'Plus od 100 Kč/měs' : 'Plus from 100 Kč/mo'}</span></div>
-              <p className="text-sm text-muted-foreground mb-4">{lang === 'cs' ? 'Neomezené eventy, bez limitů.' : 'Unlimited events, no limits.'}</p>
-              <Button onClick={e => { e.stopPropagation(); setShowPremium(true); }} className="w-full rounded-xl">{tr.viewPlans}</Button>
+          <div style={{ marginTop: 18, borderRadius: 'var(--sv-r-card)', background: '#F0EAFC', padding: 16, cursor: 'pointer' }} onClick={() => setShowPremium(true)}>
+            <div className="flex items-center justify-between mb-1.5">
+              <span style={{ font: "500 13px 'Outfit', sans-serif", color: '#4A3A73' }}>Spoluvíc Premium</span>
+              <span style={{ font: "300 11px 'Outfit', sans-serif", color: '#5A4A83' }}>{lang === 'cs' ? 'Plus od 100 Kč/měs' : 'Plus from 100 Kč/mo'}</span>
             </div>
+            <p style={{ font: "300 11.5px 'Outfit', sans-serif", color: '#5A4A83', marginBottom: 12 }}>{lang === 'cs' ? 'Neomezené eventy, bez limitů.' : 'Unlimited events, no limits.'}</p>
+            <button onClick={e => { e.stopPropagation(); setShowPremium(true); }} className="w-full" style={{ ...ghostBtn, background: 'var(--sv-surface)', width: '100%' }}>{tr.viewPlans}</button>
           </div>
         )}
 
@@ -212,17 +221,20 @@ export default function Profile() {
       <BadgesSection profile={profile} eventsCreated={myEvents.length} eventsJoined={profile?.joined_events?.length || 0}/>
 
       {/* Email notifications */}
-      <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-5">
-        <div className="flex items-center gap-2 mb-4"><Bell className="w-4 h-4 text-primary"/><h2 className="font-grotesk font-semibold text-base">{tr.emailNotifications}</h2></div>
-        <div className="space-y-3">
+      <div style={{ ...svCard, padding: 18 }}>
+        <div className="flex items-center gap-1.5" style={{ marginBottom: 14 }}>
+          <Bell className="w-3.5 h-3.5" style={{ color: 'var(--sv-meta)' }}/>
+          <span style={svSectionLabel}>{tr.emailNotifications}</span>
+        </div>
+        <div className="space-y-3.5">
           {[
             { key: 'notify_email_reminders', label: tr.notifyEmailReminders, desc: tr.notifyEmailReminders24h },
             { key: 'notify_email_event_updates', label: tr.notifyEmailUpdates, desc: tr.notifyEmailUpdatesDesc },
           ].map(({ key, label, desc }) => (
             <div key={key} className="flex items-center justify-between gap-3">
-              <div><p className="text-sm font-medium">{label}</p><p className="text-xs text-muted-foreground">{desc}</p></div>
-              <button onClick={() => updateProfile({ [key]: !profile?.[key] })} className={cn('relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors', profile?.[key] ? 'bg-primary' : 'bg-secondary')}>
-                <span className={cn('pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition', profile?.[key] ? 'translate-x-4' : 'translate-x-0')}/>
+              <div><p style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>{label}</p><p style={svMeta}>{desc}</p></div>
+              <button onClick={() => updateProfile({ [key]: !profile?.[key] })} className="relative inline-flex flex-shrink-0 transition-colors" style={{ height: 20, width: 36, borderRadius: 999, background: profile?.[key] ? 'var(--sv-brand-purple)' : 'var(--sv-surface-muted)' }}>
+                <span className="pointer-events-none inline-block transform rounded-full bg-white shadow transition" style={{ height: 16, width: 16, marginTop: 2, marginLeft: profile?.[key] ? 18 : 2 }}/>
               </button>
             </div>
           ))}
@@ -230,36 +242,36 @@ export default function Profile() {
       </div>
 
       {/* Created / Joined events */}
-      <div className="bg-card rounded-2xl border border-border/60 shadow-sm">
-        <div className="flex border-b border-border/60">
+      <div style={svCard}>
+        <div className="flex" style={{ gap: 2, padding: 12 }}>
           {['created', 'joined'].map(t => (
-            <button key={t} onClick={() => setTab(t)} className={cn('flex-1 py-3 text-sm font-medium transition-colors', tab === t ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground')}>
+            <button key={t} onClick={() => setTab(t)} className="flex-1 transition-all" style={{ padding: '8px 0', borderRadius: 8, font: `${tab === t ? 500 : 400} 12.5px 'Outfit', sans-serif`, background: tab === t ? 'var(--sv-surface-muted)' : 'transparent', color: tab === t ? 'var(--sv-ink)' : 'var(--sv-meta)' }}>
               {t === 'created' ? `${tr.created} (${myEvents.length})` : `${tr.joined} (${joinedEvents.length})`}
             </button>
           ))}
         </div>
-        <div className="p-4 space-y-3">
+        <div style={{ padding: '0 12px 12px' }} className="space-y-2">
           {(tab === 'created' ? myEvents : joinedEvents).map(e => <EventCard key={e.id} event={e}/>)}
-          {(tab === 'created' ? myEvents : joinedEvents).length === 0 && <p className="text-sm text-muted-foreground text-center py-6">{tr.nothing}</p>}
+          {(tab === 'created' ? myEvents : joinedEvents).length === 0 && <EmptyState title={tr.nothing} />}
         </div>
       </div>
 
       {/* Danger zone */}
-      <div className="bg-card rounded-2xl border border-red-100 shadow-sm p-5">
-        <h3 className="font-grotesk font-semibold text-sm text-red-600 mb-1">
+      <div style={{ ...svCard, padding: 18 }}>
+        <h3 style={{ font: "500 13px 'Outfit', sans-serif", color: '#A9564C', marginBottom: 4 }}>
           {lang === 'cs' ? 'Nebezpečná zóna' : 'Danger zone'}
         </h3>
-        <p className="text-xs text-muted-foreground mb-3">
+        <p style={{ ...svMeta, marginBottom: 12 }}>
           {lang === 'cs' ? 'Smazání účtu je nevratné. Všechna tvoje data budou odstraněna.' : 'Account deletion is irreversible. All your data will be removed.'}
         </p>
 
         {/* Reliability reset - Premium only, only if has noshows */}
         {(profile?.is_premium || ['plus','creator'].includes(profile?.subscription_plan)) && (profile?.noshow_count || 0) > 0 && (
-          <div className="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
-            <p className="text-xs font-medium text-amber-800 mb-1">
+          <div className="mb-4" style={{ padding: 12, background: 'var(--sv-surface-muted)', borderRadius: 10 }}>
+            <p style={{ font: "500 11.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginBottom: 4 }}>
               {lang === 'cs' ? `Skóre spolehlivosti: ${profile?.reliability_score ?? 100}/100` : `Reliability score: ${profile?.reliability_score ?? 100}/100`}
             </p>
-            <p className="text-xs text-amber-700 mb-2">
+            <p style={{ ...svMeta, marginBottom: 8 }}>
               {lang === 'cs' ? 'Jako Premium uživatel můžeš požádat o reset.' : 'As a Premium user you can request a reset.'}
             </p>
             <button
@@ -270,7 +282,7 @@ export default function Profile() {
                   if (!mods?.length) { toast.error(lang === 'cs' ? 'Nepodařilo se najít moderátora.' : 'Could not find a moderator.'); return; }
                   const requesterName = profile?.display_name || user.email;
                   const requestBody = `${requesterName} (${user.email}) ${lang === 'cs' ? 'žádá o reset.' : 'requests a reset.'}`;
-                  const title = `🔄 ${lang === 'cs' ? 'Žádost o reset spolehlivosti' : 'Reliability reset request'}`;
+                  const title = lang === 'cs' ? 'Žádost o reset spolehlivosti' : 'Reliability reset request';
                   await Promise.all(mods.map(m => supabase.from('notifications').insert({
                     user_id: m.user_id, user_email: m.user_email,
                     type: 'reliability_reset_request',
@@ -283,17 +295,17 @@ export default function Profile() {
                   toast.error(lang === 'cs' ? 'Žádost se nepodařilo odeslat.' : 'Failed to send request.');
                 }
               }}
-              className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-amber-600 transition-colors"
+              style={ghostBtn}
             >
               {lang === 'cs' ? 'Požádat o reset' : 'Request reset'}
             </button>
           </div>
         )}
 
-        <Button variant="outline" size="sm" onClick={() => setShowDeleteConfirm(true)} className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 gap-2">
+        <button onClick={() => setShowDeleteConfirm(true)} className="flex items-center gap-2" style={{ ...ghostBtn, color: '#A9564C' }}>
           <Trash2 className="w-3.5 h-3.5"/>
           {lang === 'cs' ? 'Smazat účet' : 'Delete account'}
-        </Button>
+        </button>
         <ConfirmDialog
           open={showDeleteConfirm}
           onConfirm={handleDeleteAccount}
@@ -305,10 +317,10 @@ export default function Profile() {
         />
       </div>
 
-      <p className="text-center text-[11px] text-muted-foreground mt-6">
-        <Link to="/terms" className="hover:underline">{lang === 'cs' ? 'Podmínky používání' : 'Terms of use'}</Link>
+      <p className="text-center" style={{ font: "300 10.5px 'Outfit', sans-serif", color: 'var(--sv-meta)', marginTop: 8, marginBottom: 8 }}>
+        <Link to="/terms">{lang === 'cs' ? 'Podmínky používání' : 'Terms of use'}</Link>
         {' · '}
-        <Link to="/privacy" className="hover:underline">{lang === 'cs' ? 'Ochrana osobních údajů' : 'Privacy policy'}</Link>
+        <Link to="/privacy">{lang === 'cs' ? 'Ochrana osobních údajů' : 'Privacy policy'}</Link>
       </p>
     </div>
   );

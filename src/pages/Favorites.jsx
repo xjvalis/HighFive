@@ -3,12 +3,13 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import EventCard from '@/components/events/EventCard';
+import EmptyState from '@/components/ui/EmptyState';
 import { useT } from '@/lib/i18n';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
 import { toast } from 'sonner';
-import { Star, Calendar } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { SvIcon } from '@/components/icons/SvIcon';
+import { svPageTitle, svSubtitle, svCard, svSectionLabel } from '@/lib/svStyles';
 
 export default function Favorites() {
   const tr = useT();
@@ -64,14 +65,14 @@ export default function Favorites() {
   if (!user && !userLoading) return null;
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto pt-2" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-5">
         <div className="flex items-center gap-2 mb-1">
-          <Star className="w-5 h-5 text-yellow-500 fill-yellow-500"/>
-          <h1 className="font-grotesk font-bold text-xl">{lang === 'cs' ? 'Moje oblíbené' : 'My favorites'}</h1>
+          <SvIcon name="star" size={16} style={{ color: 'var(--sv-brand-orange)' }}/>
+          <h1 style={svPageTitle}>{lang === 'cs' ? 'Moje oblíbené' : 'My favorites'}</h1>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p style={svSubtitle}>
           {lang === 'cs'
             ? 'Akce, které chceš sledovat nebo se na ně chystáš. Hvězdičkou označíš akci a najdeš ji tady.'
             : 'Events you want to track or attend. Star an event and find it here.'}
@@ -80,50 +81,45 @@ export default function Favorites() {
 
       {/* Stats */}
       {events.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="bg-card rounded-2xl border border-border/60 p-4 flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-primary flex-shrink-0"/>
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <div style={{ ...svCard, padding: 14 }} className="flex items-center gap-3">
+            <SvIcon name="calendar" size={16} style={{ color: 'var(--sv-meta)', flexShrink: 0 }}/>
             <div>
-              <p className="font-grotesk font-bold text-lg">{upcoming.length}</p>
-              <p className="text-xs text-muted-foreground">{lang === 'cs' ? 'Nadcházející' : 'Upcoming'}</p>
+              <p style={{ font: "500 17px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{upcoming.length}</p>
+              <p style={svSubtitle}>{lang === 'cs' ? 'Nadcházející' : 'Upcoming'}</p>
             </div>
           </div>
-          <div className="bg-card rounded-2xl border border-border/60 p-4 flex items-center gap-3">
-            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500 flex-shrink-0"/>
+          <div style={{ ...svCard, padding: 14 }} className="flex items-center gap-3">
+            <SvIcon name="star" size={16} style={{ color: 'var(--sv-brand-orange)', flexShrink: 0 }}/>
             <div>
-              <p className="font-grotesk font-bold text-lg">{events.length}</p>
-              <p className="text-xs text-muted-foreground">{lang === 'cs' ? 'Celkem uloženo' : 'Total saved'}</p>
+              <p style={{ font: "500 17px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{events.length}</p>
+              <p style={svSubtitle}>{lang === 'cs' ? 'Celkem uloženo' : 'Total saved'}</p>
             </div>
           </div>
         </div>
       )}
 
       {loading ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {[1,2,3].map(i => (
-            <div key={i} className="bg-card rounded-2xl p-4 border border-border/60">
-              <Skeleton className="h-4 w-24 mb-3"/><Skeleton className="h-5 w-3/4 mb-2"/><Skeleton className="h-4 w-1/2"/>
+            <div key={i} style={{ ...svCard, padding: '12px 14px' }}>
+              <div style={{ height: 10, width: 80, background: 'var(--sv-surface-muted)', borderRadius: 5, marginBottom: 10 }}/>
+              <div style={{ height: 12, width: '70%', background: 'var(--sv-surface-muted)', borderRadius: 5, marginBottom: 8 }}/>
+              <div style={{ height: 10, width: '45%', background: 'var(--sv-surface-muted)', borderRadius: 5 }}/>
             </div>
           ))}
         </div>
       ) : events.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-4xl mb-3">⭐</p>
-          <p className="font-grotesk font-semibold mb-1">{lang === 'cs' ? 'Zatím žádné oblíbené' : 'No favorites yet'}</p>
-          <p className="text-sm text-muted-foreground mb-4">
-            {lang === 'cs'
-              ? 'Klikni na hvězdičku u libovolné akce a najdeš ji tady.'
-              : 'Tap the star on any event and it will appear here.'}
-          </p>
-        </div>
+        <EmptyState
+          title={lang === 'cs' ? 'Zatím žádné oblíbené' : 'No favorites yet'}
+          note={lang === 'cs' ? 'Klikni na hvězdičku u libovolné akce a najdeš ji tady.' : 'Tap the star on any event and it will appear here.'}
+        />
       ) : (
         <div className="space-y-5">
           {upcoming.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                {lang === 'cs' ? 'Nadcházející' : 'Upcoming'}
-              </p>
-              <div className="space-y-2.5">
+              <p style={{ ...svSectionLabel, marginBottom: 9 }}>{lang === 'cs' ? 'Nadcházející' : 'Upcoming'}</p>
+              <div className="space-y-2">
                 {upcoming.map(event => (
                   <EventCard
                     key={event.id}
@@ -140,10 +136,8 @@ export default function Favorites() {
 
           {past.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                {lang === 'cs' ? 'Proběhlé' : 'Past'}
-              </p>
-              <div className="space-y-2.5 opacity-60">
+              <p style={{ ...svSectionLabel, marginBottom: 9 }}>{lang === 'cs' ? 'Proběhlé' : 'Past'}</p>
+              <div className="space-y-2" style={{ opacity: 0.6 }}>
                 {past.map(event => (
                   <EventCard
                     key={event.id}

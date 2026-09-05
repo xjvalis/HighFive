@@ -5,7 +5,6 @@ import { Shield, CheckCircle, Flag, Trash2, Pencil, PauseCircle, UserX, X, Alert
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
 import { getCategoryLabel } from '@/lib/categories';
 import { LanguageContext } from '@/lib/language';
@@ -13,6 +12,8 @@ import { toast } from 'sonner';
 import EditEventModal from '@/components/events/EditEventModal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { renderNotification } from '@/lib/notifTemplates';
+import EmptyState from '@/components/ui/EmptyState';
+import { svPageTitle, svCard, svField, svMeta } from '@/lib/svStyles';
 
 export default function AdminDashboard() {
   const tr = useT();
@@ -145,62 +146,62 @@ export default function AdminDashboard() {
   };
 
   if (!hasAccess) return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <Shield className="w-12 h-12 text-muted-foreground mb-3"/>
-      <h2 className="font-grotesk font-bold text-xl mb-1">{lang === 'cs' ? 'Přístup odepřen' : 'Access denied'}</h2>
-      <p className="text-sm text-muted-foreground">{lang === 'cs' ? 'Tato sekce je jen pro moderátory.' : 'This section is for moderators only.'}</p>
+    <div className="flex flex-col items-center justify-center py-20 text-center" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+      <Shield className="w-10 h-10 mb-3" style={{ color: 'var(--sv-meta)' }}/>
+      <h2 style={{ ...svPageTitle, fontSize: 16, marginBottom: 4 }}>{lang === 'cs' ? 'Přístup odepřen' : 'Access denied'}</h2>
+      <p style={svMeta}>{lang === 'cs' ? 'Tato sekce je jen pro moderátory.' : 'This section is for moderators only.'}</p>
     </div>
   );
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Shield className="w-6 h-6 text-primary"/>
-        <h1 className="font-grotesk font-bold text-2xl">{lang === 'cs' ? 'Moderace' : 'Moderation'}</h1>
-        {isAdmin && <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Admin</span>}
-        {!isAdmin && isModerator && <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">{lang === 'cs' ? 'Moderátor' : 'Moderator'}</span>}
+    <div className="max-w-2xl mx-auto pt-2" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+      <div className="flex items-center gap-2.5 mb-5">
+        <Shield className="w-5 h-5" style={{ color: 'var(--sv-brand-purple)' }}/>
+        <h1 style={svPageTitle}>{lang === 'cs' ? 'Moderace' : 'Moderation'}</h1>
+        {isAdmin && <span style={{ font: "500 10px 'Outfit', sans-serif", background: '#F0EAFC', color: 'var(--sv-brand-purple)', padding: '3px 9px', borderRadius: 'var(--sv-r-pill)' }}>Admin</span>}
+        {!isAdmin && isModerator && <span style={{ font: "500 10px 'Outfit', sans-serif", background: 'var(--sv-surface-muted)', color: 'var(--sv-meta)', padding: '3px 9px', borderRadius: 'var(--sv-r-pill)' }}>{lang === 'cs' ? 'Moderátor' : 'Moderator'}</span>}
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-card rounded-2xl border border-border/60 p-4 text-center">
-          <p className="text-2xl font-bold">{events.length}</p>
-          <p className="text-xs text-muted-foreground mt-1">{lang === 'cs' ? 'Čeká na schválení' : 'Pending approval'}</p>
+      <div className="grid grid-cols-3 gap-2.5 mb-5">
+        <div style={{ ...svCard, padding: 14, textAlign: 'center' }}>
+          <p style={{ font: "500 19px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{events.length}</p>
+          <p style={{ ...svMeta, marginTop: 2 }}>{lang === 'cs' ? 'Čeká na schválení' : 'Pending approval'}</p>
         </div>
-        <div className="bg-card rounded-2xl border border-border/60 p-4 text-center">
-          <p className="text-2xl font-bold">{reports.length}</p>
-          <p className="text-xs text-muted-foreground mt-1">{lang === 'cs' ? 'Otevřené reporty' : 'Open reports'}</p>
+        <div style={{ ...svCard, padding: 14, textAlign: 'center' }}>
+          <p style={{ font: "500 19px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{reports.length}</p>
+          <p style={{ ...svMeta, marginTop: 2 }}>{lang === 'cs' ? 'Otevřené reporty' : 'Open reports'}</p>
         </div>
-        <div className="bg-card rounded-2xl border border-border/60 p-4 text-center">
-          <p className="text-2xl font-bold">{reliabilityRequests.length}</p>
-          <p className="text-xs text-muted-foreground mt-1">{lang === 'cs' ? 'Žádosti o reset' : 'Reset requests'}</p>
+        <div style={{ ...svCard, padding: 14, textAlign: 'center' }}>
+          <p style={{ font: "500 19px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{reliabilityRequests.length}</p>
+          <p style={{ ...svMeta, marginTop: 2 }}>{lang === 'cs' ? 'Žádosti o reset' : 'Reset requests'}</p>
         </div>
       </div>
 
-      <div className="flex gap-1 bg-secondary rounded-xl p-1 mb-5 w-fit flex-wrap">
+      <div className="flex flex-wrap" style={{ gap: 2, background: 'var(--sv-surface-muted)', borderRadius: 10, padding: 3, marginBottom: 18, width: 'fit-content' }}>
         {[
           { key: 'pending', label: `${lang === 'cs' ? 'Ke schválení' : 'Pending'} (${events.length})` },
           { key: 'reports', label: `${lang === 'cs' ? 'Reporty' : 'Reports'} (${reports.length})` },
           { key: 'reliability', label: `${lang === 'cs' ? 'Reset skóre' : 'Score resets'} (${reliabilityRequests.length})` },
         ].map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={cn('px-4 py-2 rounded-lg text-sm font-medium transition-all', tab === t.key ? 'bg-card shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
+          <button key={t.key} onClick={() => setTab(t.key)} className="transition-all"
+            style={{ padding: '8px 16px', borderRadius: 8, font: `${tab === t.key ? 500 : 400} 12px 'Outfit', sans-serif`, background: tab === t.key ? 'var(--sv-surface)' : 'transparent', color: tab === t.key ? 'var(--sv-ink)' : 'var(--sv-meta)' }}>
             {t.label}
           </button>
         ))}
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-10"><div className="w-8 h-8 border-4 border-lavender border-t-violet-500 rounded-full animate-spin"/></div>
+        <div className="flex justify-center py-10"><div className="w-7 h-7 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--sv-hairline)', borderTopColor: 'var(--sv-brand-purple)' }}/></div>
       ) : tab === 'pending' ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {events.map(e => (
-            <div key={e.id} className="bg-card rounded-2xl border border-border/60 p-4">
-              <div className="mb-3">
-                <p className="font-semibold text-sm">{e.title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{getCategoryLabel(e.category, lang)} · {e.location}</p>
-                <p className="text-xs text-muted-foreground">{e.organizer_email} · {format(new Date(e.created_at), 'MMM d HH:mm')}</p>
+            <div key={e.id} style={{ ...svCard, padding: 14 }}>
+              <div className="mb-2.5">
+                <p style={{ font: "500 13px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{e.title}</p>
+                <p style={{ ...svMeta, marginTop: 2 }}>{getCategoryLabel(e.category, lang)} · {e.location}</p>
+                <p style={svMeta}>{e.organizer_email} · {format(new Date(e.created_at), 'MMM d HH:mm')}</p>
               </div>
-              {e.description && <p className="text-xs text-muted-foreground mb-3 line-clamp-2 bg-secondary/50 rounded-lg p-2">{e.description}</p>}
+              {e.description && <p className="line-clamp-2" style={{ ...svMeta, background: 'var(--sv-surface-muted)', borderRadius: 8, padding: 8, marginBottom: 10 }}>{e.description}</p>}
               <div className="flex gap-2 flex-wrap">
                 <Button size="sm" onClick={() => approveEvent(e)} className="rounded-xl gap-1 h-8 bg-emerald-500 hover:bg-emerald-600 text-white border-0">
                   <CheckCircle className="w-3 h-3"/>{lang === 'cs' ? 'Schválit' : 'Approve'}
@@ -217,20 +218,18 @@ export default function AdminDashboard() {
               </div>
             </div>
           ))}
-          {events.length === 0 && (
-            <div className="text-center py-10"><CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2"/><p className="text-sm text-muted-foreground">{lang === 'cs' ? 'Vše zkontrolováno ✓' : 'All reviewed ✓'}</p></div>
-          )}
+          {events.length === 0 && <EmptyState title={lang === 'cs' ? 'Vše zkontrolováno' : 'All reviewed'} />}
         </div>
       ) : tab === 'reports' ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {reports.map(r => (
-            <div key={r.id} className="bg-card rounded-2xl border border-border/60 p-4">
-              <div className="flex items-start gap-2 mb-3">
-                <Flag className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5"/>
+            <div key={r.id} style={{ ...svCard, padding: 14 }}>
+              <div className="flex items-start gap-2 mb-2.5">
+                <Flag className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: '#A9564C' }}/>
                 <div>
-                  <p className="text-sm font-medium">{r.reason}</p>
-                  {r.description && <p className="text-xs text-muted-foreground mt-0.5">{r.description}</p>}
-                  <p className="text-xs text-muted-foreground mt-1">od {r.reporter_email} · {format(new Date(r.created_at), 'MMM d HH:mm')}</p>
+                  <p style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{r.reason}</p>
+                  {r.description && <p style={{ ...svMeta, marginTop: 2 }}>{r.description}</p>}
+                  <p style={{ ...svMeta, marginTop: 4 }}>od {r.reporter_email} · {format(new Date(r.created_at), 'MMM d HH:mm')}</p>
                 </div>
               </div>
               <div className="flex gap-2 flex-wrap">
@@ -259,19 +258,17 @@ export default function AdminDashboard() {
               </div>
             </div>
           ))}
-          {reports.length === 0 && (
-            <div className="text-center py-10"><CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2"/><p className="text-sm text-muted-foreground">{lang === 'cs' ? 'Žádné otevřené reporty' : 'No open reports'}</p></div>
-          )}
+          {reports.length === 0 && <EmptyState title={lang === 'cs' ? 'Žádné otevřené reporty' : 'No open reports'} />}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {reliabilityRequests.map(notif => (
-            <div key={notif.id} className="bg-card rounded-2xl border border-border/60 p-4">
-              <div className="flex items-start gap-2 mb-3">
-                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5"/>
+            <div key={notif.id} style={{ ...svCard, padding: 14 }}>
+              <div className="flex items-start gap-2 mb-2.5">
+                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: 'var(--sv-brand-orange)' }}/>
                 <div>
-                  <p className="text-sm font-medium">{renderNotification(notif, lang).body}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{format(new Date(notif.created_at), 'MMM d HH:mm')}</p>
+                  <p style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{renderNotification(notif, lang).body}</p>
+                  <p style={{ ...svMeta, marginTop: 4 }}>{format(new Date(notif.created_at), 'MMM d HH:mm')}</p>
                 </div>
               </div>
               <div className="flex gap-2 flex-wrap">
@@ -284,22 +281,20 @@ export default function AdminDashboard() {
               </div>
             </div>
           ))}
-          {reliabilityRequests.length === 0 && (
-            <div className="text-center py-10"><CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2"/><p className="text-sm text-muted-foreground">{lang === 'cs' ? 'Žádné žádosti o reset' : 'No reset requests'}</p></div>
-          )}
+          {reliabilityRequests.length === 0 && <EmptyState title={lang === 'cs' ? 'Žádné žádosti o reset' : 'No reset requests'} />}
         </div>
       )}
 
       {/* Suspend dialog with reason */}
       {suspendDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setSuspendDialog(null)}/>
-          <div className="relative bg-card rounded-2xl border border-border shadow-xl p-6 w-full max-w-md">
-            <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle className="w-5 h-5 text-orange-500"/>
-              <h3 className="font-grotesk font-semibold">{lang === 'cs' ? 'Pozastavit událost' : 'Suspend event'}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+          <div className="absolute inset-0" style={{ background: 'rgba(58,52,63,0.4)' }} onClick={() => setSuspendDialog(null)}/>
+          <div className="relative w-full max-w-md" style={{ ...svCard, padding: 22 }}>
+            <div className="flex items-center gap-2 mb-3.5">
+              <AlertTriangle className="w-4 h-4" style={{ color: 'var(--sv-brand-orange)' }}/>
+              <h3 style={{ font: "500 15px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{lang === 'cs' ? 'Pozastavit událost' : 'Suspend event'}</h3>
             </div>
-            <p className="text-sm text-muted-foreground mb-3">
+            <p style={{ ...svMeta, marginBottom: 10 }}>
               {lang === 'cs'
                 ? 'Napiš organizátorovi proč je událost pozastavena a co musí opravit.'
                 : 'Tell the organizer why the event is suspended and what needs to be fixed.'}
@@ -308,7 +303,8 @@ export default function AdminDashboard() {
               value={suspendReason}
               onChange={e => setSuspendReason(e.target.value)}
               placeholder={lang === 'cs' ? 'Důvod pozastavení...' : 'Reason for suspension...'}
-              className="rounded-xl resize-none mb-4"
+              className="resize-none mb-4"
+              style={svField}
               rows={3}
             />
             <div className="flex gap-2 justify-end">

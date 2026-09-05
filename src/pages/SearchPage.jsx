@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, Clock } from 'lucide-react';
+import { X, Clock } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { getCategoryStyle } from '@/lib/categories';
 import { format } from 'date-fns';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
+import { SvIcon } from '@/components/icons/SvIcon';
+import EmptyState from '@/components/ui/EmptyState';
+import { svSectionLabel, svMeta } from '@/lib/svStyles';
 
 const RECENT_KEY = 'hf_recent_searches';
 
@@ -74,25 +77,26 @@ export default function SearchPage({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-card flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top)', background: 'var(--sv-bg)', fontFamily: "'Outfit', system-ui, sans-serif" }}>
       {/* Search input bar */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+      <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--sv-hairline)' }}>
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"/>
+          <SvIcon name="search" size={13} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--sv-placeholder)', pointerEvents: 'none' }}/>
           <input
             ref={inputRef}
             value={query}
             onChange={handleInput}
             placeholder={lang === 'cs' ? 'Hledej události, místa, kategorie...' : 'Search events, places, categories...'}
-            className="w-full h-10 pl-9 pr-8 bg-secondary/60 rounded-full text-sm outline-none focus:ring-2 focus:ring-primary/30"
+            className="w-full outline-none"
+            style={{ height: 38, paddingLeft: 34, paddingRight: 32, background: 'var(--sv-surface-muted)', borderRadius: 'var(--sv-r-pill)', font: "300 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}
           />
           {query && (
-            <button onClick={() => { setQuery(''); setResults([]); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              <X className="w-4 h-4"/>
+            <button onClick={() => { setQuery(''); setResults([]); }} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--sv-placeholder)' }}>
+              <X className="w-3.5 h-3.5"/>
             </button>
           )}
         </div>
-        <button onClick={onClose} className="text-sm font-medium text-primary px-1 flex-shrink-0">
+        <button onClick={onClose} className="flex-shrink-0" style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-link)' }}>
           {lang === 'cs' ? 'Zrušit' : 'Cancel'}
         </button>
       </div>
@@ -105,18 +109,16 @@ export default function SearchPage({ onClose }) {
             {recent.length > 0 && (
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {lang === 'cs' ? 'Nedávné' : 'Recent'}
-                  </p>
-                  <button onClick={handleClearRecent} className="text-xs text-muted-foreground hover:text-foreground">
+                  <p style={svSectionLabel}>{lang === 'cs' ? 'Nedávné' : 'Recent'}</p>
+                  <button onClick={handleClearRecent} style={{ font: "300 11px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
                     {lang === 'cs' ? 'Smazat' : 'Clear'}
                   </button>
                 </div>
                 {recent.map((q, i) => (
                   <button key={i} onClick={() => handleRecentClick(q)}
-                    className="flex items-center gap-3 w-full py-2.5 text-left hover:bg-secondary/50 rounded-xl px-2 transition-colors">
-                    <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0"/>
-                    <span className="text-sm">{q}</span>
+                    className="flex items-center gap-3 w-full text-left transition-colors" style={{ padding: '10px 8px', borderRadius: 10 }}>
+                    <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--sv-meta)' }}/>
+                    <span style={{ font: "400 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>{q}</span>
                   </button>
                 ))}
               </div>
@@ -127,7 +129,7 @@ export default function SearchPage({ onClose }) {
         {/* Loading */}
         {loading && (
           <div className="flex justify-center py-8">
-            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+            <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--sv-hairline)', borderTopColor: 'var(--sv-brand-purple)' }}/>
           </div>
         )}
 
@@ -138,15 +140,15 @@ export default function SearchPage({ onClose }) {
               const cat = getCategoryStyle(event.category);
               return (
                 <button key={event.id} onClick={() => handleSelect(event)}
-                  className="flex items-center gap-3 w-full px-3 py-3 rounded-2xl text-left hover:bg-secondary/60 transition-colors">
-                  <span className="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0" style={{ background: cat.bg, color: cat.ink }}>
+                  className="flex items-center gap-3 w-full text-left transition-colors" style={{ padding: '10px 12px', borderRadius: 14 }}>
+                  <span className="flex-shrink-0" style={{ background: cat.bg, color: cat.ink, borderRadius: 'var(--sv-r-pill)', padding: '5px 9px', fontFamily: 'var(--sv-font-emoji)', fontSize: 12 }}>
                     {cat.emoji}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{event.title}</p>
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">
+                    <p className="truncate" style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{event.title}</p>
+                    <p className="truncate" style={{ ...svMeta, marginTop: 1 }}>
                       {event.location} · {event.date ? format(new Date(event.date), 'EEE d MMM · HH:mm') : ''}
-                      {event.participants?.length > 0 && ` · ${event.participants.length} 👥`}
+                      {event.participants?.length > 0 && ` · ${event.participants.length}`}
                     </p>
                   </div>
                 </button>
@@ -157,13 +159,10 @@ export default function SearchPage({ onClose }) {
 
         {/* No results */}
         {!loading && query.length >= 2 && results.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-3xl mb-2">🔍</p>
-            <p className="font-semibold text-sm">{lang === 'cs' ? 'Nic nenalezeno' : 'No results'}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {lang === 'cs' ? `Zkus jiný výraz pro "${query}"` : `Try a different search for "${query}"`}
-            </p>
-          </div>
+          <EmptyState
+            title={lang === 'cs' ? 'Nic nenalezeno' : 'No results'}
+            note={lang === 'cs' ? `Zkus jiný výraz pro "${query}"` : `Try a different search for "${query}"`}
+          />
         )}
       </div>
     </div>

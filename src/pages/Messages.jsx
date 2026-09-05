@@ -4,12 +4,12 @@ import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import { format } from 'date-fns';
 import { Send, ArrowLeft, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useT } from '@/lib/i18n';
 import { LanguageContext } from '@/lib/language';
+import EmptyState from '@/components/ui/EmptyState';
+import { svPageTitle, svCard, svField } from '@/lib/svStyles';
 
 export default function Messages() {
   const tr = useT();
@@ -100,51 +100,54 @@ export default function Messages() {
   const pName = (email) => partnerProfiles[email]?.display_name||email;
 
   if (!user && !userLoading) return null;
-  if (loading) return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-lavender border-t-violet-500 rounded-full animate-spin"/></div>;
+  if (loading) return <div className="flex items-center justify-center py-20"><div className="w-7 h-7 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--sv-hairline)', borderTopColor: 'var(--sv-brand-purple)' }}/></div>;
 
   // dvh (not vh) so iOS Safari's collapsing URL bar doesn't push the composer
   // off-screen; subtracts the layout's top nav + bottom nav padding.
   return (
-    <div className="flex flex-col h-[calc(100dvh-136px)] xl:h-[calc(100dvh-72px)]">
+    <div className="flex flex-col h-[calc(100dvh-136px)] xl:h-[calc(100dvh-72px)] pt-2" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
       <div className="flex items-center gap-3 mb-4">
-        {selected&&<button onClick={()=>setSelected(null)} className="p-1.5 hover:bg-secondary rounded-lg"><ArrowLeft className="w-4 h-4"/></button>}
-        <h1 className="font-grotesk font-bold text-xl">{selected?pName(selected):tr.messages}</h1>
+        {selected&&<button onClick={()=>setSelected(null)} style={{ color: 'var(--sv-meta)' }}><ArrowLeft className="w-4 h-4"/></button>}
+        <h1 style={svPageTitle}>{selected?pName(selected):tr.messages}</h1>
       </div>
 
       {!selected ? (
         <div className="space-y-1">
           {threads.length===0 ? (
-            <div className="text-center py-16"><p className="text-4xl mb-3">💬</p><p className="font-grotesk font-semibold">{lang==='cs'?'Žádné zprávy':'No messages'}</p><p className="text-sm text-muted-foreground mt-1">{lang==='cs'?'Napiš někomu z události!':'Send a message from an event!'}</p></div>
+            <EmptyState title={lang==='cs'?'Žádné zprávy':'No messages'} note={lang==='cs'?'Napiš někomu z události!':'Send a message from an event!'} />
           ) : threads.map(t=>{
             const last=t.messages[0];
             return (
-              <button key={t.partnerEmail} onClick={()=>openThread(t.partnerEmail)} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-secondary/60 transition-all text-left">
-                <div className="w-10 h-10 rounded-full bg-lavender flex items-center justify-center text-violet-700 font-bold text-sm flex-shrink-0">{pName(t.partnerEmail)[0]?.toUpperCase()||'?'}</div>
+              <button key={t.partnerEmail} onClick={()=>openThread(t.partnerEmail)} className="w-full flex items-center gap-3 text-left transition-colors" style={{ padding: 12, borderRadius: 14 }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#F0EAFC', color: 'var(--sv-brand-purple)', font: "500 13px 'Outfit', sans-serif" }}>{pName(t.partnerEmail)[0]?.toUpperCase()||'?'}</div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between"><span className={cn('text-sm font-medium',t.unread>0&&'font-bold')}>{pName(t.partnerEmail)}</span>{last&&<span className="text-[10px] text-muted-foreground">{format(new Date(last.created_at),'HH:mm')}</span>}</div>
-                  <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground truncate max-w-[200px]">{last?.content||''}</p>{t.unread>0&&<span className="min-w-[18px] h-[18px] bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1">{t.unread}</span>}</div>
+                  <div className="flex items-center justify-between"><span style={{ font: `${t.unread>0?500:400} 12.5px 'Outfit', sans-serif`, color: 'var(--sv-ink)' }}>{pName(t.partnerEmail)}</span>{last&&<span style={{ font: "400 10px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)' }}>{format(new Date(last.created_at),'HH:mm')}</span>}</div>
+                  <div className="flex items-center justify-between"><p className="truncate max-w-[200px]" style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>{last?.content||''}</p>{t.unread>0&&<span className="flex items-center justify-center flex-shrink-0" style={{ minWidth: 17, height: 17, borderRadius: 999, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', font: "500 10px 'Outfit', sans-serif", padding: '0 4px' }}>{t.unread}</span>}</div>
                 </div>
               </button>
             );
           })}
         </div>
       ) : (
-        <div className="flex flex-col flex-1 bg-card rounded-2xl border border-border/60 overflow-hidden">
+        <div className="flex flex-col flex-1 overflow-hidden" style={svCard}>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {threadMessages.map(msg=>(
-              <div key={msg.id} className={`flex gap-2 ${msg.from_email===user.email?'flex-row-reverse':''}`}>
-                <div className="w-7 h-7 rounded-full bg-lavender flex items-center justify-center text-violet-700 text-xs font-bold flex-shrink-0">{(msg.from_email===user.email?(profile?.display_name||user.email):pName(msg.from_email))[0]?.toUpperCase()}</div>
-                <div className={`max-w-[70%] flex flex-col ${msg.from_email===user.email?'items-end':'items-start'}`}>
-                  <div className={`px-3 py-2 rounded-2xl text-sm ${msg.from_email===user.email?'bg-primary text-primary-foreground rounded-tr-sm':'bg-secondary rounded-tl-sm'}`}>{msg.content}</div>
-                  <span className="text-[10px] text-muted-foreground mt-0.5">{format(new Date(msg.created_at),'HH:mm')}</span>
+            {threadMessages.map(msg=>{
+              const mine = msg.from_email===user.email;
+              return (
+                <div key={msg.id} className={`flex gap-2 ${mine?'flex-row-reverse':''}`}>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: mine ? '#F0EAFC' : 'var(--sv-surface-muted)', color: mine ? 'var(--sv-brand-purple)' : 'var(--sv-ink-soft)', font: "500 11px 'Outfit', sans-serif" }}>{(mine?(profile?.display_name||user.email):pName(msg.from_email))[0]?.toUpperCase()}</div>
+                  <div className={`max-w-[70%] flex flex-col ${mine?'items-end':'items-start'}`}>
+                    <div style={{ padding: '8px 12px', borderRadius: 14, font: "300 12.5px 'Outfit', sans-serif", background: mine ? 'var(--sv-action-bg)' : 'var(--sv-surface-muted)', color: mine ? 'var(--sv-action-ink)' : 'var(--sv-ink-soft)' }}>{msg.content}</div>
+                    <span style={{ font: "400 10px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)', marginTop: 3 }}>{format(new Date(msg.created_at),'HH:mm')}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div ref={bottomRef}/>
           </div>
-          <div className="flex gap-2 p-3 border-t border-border/60">
-            <Textarea value={reply} onChange={e=>setReply(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();}}} placeholder={lang === 'cs' ? 'Napiš zprávu...' : 'Write a message...'} className="rounded-xl text-sm min-h-[40px] max-h-[120px] resize-none" rows={1}/>
-            <Button onClick={handleSend} disabled={sending||!reply.trim()} size="sm" className="rounded-xl px-3 self-end">{sending?<Loader2 className="w-3.5 h-3.5 animate-spin"/>:<Send className="w-3.5 h-3.5"/>}</Button>
+          <div className="flex gap-2 p-3" style={{ borderTop: '1px solid var(--sv-hairline)' }}>
+            <Textarea value={reply} onChange={e=>setReply(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();}}} placeholder={lang === 'cs' ? 'Napiš zprávu...' : 'Write a message...'} className="min-h-[40px] max-h-[120px] resize-none" style={svField} rows={1}/>
+            <button onClick={handleSend} disabled={sending||!reply.trim()} className="flex items-center justify-center self-end flex-shrink-0" style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', opacity: (sending||!reply.trim())?0.5:1 }}>{sending?<Loader2 className="w-3.5 h-3.5 animate-spin"/>:<Send className="w-3.5 h-3.5"/>}</button>
           </div>
         </div>
       )}

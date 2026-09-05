@@ -2,9 +2,10 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import EventCard from '@/components/events/EventCard';
-import { Skeleton } from '@/components/ui/skeleton';
+import EmptyState from '@/components/ui/EmptyState';
 import { useT } from '@/lib/i18n';
 import { toast } from 'sonner';
+import { svPageTitle, svSubtitle, svCard } from '@/lib/svStyles';
 
 // Same "is it over?" rule the rest of the app uses (MyEvents, Home's Right Now
 // tab): an event ends at end_time, or 2h after it starts if none was set.
@@ -76,15 +77,23 @@ export default function Trending() {
   };
 
   return (
-    <div>
-      <h1 className="font-grotesk font-bold text-xl mb-1">{tr.trendingTitle}</h1>
-      <p className="text-sm text-muted-foreground mb-5">{tr.trendingSubtitle}</p>
+    <div className="pt-2" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+      <h1 style={{ ...svPageTitle, marginBottom: 4 }}>{tr.trendingTitle}</h1>
+      <p style={{ ...svSubtitle, marginBottom: 18 }}>{tr.trendingSubtitle}</p>
       {loading ? (
-        <div className="space-y-3">{[1,2,3].map(i=><div key={i} className="bg-card rounded-2xl p-4 border border-border/60"><Skeleton className="h-4 w-24 mb-3"/><Skeleton className="h-5 w-3/4 mb-2"/><Skeleton className="h-4 w-1/2"/></div>)}</div>
+        <div className="space-y-2">
+          {[1,2,3].map(i => (
+            <div key={i} style={{ ...svCard, padding: '12px 14px' }}>
+              <div style={{ height: 10, width: 80, background: 'var(--sv-surface-muted)', borderRadius: 5, marginBottom: 10 }}/>
+              <div style={{ height: 12, width: '70%', background: 'var(--sv-surface-muted)', borderRadius: 5, marginBottom: 8 }}/>
+              <div style={{ height: 10, width: '45%', background: 'var(--sv-surface-muted)', borderRadius: 5 }}/>
+            </div>
+          ))}
+        </div>
       ) : trending.length===0 ? (
-        <div className="text-center py-16"><p className="text-4xl mb-3">🔥</p><p className="font-grotesk font-semibold">{tr.nothingTrending}</p></div>
+        <EmptyState title={tr.nothingTrending} />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {trending.map(e=><EventCard key={e.id} event={e} onJoin={handleJoin} onFavorite={handleFavorite} isJoined={!!(user&&e.participants?.includes(user.email))} isFavorited={!!(profile?.favorited_events?.includes(e.id))}/>)}
         </div>
       )}

@@ -1,9 +1,9 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, TrendingUp, Calendar, Plus, User } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { User } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { haptic } from "@/lib/haptics";
+import { SvIcon } from "@/components/icons/SvIcon";
 
 export default function MobileBottomNav() {
   const tr = useT();
@@ -12,56 +12,34 @@ export default function MobileBottomNav() {
   const { user, profile } = useCurrentUser();
 
   const tabs = [
-    { icon: Home, label: tr.home, path: "/" },
-    { icon: TrendingUp, label: tr.trending, path: "/trending" },
+    { icon: "home", label: tr.home, path: "/" },
+    { icon: "popular", label: tr.trending, path: "/trending" },
     null, // center FAB
-    { icon: Calendar, label: tr.myEvents, path: "/my-events" },
-    { icon: User, label: tr.profile, path: "/profile" },
+    { icon: "calendar", label: tr.myEvents, path: "/my-events" },
+    { icon: "profile", label: tr.profile, path: "/profile" },
   ];
 
   const isProfileActive = location.pathname === "/profile";
 
   const renderProfileIcon = (active) => {
+    const color = active ? 'var(--sv-ink)' : 'var(--sv-meta)';
     if (profile?.avatar_url) {
-      return (
-        <img
-          src={profile.avatar_url}
-          alt="avatar"
-          className={cn(
-            "w-6 h-6 rounded-full object-cover",
-            active && "ring-2 ring-primary"
-          )}
-        />
-      );
+      return <img src={profile.avatar_url} alt="avatar" className="w-6 h-6 rounded-full object-cover" />;
     }
-
     if (user) {
       return (
-        <div
-          className={cn(
-            "w-6 h-6 rounded-full bg-lavender border border-violet-200 flex items-center justify-center",
-            active && "ring-2 ring-primary"
-          )}
-        >
-          <User className="w-3.5 h-3.5 text-violet-600" />
+        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#F0EAFC' }}>
+          <User className="w-3.5 h-3.5" style={{ color: 'var(--sv-brand-purple)' }} />
         </div>
       );
     }
-
-    return (
-      <User
-        className={cn(
-          "w-6 h-6 transition-transform",
-          active && "scale-110"
-        )}
-      />
-    );
+    return <User className="w-5 h-5" style={{ color }} />;
   };
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border xl:hidden"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className="fixed bottom-0 left-0 right-0 z-40 xl:hidden"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)", background: 'var(--sv-bg)', borderTop: '1px solid var(--sv-hairline)' }}
     >
       <div className="flex items-center justify-around h-16 px-1">
         {tabs.map((tab, i) => {
@@ -75,22 +53,16 @@ export default function MobileBottomNav() {
                 }}
                 className="flex flex-col items-center justify-center -mt-6 px-3 py-2"
               >
-                <div className="w-14 h-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition-transform">
-                  <Plus className="w-6 h-6" />
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform active:scale-95" style={{ background: 'var(--sv-action-bg)' }}>
+                  <SvIcon name="plus" size={22} style={{ color: 'var(--sv-action-ink)' }} />
                 </div>
               </button>
             );
           }
 
-          const { icon: Icon, label, path } = tab;
-
-          const active =
-            path === "/profile"
-              ? isProfileActive
-              : location.pathname === path;
-
+          const { icon, label, path } = tab;
+          const active = path === "/profile" ? isProfileActive : location.pathname === path;
           const isProfileTab = path === "/profile";
-
           const handleClick = () => haptic("light");
 
           return (
@@ -99,28 +71,14 @@ export default function MobileBottomNav() {
               to={user || !isProfileTab ? path : "/login"}
               title={label}
               onClick={handleClick}
-              className={cn(
-                "flex flex-col items-center justify-center gap-0.5 px-4 py-2 rounded-2xl transition-all relative",
-                "min-w-[56px] min-h-[56px]",
-                active ? "text-primary" : "text-muted-foreground"
-              )}
+              className="flex flex-col items-center justify-center gap-1 px-4 py-2 relative"
+              style={{ minWidth: 56, minHeight: 56 }}
             >
               <span className="relative">
-                {isProfileTab ? (
-                  renderProfileIcon(active)
-                ) : (
-                  <Icon
-                    className={cn(
-                      "w-6 h-6 transition-transform",
-                      active && "scale-110"
-                    )}
-                  />
-                )}
+                {isProfileTab ? renderProfileIcon(active) : <SvIcon name={icon} size={20} style={{ color: active ? 'var(--sv-ink)' : 'var(--sv-meta)' }} />}
               </span>
-
-              {active && (
-                <span className="absolute bottom-1 w-1 h-1 rounded-full bg-primary" />
-              )}
+              <span style={{ font: `${active ? 500 : 400} 9.5px 'Outfit', sans-serif`, color: active ? 'var(--sv-ink)' : 'var(--sv-meta)' }}>{label}</span>
+              {active && <span className="absolute" style={{ bottom: 2, width: 4, height: 4, borderRadius: '50%', background: 'var(--sv-empty-dot)' }} />}
             </Link>
           );
         })}

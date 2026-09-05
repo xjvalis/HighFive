@@ -4,12 +4,12 @@ import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import { Bell, CheckCheck } from 'lucide-react';
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
 import { toast } from 'sonner';
 import { LanguageContext } from '@/lib/language';
 import { renderNotification } from '@/lib/notifTemplates';
+import EmptyState from '@/components/ui/EmptyState';
+import { svPageTitle, svCard, svMeta } from '@/lib/svStyles';
 
 export default function Notifications() {
   const tr = useT();
@@ -60,34 +60,34 @@ export default function Notifications() {
   if (!user && !userLoading) return null;
 
   return (
-    <div className="max-w-xl mx-auto">
-      <div className="flex items-center justify-between mb-5">
+    <div className="max-w-xl mx-auto pt-2" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Bell className="w-5 h-5"/><h1 className="font-grotesk font-bold text-xl">{tr.notificationsTitle}</h1>
-          {unreadCount>0&&<span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full font-semibold">{unreadCount}</span>}
+          <Bell className="w-4 h-4" style={{ color: 'var(--sv-meta)' }}/><h1 style={svPageTitle}>{tr.notificationsTitle}</h1>
+          {unreadCount>0&&<span className="flex items-center justify-center" style={{ minWidth: 18, height: 18, padding: '0 5px', borderRadius: 999, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', font: "500 10.5px 'Outfit', sans-serif" }}>{unreadCount}</span>}
         </div>
-        {unreadCount>0&&<Button variant="ghost" size="sm" onClick={markAllRead} className="text-xs gap-1.5"><CheckCheck className="w-3.5 h-3.5"/>{tr.markAllRead}</Button>}
+        {unreadCount>0&&<button onClick={markAllRead} className="flex items-center gap-1.5" style={{ font: "500 11px 'Outfit', sans-serif", color: 'var(--sv-link)' }}><CheckCheck className="w-3.5 h-3.5"/>{tr.markAllRead}</button>}
       </div>
-      {loading ? <div className="flex justify-center py-16"><div className="w-7 h-7 border-4 border-lavender border-t-violet-500 rounded-full animate-spin"/></div>
-      : notifications.length===0 ? <div className="text-center py-16"><p className="text-4xl mb-3">🔔</p><p className="font-grotesk font-semibold">{tr.noNotifications}</p><p className="text-sm text-muted-foreground mt-1">{tr.noNotificationsHint}</p></div>
+      {loading ? <div className="flex justify-center py-16"><div className="w-7 h-7 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--sv-hairline)', borderTopColor: 'var(--sv-brand-purple)' }}/></div>
+      : notifications.length===0 ? <EmptyState title={tr.noNotifications} note={tr.noNotificationsHint} />
       : <div className="space-y-2">
           {notifications.map(n=>{
             const rendered = renderNotification(n, lang);
             return (
-            <div key={n.id} onClick={()=>{markRead(n);if(n.event_id)window.open(`/event/${n.event_id}`,'_blank');}} className={cn('bg-card rounded-2xl border border-border/60 p-4 cursor-pointer hover:shadow-md transition-all',!n.is_read&&'border-violet-200 bg-lavender/20')}>
+            <div key={n.id} onClick={()=>{markRead(n);if(n.event_id)window.open(`/event/${n.event_id}`,'_blank');}} className="cursor-pointer transition-colors" style={{ ...svCard, padding: 14, borderColor: n.is_read ? 'var(--sv-hairline)' : '#E4D4F7', background: n.is_read ? 'var(--sv-surface)' : '#F8F4FC' }}>
               <div className="flex gap-3">
-                <span className="text-xl flex-shrink-0">{rendered.icon}</span>
+                <span className="flex-shrink-0" style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 18 }}>{rendered.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <p className={cn('text-sm font-medium leading-snug',n.is_read&&'text-foreground/70')}>{rendered.title}</p>
+                    <p className="leading-snug" style={{ font: "500 12.5px 'Outfit', sans-serif", color: n.is_read ? 'var(--sv-ink-soft)' : 'var(--sv-ink)' }}>{rendered.title}</p>
                     {!n.is_read&&(
-                      <button onClick={e=>{e.stopPropagation();markRead(n);}} className="p-1.5 -m-1.5 flex-shrink-0" title={tr.markAllRead}>
-                        <div className="w-3 h-3 rounded-full bg-primary"/>
+                      <button onClick={e=>{e.stopPropagation();markRead(n);}} className="flex-shrink-0" style={{ padding: 6, margin: -6 }} title={tr.markAllRead}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--sv-empty-dot)' }}/>
                       </button>
                     )}
                   </div>
-                  {rendered.body&&<p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{rendered.body}</p>}
-                  <span className="text-[10px] text-muted-foreground mt-2 block">{format(new Date(n.created_at),'MMM d, HH:mm')}</span>
+                  {rendered.body&&<p style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)', lineHeight: 1.5, marginTop: 2 }}>{rendered.body}</p>}
+                  <span style={{ ...svMeta, font: "400 10px 'IBM Plex Mono', monospace", marginTop: 8, display: 'block' }}>{format(new Date(n.created_at),'MMM d, HH:mm')}</span>
                 </div>
               </div>
             </div>
