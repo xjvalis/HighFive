@@ -25,7 +25,7 @@ export default function ParticipantsPanel({ event, isOrganizer, open, onClose, o
 
   useEffect(() => {
     if (!open || participants.length === 0) return;
-    supabase.from('user_profiles').select('user_email,display_name,avatar_url,reliability_score,noshow_count')
+    supabase.from('user_profiles_public').select('user_email,display_name,avatar_url,reliability_score,noshow_count')
       .in('user_email', participants)
       .then(({ data, error }) => {
         if (error) return;
@@ -35,7 +35,7 @@ export default function ParticipantsPanel({ event, isOrganizer, open, onClose, o
   }, [open, event?.id]);
 
   const notifyUser = async (email, payload) => {
-    const { data: up } = await supabase.from('user_profiles').select('user_id').eq('user_email', email).maybeSingle();
+    const { data: up } = await supabase.from('user_profiles_public').select('user_id').eq('user_email', email).maybeSingle();
     if (up) await supabase.from('notifications').insert({ user_id: up.user_id, user_email: email, is_read: false, ...payload });
   };
 

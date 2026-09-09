@@ -62,7 +62,7 @@ export default function Home() {
           supabase.from('events').select('id', { count: 'exact', head: true }).eq('is_approved', true).gte('date', todayStart).lt('date', todayEnd),
           supabase.from('events').select('id', { count: 'exact', head: true }).eq('is_approved', true).gte('created_at', todayStart),
           supabase.from('events').select('participants').eq('is_approved', true).gte('date', todayStart).lt('date', todayEnd),
-          supabase.from('user_profiles').select('id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString()),
+          supabase.from('user_profiles_public').select('user_id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 7*24*60*60*1000).toISOString()),
         ]);
         const participantSet = new Set();
         (todayEvents || []).forEach(e => (e.participants || []).forEach(p => participantSet.add(p)));

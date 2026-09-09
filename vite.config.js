@@ -11,6 +11,21 @@ const sentryConfigured = !!process.env.SENTRY_AUTH_TOKEN
 export default defineConfig({
   build: {
     sourcemap: sentryConfigured ? 'hidden' : false,
+    rollupOptions: {
+      output: {
+        // Split the vendor libraries out of the app's own code so a change
+        // to app code doesn't invalidate the browser cache for React et al,
+        // and so the (large, rarely-changing) map/animation libraries aren't
+        // forced into every route's critical path.
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-sentry': ['@sentry/react'],
+          'vendor-map': ['leaflet', 'react-leaflet'],
+          'vendor-motion': ['framer-motion'],
+        },
+      },
+    },
   },
   plugins: [
     react(),
@@ -23,5 +38,11 @@ export default defineConfig({
   ],
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.js'],
+    css: false,
   },
 })

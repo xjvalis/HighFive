@@ -41,7 +41,7 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
       // is silently invisible to the recipient (it only ever shows up for
       // the sender). Without this, "message all participants" looked like
       // it worked but nobody on the other end ever saw it.
-      const { data: profiles, error: profilesError } = await supabase.from('user_profiles').select('user_id,user_email').in('user_email', recipients);
+      const { data: profiles, error: profilesError } = await supabase.from('user_profiles_public').select('user_id,user_email').in('user_email', recipients);
       if (profilesError) throw profilesError;
       const idByEmail = {};
       (profiles || []).forEach(p => { idByEmail[p.user_email] = p.user_id; });
@@ -70,7 +70,7 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
     setReminderLoading(true);
     try {
       await Promise.all(participants.filter(e=>e!==user.email).map(async (email) => {
-        const {data:up, error: upError}=await supabase.from('user_profiles').select('user_id').eq('user_email',email).single();
+        const {data:up, error: upError}=await supabase.from('user_profiles_public').select('user_id').eq('user_email',email).single();
         if (upError) throw upError;
         if (up) {
           const { error: notifError } = await supabase.from('notifications').insert({user_id:up.user_id,user_email:email,type:'event_reminder',data:{eventTitle:event.title,eventDate:event.date,location:event.location},event_id:event.id,is_read:false});

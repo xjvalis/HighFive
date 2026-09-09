@@ -14,13 +14,9 @@ import PremiumModal from '@/components/premium/PremiumModal';
 import LocationAutocomplete from '@/components/events/LocationAutocomplete';
 import DateTimePicker from '@/components/ui/DateTimePicker';
 import { toast } from 'sonner';
+import { svField, svLabel as labelStyle, svMeta as metaStyle } from '@/lib/svStyles';
 
-const fieldStyle = {
-  width: '100%', background: 'var(--sv-surface)', border: '1px solid var(--sv-hairline)',
-  borderRadius: 10, boxShadow: 'none', font: "300 13px 'Outfit', sans-serif", color: 'var(--sv-ink)',
-};
-const labelStyle = { display: 'block', marginBottom: 6, font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' };
-const metaStyle = { font: "300 11px 'Outfit', sans-serif", color: 'var(--sv-meta)' };
+const fieldStyle = svField;
 
 // Required field marker — meta gray, not a new accent color (palette is closed)
 function Req({ children }) {

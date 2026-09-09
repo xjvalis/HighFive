@@ -8,9 +8,9 @@ import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
 import { isNative, signInWithGoogleNative, NATIVE_AUTH_REDIRECT } from '@/lib/nativeAuth';
 import { SpoluvicLockup } from '@/components/brand/SpoluvicLogo';
-import { svField, svCard } from '@/lib/svStyles';
+import { svField, svCard, svMeta, svActionPill } from '@/lib/svStyles';
 
-const loginBtn = { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 'var(--sv-r-pill)', padding: '9px 0', font: "500 13px 'Outfit', sans-serif" };
+const loginBtn = { ...svActionPill, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '9px 0', font: "500 13px 'Outfit', sans-serif" };
 const outlineBtn = { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'var(--sv-surface)', border: '1px solid var(--sv-hairline)', borderRadius: 'var(--sv-r-pill)', padding: '9px 0', font: "400 13px 'Outfit', sans-serif", color: 'var(--sv-ink)' };
 
 // Explicit redirect target for signup-confirmation and password-reset
@@ -110,7 +110,7 @@ export default function Login() {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full" style={{ borderTop: '1px solid var(--sv-hairline)' }} />
                 </div>
-                <div className="relative flex justify-center" style={{ font: "300 11px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
+                <div className="relative flex justify-center" style={svMeta}>
                   <span style={{ background: 'var(--sv-surface)', padding: '0 8px' }}>{lang === 'cs' ? 'nebo' : 'or'}</span>
                 </div>
               </div>
@@ -124,7 +124,7 @@ export default function Login() {
               <button type="submit" disabled={loading} style={{ ...loginBtn, opacity: loading ? 0.6 : 1 }}>
                 {loading ? (lang === 'cs' ? 'Přihlašuji...' : 'Signing in...') : (lang === 'cs' ? 'Přihlásit se' : 'Sign in')}
               </button>
-              <button type="button" onClick={() => setMode('reset')} className="w-full text-center" style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
+              <button type="button" onClick={() => setMode('reset')} className="w-full text-center" style={svMeta}>
                 {lang === 'cs' ? 'Zapomenuté heslo?' : 'Forgot password?'}
               </button>
             </form>
@@ -135,7 +135,7 @@ export default function Login() {
               <Input placeholder={lang === 'cs' ? 'Jméno a příjmení' : 'Full name'} value={name} onChange={e => setName(e.target.value)} required style={svField} />
               <Input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required style={svField} />
               <Input type="password" placeholder={lang === 'cs' ? 'Heslo (min. 8 znaků)' : 'Password (min. 8 chars)'} value={password} onChange={e => setPassword(e.target.value)} required minLength={8} style={svField} />
-              <label className="flex items-start gap-2 cursor-pointer" style={{ font: "300 11px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
+              <label className="flex items-start gap-2 cursor-pointer" style={svMeta}>
                 <input type="checkbox" checked={agreedToTerms} onChange={e => setAgreedToTerms(e.target.checked)} className="mt-0.5" />
                 <span>
                   {lang === 'cs' ? 'Souhlasím s ' : 'I agree to the '}
@@ -162,18 +162,18 @@ export default function Login() {
                     </button>
                   </form>
               }
-              <button onClick={() => setMode('login')} className="mt-4 flex items-center gap-1" style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
+              <button onClick={() => setMode('login')} className="mt-4 flex items-center gap-1" style={svMeta}>
                 ← {lang === 'cs' ? 'Zpět' : 'Back'}
               </button>
             </div>
           )}
         </div>
-        <p className="text-center mt-4" style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
+        <p className="text-center mt-4" style={svMeta}>
           <button onClick={() => navigate('/')}>
             ← {lang === 'cs' ? 'Zpět na hlavní stránku' : 'Back to homepage'}
           </button>
         </p>
-        <p className="text-center mt-3" style={{ font: "300 10.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
+        <p className="text-center mt-3" style={svMeta}>
           <Link to="/terms">{lang === 'cs' ? 'Podmínky používání' : 'Terms of use'}</Link>
           {' · '}
           <Link to="/privacy">{lang === 'cs' ? 'Ochrana osobních údajů' : 'Privacy policy'}</Link>

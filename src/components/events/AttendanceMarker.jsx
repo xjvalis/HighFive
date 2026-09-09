@@ -34,41 +34,18 @@ export default function AttendanceMarker({ event, onMarked }) {
   const markAttendance = async (presentEmails) => {
     setLoading(true);
     try {
-      // Mark event as attendance_marked
-      await supabase.from('events').update({
-        attendance_marked: true,
-        attendees_present: presentEmails,
-      }).eq('id', event.id);
+      // Applying the no-show penalty writes ANOTHER user's reliability_score/
+      // noshow_count — that can't be a direct client update (nothing would
+      // stop an organizer from tanking any participant's score with no
+      // verification). mark_event_attendance is a server-side function that
+      // checks the caller actually organizes this event and that it has
+      // started before touching anything.
+      const { error } = await supabase.rpc('mark_event_attendance', {
+        p_event_id: event.id, p_present_emails: presentEmails,
+      });
+      if (error) throw error;
 
-      // Update reliability for no-shows
       const noShows = participants.filter(email => !presentEmails.includes(email));
-      for (const email of noShows) {
-        const { data: profile } = await supabase.from('user_profiles')
-          .select('noshow_count, reliability_score, user_id')
-          .eq('user_email', email)
-          .maybeSingle();
-
-        if (profile) {
-          const newNoShow = (profile.noshow_count || 0) + 1;
-          const newScore = Math.max(0, (profile.reliability_score || 100) - 15);
-
-          await supabase.from('user_profiles').update({
-            noshow_count: newNoShow,
-            reliability_score: newScore,
-          }).eq('user_email', email);
-
-          // Send notification
-          await supabase.from('notifications').insert({
-            user_id: profile.user_id,
-            user_email: email,
-            type: 'noshow_warning',
-            data: { eventTitle: event.title },
-            event_id: event.id,
-            is_read: false,
-          }).catch(() => {});
-        }
-      }
-
       setMarked(true);
       onMarked?.();
       toast.success(

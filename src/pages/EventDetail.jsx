@@ -23,7 +23,7 @@ import { usePageMeta } from '@/hooks/usePageMeta';
 import { toast } from 'sonner';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { SvIcon } from '@/components/icons/SvIcon';
-import { svCard, svField, svSectionLabel, svMeta } from '@/lib/svStyles';
+import { svCard, svField, svSectionLabel, svMeta, svActionPill, svQuietPill } from '@/lib/svStyles';
 
 const ghostIcon = { display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 10, color: 'var(--sv-meta)' };
 const infoTile = { background: 'var(--sv-surface-muted)', borderRadius: 10, padding: '10px 12px' };
@@ -58,7 +58,7 @@ export default function EventDetail() {
       if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se načíst událost.' : 'Failed to load event.'); return; }
       setEvent(data);
       if (data?.participants?.length) {
-        supabase.from('user_profiles').select('user_email,display_name,avatar_url,subscription_plan,is_premium,is_verified,reliability_score,noshow_count')
+        supabase.from('user_profiles_public').select('user_email,display_name,avatar_url,subscription_plan,is_premium,is_verified,reliability_score,noshow_count')
           .in('user_email', data.participants)
           .then(({data:pp, error:ppError}) => {
             if (ppError) { toast.error(lang === 'cs' ? 'Nepodařilo se načíst účastníky.' : 'Failed to load participants.'); return; }
@@ -142,9 +142,7 @@ export default function EventDetail() {
     : isOnWaitlist ? (lang==='cs'?'Na čekačce (odhlásit)':'On waitlist (leave)')
     : isFull ? (lang==='cs'?'Přidat na čekačku':'Join waitlist')
     : (lang==='cs'?'Chci jít!':"I'm in!");
-  const joinStyle = isJoined || isOnWaitlist
-    ? { background: 'var(--sv-action-bg-quiet)', color: 'var(--sv-action-ink-quiet)' }
-    : { background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)' };
+  const joinStyle = isJoined || isOnWaitlist ? svQuietPill : svActionPill;
 
   return (
     <div className="max-w-2xl mx-auto pt-2" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
@@ -226,7 +224,7 @@ export default function EventDetail() {
           <div className="flex gap-3">
             <motion.button animate={joinAnim?{scale:[1,1.2,0.95,1.05,1]}:{}} onClick={handleJoin} disabled={joiningEvent}
               className="flex-1 flex items-center justify-center transition-all disabled:opacity-70"
-              style={{ ...joinStyle, padding: '13px 0', borderRadius: 'var(--sv-r-pill)', font: "500 13.5px 'Outfit', sans-serif" }}>
+              style={{ ...joinStyle, padding: '13px 0', font: "500 13.5px 'Outfit', sans-serif" }}>
               {joiningEvent ? <Loader2 className="w-4 h-4 animate-spin"/> : joinLabel}
             </motion.button>
             <button onClick={()=>setReportOpen(true)} className="flex items-center justify-center flex-shrink-0" style={{ width: 48, height: 48, borderRadius: 'var(--sv-r-pill)', background: 'var(--sv-surface-muted)', color: 'var(--sv-meta)' }}><Flag className="w-4 h-4"/></button>

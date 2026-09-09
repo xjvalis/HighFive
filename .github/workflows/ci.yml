@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # `npm run typecheck` is intentionally not gated here yet — checkJs
+      # against the current prop shapes already fails on ~40 pre-existing
+      # errors unrelated to any change in a given PR (see project notes).
+      # Re-enable once those are triaged/fixed; until then it'd make every
+      # PR red for reasons the PR didn't cause.
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+        env:
+          # Dummy values — the build only needs these to be *defined*, not
+          # valid, since nothing in the build step actually calls Supabase.
+          # Real values live in Vercel's own env config for the deploy itself.
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: placeholder

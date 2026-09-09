@@ -1,4 +1,18 @@
--- Spoluvíc — Supabase Schema
+-- Spoluvíc — Supabase Schema — BASELINE SNAPSHOT (2026-09-09)
+--
+-- This file mirrors supabase/schema.sql as of the point schema changes
+-- started being tracked as individual migrations. It documents what is
+-- already live — do not re-run it against the production project (most
+-- statements aren't idempotent: `create table`, `create extension` without
+-- `if not exists` guards on some, etc.). It exists so a *fresh* project can
+-- be bootstrapped by replaying supabase/migrations/*.sql in order.
+--
+-- From here on, every schema change is a NEW file in this folder
+-- (supabase/migrations/YYYYMMDDHHMMSS_description.sql), applied via the
+-- Supabase SQL editor (or `supabase db push` once the CLI link is verified
+-- against this project) — never by editing this baseline or schema.sql in
+-- place. See CLAUDE.md's "Database schema changes" section.
+
 -- Spusť celé toto v Supabase → SQL Editor → New query → Run
 
 -- Enable required extensions
@@ -155,9 +169,6 @@ create index events_is_approved_idx on public.events(is_approved);
 create index events_location_idx on public.events using gist (
   st_point(longitude, latitude)
 ) where latitude is not null and longitude is not null;
-create index events_approved_date_idx on public.events (is_approved, date);
-create index events_hot_score_idx on public.events (hot_score desc nulls last);
-create index events_participants_gin_idx on public.events using gin (participants);
 
 create index direct_messages_from_email_idx on public.direct_messages(from_email);
 create index direct_messages_to_email_idx on public.direct_messages(to_email);
@@ -175,28 +186,6 @@ alter table public.notifications enable row level security;
 alter table public.comments enable row level security;
 alter table public.reports enable row level security;
 
--- is_admin() exists specifically so RLS policies can check admin status
--- without querying user_profiles directly from within a policy defined ON
--- user_profiles — that self-reference causes Postgres to re-evaluate the
--- same RLS policy for the subquery, which re-triggers itself, infinitely
--- ("infinite recursion detected in policy for relation user_profiles").
--- SECURITY DEFINER makes this function's own internal lookup bypass RLS
--- entirely, breaking the cycle. Policies on OTHER tables that check
--- is_admin may keep their inline subquery — it's only self-reference (a
--- policy on user_profiles querying user_profiles) that recurses — but using
--- this function there too is cheaper and consistent.
-create or replace function public.is_admin(p_user_id uuid)
-returns boolean
-language sql
-security definer
-stable
-set search_path = public
-as $$
-  select coalesce((select is_admin from public.user_profiles where user_id = p_user_id), false);
-$$;
-
-grant execute on function public.is_admin(uuid) to authenticated, anon;
-
 -- USER PROFILES
 -- Full-row reads (incl. stripe_customer_id/stripe_subscription_id/push_token)
 -- are restricted to the row owner and admins. Everyone else reads through
@@ -204,7 +193,8 @@ grant execute on function public.is_admin(uuid) to authenticated, anon;
 -- columns the app actually needs for other users.
 create policy "profiles_read_own_or_admin" on public.user_profiles
   for select using (
-    auth.uid() = user_id or public.is_admin(auth.uid())
+    auth.uid() = user_id
+    or exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
   );
 
 create policy "profiles_insert_own" on public.user_profiles
@@ -217,7 +207,7 @@ create policy "profiles_update_own" on public.user_profiles
 -- reset) — without this, those actions silently affect 0 rows under RLS.
 create policy "profiles_update_admin" on public.user_profiles
   for update using (
-    public.is_admin(auth.uid())
+    exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
   );
 
 create policy "profiles_delete_own" on public.user_profiles
@@ -269,7 +259,7 @@ create policy "events_read_approved" on public.events
   for select using (
     is_approved = true
     or organizer_id = auth.uid()
-    or public.is_admin(auth.uid())
+    or exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
   );
 
 create policy "events_insert_auth" on public.events
@@ -278,13 +268,13 @@ create policy "events_insert_auth" on public.events
 create policy "events_update_own_or_admin" on public.events
   for update using (
     organizer_id = auth.uid()
-    or public.is_admin(auth.uid())
+    or exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
   );
 
 create policy "events_delete_own_or_admin" on public.events
   for delete using (
     organizer_id = auth.uid()
-    or public.is_admin(auth.uid())
+    or exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
   );
 
 -- DIRECT MESSAGES
@@ -292,7 +282,7 @@ create policy "dm_read_own" on public.direct_messages
   for select using (
     from_id = auth.uid()
     or to_id = auth.uid()
-    or public.is_admin(auth.uid())
+    or exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
   );
 
 create policy "dm_insert_auth" on public.direct_messages
@@ -305,7 +295,7 @@ create policy "dm_update_recipient" on public.direct_messages
 create policy "notif_read_own" on public.notifications
   for select using (
     user_id = auth.uid()
-    or public.is_admin(auth.uid())
+    or exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
   );
 
 create policy "notif_insert_auth" on public.notifications
@@ -324,7 +314,7 @@ create policy "comments_insert_auth" on public.comments
 create policy "comments_delete_own_or_admin" on public.comments
   for delete using (
     author_id = auth.uid()
-    or public.is_admin(auth.uid())
+    or exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
   );
 
 -- REPORTS
@@ -333,12 +323,12 @@ create policy "reports_insert_auth" on public.reports
 
 create policy "reports_read_admin" on public.reports
   for select using (
-    public.is_admin(auth.uid())
+    exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
   );
 
 create policy "reports_update_admin" on public.reports
   for update using (
-    public.is_admin(auth.uid())
+    exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
   );
 
 -- ============================================================

@@ -27,7 +27,7 @@ export default function ReportModal({ eventId, eventTitle, user, open, onClose }
       if (error) { toast.error(lang === 'cs' ? 'Nahlášení se nepodařilo odeslat.' : 'Failed to submit the report.'); return; }
       setDone(true);
       try {
-        const { data: mods } = await supabase.from('user_profiles').select('user_id,user_email').or('is_admin.eq.true,is_moderator.eq.true');
+        const { data: mods } = await supabase.from('user_profiles_public').select('user_id,user_email').or('is_admin.eq.true,is_moderator.eq.true');
         await Promise.all((mods||[]).map(m => supabase.from('notifications').insert({
           user_id: m.user_id, user_email: m.user_email, type: 'new_report',
           data: { eventTitle: eventTitle || (lang === 'cs' ? 'událost' : 'event'), reason: selected },

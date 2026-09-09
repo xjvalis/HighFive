@@ -277,7 +277,7 @@ export default function Profile() {
             <button
               onClick={async () => {
                 try {
-                  const { data: mods, error: modsError } = await supabase.from('user_profiles').select('user_id,user_email').or('is_admin.eq.true,is_moderator.eq.true');
+                  const { data: mods, error: modsError } = await supabase.from('user_profiles_public').select('user_id,user_email').or('is_admin.eq.true,is_moderator.eq.true');
                   if (modsError) throw modsError;
                   if (!mods?.length) { toast.error(lang === 'cs' ? 'Nepodařilo se najít moderátora.' : 'Could not find a moderator.'); return; }
                   const requesterName = profile?.display_name || user.email;

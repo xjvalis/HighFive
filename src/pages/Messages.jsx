@@ -38,7 +38,7 @@ export default function Messages() {
         setMessages(data||[]);
         const emails = [...new Set((data||[]).map(m=>m.from_email===user.email?m.to_email:m.from_email))];
         if (emails.length) {
-          const {data:pp, error: ppError} = await supabase.from('user_profiles').select('user_email,display_name,avatar_url').in('user_email',emails);
+          const {data:pp, error: ppError} = await supabase.from('user_profiles_public').select('user_email,display_name,avatar_url').in('user_email',emails);
           if (ppError) { toast.error(lang==='cs'?'Nepodařilo se načíst profily.':'Failed to load profiles.'); setLoading(false); return; }
           const m={}; (pp||[]).forEach(p=>m[p.user_email]=p); setPartnerProfiles(m);
         }
@@ -88,7 +88,7 @@ export default function Messages() {
     setSending(true);
     const content=reply.trim(); setReply('');
     try {
-      const { data: toProfile } = await supabase.from('user_profiles').select('user_id').eq('user_email',selected).maybeSingle();
+      const { data: toProfile } = await supabase.from('user_profiles_public').select('user_id').eq('user_email',selected).maybeSingle();
       const { error } = await supabase.from('direct_messages').insert({from_id:user.id,from_email:user.email,from_name:profile?.display_name||user.email,from_avatar:profile?.avatar_url||null,to_id:toProfile?.user_id||null,to_email:selected,content,is_read:false});
       if (error) toast.error(lang==='cs'?'Zprávu se nepodařilo odeslat.':'Failed to send message.');
     } catch {

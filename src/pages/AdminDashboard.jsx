@@ -23,6 +23,7 @@ export default function AdminDashboard() {
   const [events, setEvents] = useState([]);
   const [reports, setReports] = useState([]);
   const [reliabilityRequests, setReliabilityRequests] = useState([]);
+  const [totalCounts, setTotalCounts] = useState({ events: 0, reports: 0, reliability: 0 });
   const [loading, setLoading] = useState(true);
   const [editEvent, setEditEvent] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -36,17 +37,30 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!hasAccess || !user) return;
+    // Fetch a page of each queue plus its true total — a moderator should
+    // never see "0 pending" style silence when there are actually 300 items
+    // sitting past whatever the page limit is.
     Promise.all([
-      supabase.from('events').select('*').eq('is_approved', false).order('created_at', { ascending: false }).limit(50),
-      supabase.from('reports').select('*').eq('status', 'pending').order('created_at', { ascending: false }).limit(50),
-      supabase.from('notifications').select('*').eq('user_id', user.id).eq('type', 'reliability_reset_request').eq('is_read', false).order('created_at', { ascending: false }).limit(50),
-    ]).then(([{ data: evts }, { data: rpts }, { data: relReqs }]) => {
+      supabase.from('events').select('*').eq('is_approved', false).order('created_at', { ascending: false }).limit(100),
+      supabase.from('events').select('id', { count: 'exact', head: true }).eq('is_approved', false),
+      supabase.from('reports').select('*').eq('status', 'pending').order('created_at', { ascending: false }).limit(100),
+      supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('notifications').select('*').eq('user_id', user.id).eq('type', 'reliability_reset_request').eq('is_read', false).order('created_at', { ascending: false }).limit(100),
+      supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('type', 'reliability_reset_request').eq('is_read', false),
+    ]).then(([{ data: evts }, { count: evtsCount }, { data: rpts }, { count: rptsCount }, { data: relReqs }, { count: relCount }]) => {
       setEvents(evts || []);
       setReports(rpts || []);
       setReliabilityRequests(relReqs || []);
+      setTotalCounts({ events: evtsCount || 0, reports: rptsCount || 0, reliability: relCount || 0 });
       setLoading(false);
     });
   }, [hasAccess, user]);
+
+  const TruncationNotice = ({ shown, total }) => total > shown ? (
+    <p style={{ ...svMeta, textAlign: 'center', padding: '8px 0' }}>
+      {lang === 'cs' ? `Zobrazeno ${shown} z ${total} — zúžit rozsah nejde, nejstarší se prostě neukážou.` : `Showing ${shown} of ${total} — the oldest ones beyond this simply aren't listed yet.`}
+    </p>
+  ) : null;
 
   const approveEvent = async (event) => {
     await supabase.from('events').update({ is_approved: true, is_suspended: false }).eq('id', event.id);
@@ -164,24 +178,24 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-3 gap-2.5 mb-5">
         <div style={{ ...svCard, padding: 14, textAlign: 'center' }}>
-          <p style={{ font: "500 19px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{events.length}</p>
+          <p style={{ font: "500 19px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{totalCounts.events}</p>
           <p style={{ ...svMeta, marginTop: 2 }}>{lang === 'cs' ? 'Čeká na schválení' : 'Pending approval'}</p>
         </div>
         <div style={{ ...svCard, padding: 14, textAlign: 'center' }}>
-          <p style={{ font: "500 19px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{reports.length}</p>
+          <p style={{ font: "500 19px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{totalCounts.reports}</p>
           <p style={{ ...svMeta, marginTop: 2 }}>{lang === 'cs' ? 'Otevřené reporty' : 'Open reports'}</p>
         </div>
         <div style={{ ...svCard, padding: 14, textAlign: 'center' }}>
-          <p style={{ font: "500 19px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{reliabilityRequests.length}</p>
+          <p style={{ font: "500 19px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{totalCounts.reliability}</p>
           <p style={{ ...svMeta, marginTop: 2 }}>{lang === 'cs' ? 'Žádosti o reset' : 'Reset requests'}</p>
         </div>
       </div>
 
       <div className="flex flex-wrap" style={{ gap: 2, background: 'var(--sv-surface-muted)', borderRadius: 10, padding: 3, marginBottom: 18, width: 'fit-content' }}>
         {[
-          { key: 'pending', label: `${lang === 'cs' ? 'Ke schválení' : 'Pending'} (${events.length})` },
-          { key: 'reports', label: `${lang === 'cs' ? 'Reporty' : 'Reports'} (${reports.length})` },
-          { key: 'reliability', label: `${lang === 'cs' ? 'Reset skóre' : 'Score resets'} (${reliabilityRequests.length})` },
+          { key: 'pending', label: `${lang === 'cs' ? 'Ke schválení' : 'Pending'} (${totalCounts.events})` },
+          { key: 'reports', label: `${lang === 'cs' ? 'Reporty' : 'Reports'} (${totalCounts.reports})` },
+          { key: 'reliability', label: `${lang === 'cs' ? 'Reset skóre' : 'Score resets'} (${totalCounts.reliability})` },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} className="transition-all"
             style={{ padding: '8px 16px', borderRadius: 8, font: `${tab === t.key ? 500 : 400} 12px 'Outfit', sans-serif`, background: tab === t.key ? 'var(--sv-surface)' : 'transparent', color: tab === t.key ? 'var(--sv-ink)' : 'var(--sv-meta)' }}>
@@ -219,6 +233,7 @@ export default function AdminDashboard() {
             </div>
           ))}
           {events.length === 0 && <EmptyState title={lang === 'cs' ? 'Vše zkontrolováno' : 'All reviewed'} />}
+          <TruncationNotice shown={events.length} total={totalCounts.events} />
         </div>
       ) : tab === 'reports' ? (
         <div className="space-y-2">
@@ -259,6 +274,7 @@ export default function AdminDashboard() {
             </div>
           ))}
           {reports.length === 0 && <EmptyState title={lang === 'cs' ? 'Žádné otevřené reporty' : 'No open reports'} />}
+          <TruncationNotice shown={reports.length} total={totalCounts.reports} />
         </div>
       ) : (
         <div className="space-y-2">
@@ -282,6 +298,7 @@ export default function AdminDashboard() {
             </div>
           ))}
           {reliabilityRequests.length === 0 && <EmptyState title={lang === 'cs' ? 'Žádné žádosti o reset' : 'No reset requests'} />}
+          <TruncationNotice shown={reliabilityRequests.length} total={totalCounts.reliability} />
         </div>
       )}
 
