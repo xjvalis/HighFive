@@ -28,6 +28,7 @@ create table public.user_profiles (
   is_verified boolean default false,
   is_admin boolean default false,
   is_moderator boolean default false,
+  is_banned boolean default false,
   reliability_score integer default 100,
   noshow_count integer default 0,
   monthly_join_count integer default 0,
@@ -175,8 +176,56 @@ create policy "profiles_insert_own" on public.user_profiles
 create policy "profiles_update_own" on public.user_profiles
   for update using (auth.uid() = user_id);
 
+-- Admins need to update OTHER users' rows for moderation (ban, reliability
+-- reset) — without this, those actions silently affect 0 rows under RLS.
+create policy "profiles_update_admin" on public.user_profiles
+  for update using (
+    exists (select 1 from public.user_profiles where user_id = auth.uid() and is_admin = true)
+  );
+
 create policy "profiles_delete_own" on public.user_profiles
   for delete using (auth.uid() = user_id);
+
+-- profiles_update_own has no column-level restriction, so on its own it lets
+-- a user PATCH their own row and set is_admin/is_premium/subscription_plan/
+-- reliability_score/etc directly — a full self-service privilege escalation
+-- (every admin-gated policy in this file trusts is_admin on this table).
+-- This trigger locks those columns to their previous value whenever the
+-- session doing the update IS the row's own owner (auth.uid() = old.user_id):
+-- normal self-edits (display_name, bio, favorite_categories, ...) pass
+-- through untouched, privileged columns cannot be changed by the user
+-- themselves. Admin updates (profiles_update_admin, different auth.uid())
+-- and service-role writes (Stripe webhook, auth.uid() is null) are unaffected.
+create or replace function public.protect_privileged_profile_fields()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is not null and auth.uid() = old.user_id then
+    new.is_admin := old.is_admin;
+    new.is_moderator := old.is_moderator;
+    new.is_banned := old.is_banned;
+    new.is_verified := old.is_verified;
+    new.is_premium := old.is_premium;
+    new.subscription_plan := old.subscription_plan;
+    new.stripe_customer_id := old.stripe_customer_id;
+    new.stripe_subscription_id := old.stripe_subscription_id;
+    new.reliability_score := old.reliability_score;
+    new.noshow_count := old.noshow_count;
+    new.monthly_join_count := old.monthly_join_count;
+    new.monthly_create_count := old.monthly_create_count;
+    new.monthly_reset_date := old.monthly_reset_date;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_privileged_profile_fields on public.user_profiles;
+create trigger protect_privileged_profile_fields
+  before update on public.user_profiles
+  for each row execute function public.protect_privileged_profile_fields();
 
 -- EVENTS
 create policy "events_read_approved" on public.events

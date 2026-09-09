@@ -25,7 +25,19 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
     }
 
-    const { eventData } = await req.json();
+    const { eventData: rawEventData } = await req.json();
+
+    // Whitelist client-settable fields only — spreading the raw payload would
+    // let a caller set is_featured/is_approved/comments_count/favorites_count
+    // etc. directly, bypassing moderation and the free/paid limits below.
+    const {
+      title, description, category, location, latitude, longitude, date,
+      end_time, max_capacity, image_url, age_min, age_max, gender_recommendation,
+    } = rawEventData || {};
+    const eventData = {
+      title, description, category, location, latitude, longitude, date,
+      end_time, max_capacity, image_url, age_min, age_max, gender_recommendation,
+    };
 
     // Načti profil a zkontroluj free limit
     const { data: profile } = await serviceClient
