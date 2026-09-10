@@ -10,6 +10,7 @@ import { useState, useEffect, useContext, lazy, Suspense } from 'react';
 import { LanguageContext } from '@/lib/language';
 import { isNative, handleNativeAuthCallback } from '@/lib/nativeAuth';
 import SetNewPasswordScreen from '@/components/auth/SetNewPasswordScreen';
+import { SpoluvicMark } from '@/components/brand/SpoluvicLogo';
 
 // Route-level code splitting — only the page the user actually lands on
 // (plus AppLayout/Home for the common case) ships on first load.
@@ -72,22 +73,19 @@ function SplashScreen() {
     <div style={{
       position: 'fixed',
       inset: 0,
-      backgroundColor: '#ffffff',
+      backgroundColor: 'var(--sv-bg)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 9999,
+      fontFamily: "'Outfit', system-ui, sans-serif",
     }}>
-      <img
-        src="/hands.png"
-        alt="Spoluvíc"
-        style={{ width: '96px', height: '96px', objectFit: 'contain', marginBottom: '16px' }}
-      />
-      <h1 style={{ fontWeight: '700', fontSize: '24px', margin: '0 0 8px 0', color: '#1a1a1a' }}>
+      <div style={{ marginBottom: 16 }}><SpoluvicMark variant="orange" height={56}/></div>
+      <h1 style={{ font: "500 20px 'Outfit', sans-serif", letterSpacing: '-0.03em', margin: '0 0 6px 0', color: 'var(--sv-ink)' }}>
         Spoluvíc
       </h1>
-      <p style={{ fontSize: '13px', color: '#888', textAlign: 'center', maxWidth: '240px', margin: 0, lineHeight: '1.5' }}>
+      <p style={{ font: "300 13px 'Outfit', sans-serif", color: 'var(--sv-meta)', textAlign: 'center', maxWidth: '240px', margin: 0, lineHeight: '1.5' }}>
         {lang === 'cs' ? 'Spolu je toho víc' : 'More, together'}
       </p>
     </div>

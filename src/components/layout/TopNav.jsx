@@ -216,7 +216,7 @@ export default function TopNav() {
           <button onClick={() => setDrawerOpen(true)} className="xl:hidden p-2.5 -ml-2 rounded-xl hover:bg-[var(--sv-surface-muted)] transition-colors flex-shrink-0">
             <Menu className="w-5 h-5" style={{ color: 'var(--sv-ink)' }}/>
           </button>
-          <Link to="/" className="flex-shrink-0">
+          <Link to="/" className="flex-shrink-0 flex items-center">
             <SpoluvicLockup variant="orange" height={20} color="var(--sv-ink)"/>
           </Link>
           <div className="hidden xl:flex flex-1 justify-center">
