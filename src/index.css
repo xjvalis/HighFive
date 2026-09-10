@@ -13,6 +13,12 @@
   --sv-brand-orange: #FFB033;
   --sv-brand-purple: #7C5CE0;
   --sv-brand-overlap: #5A3FB0;
+  /* Softer purple-tint pairing (Komunita card, avatar fallbacks, event
+     chips) — distinct from --sv-brand-purple above, which is the saturated
+     accent used for icons/focus rings. Was hardcoded as literal hex in ~20
+     places before being promoted here. */
+  --sv-brand-purple-bg: #F0EAFC;
+  --sv-brand-purple-ink: #4A3A73;
 
   --sv-bg: #FDFCFA;
   --sv-surface: #FFFFFF;

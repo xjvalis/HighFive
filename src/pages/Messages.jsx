@@ -120,7 +120,7 @@ export default function Messages() {
             const last=t.messages[0];
             return (
               <button key={t.partnerEmail} onClick={()=>openThread(t.partnerEmail)} className="w-full flex items-center gap-3 text-left transition-colors" style={{ padding: 12, borderRadius: 14 }}>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#F0EAFC', color: 'var(--sv-brand-purple)', font: "500 13px 'Outfit', sans-serif" }}>{pName(t.partnerEmail)[0]?.toUpperCase()||'?'}</div>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', font: "500 13px 'Outfit', sans-serif" }}>{pName(t.partnerEmail)[0]?.toUpperCase()||'?'}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between"><span style={{ font: `${t.unread>0?500:400} 12.5px 'Outfit', sans-serif`, color: 'var(--sv-ink)' }}>{pName(t.partnerEmail)}</span>{last&&<span style={{ font: "400 10px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)' }}>{format(new Date(last.created_at),'HH:mm')}</span>}</div>
                   {last?.event_title && (
@@ -142,13 +142,13 @@ export default function Messages() {
               return (
                 <div key={msg.id} className={`flex flex-col ${mine?'items-end':'items-start'}`} style={{ gap: 4 }}>
                   {msg.event_title && (
-                    <Link to={`/event/${msg.event_id}`} className="flex items-center" style={{ gap: 4, font: "500 10px 'Outfit', sans-serif", color: 'var(--sv-brand-purple)', background: '#F0EAFC', borderRadius: 'var(--sv-r-pill)', padding: '3px 9px' }}>
+                    <Link to={`/event/${msg.event_id}`} className="flex items-center" style={{ gap: 4, font: "500 10px 'Outfit', sans-serif", color: 'var(--sv-brand-purple)', background: 'var(--sv-brand-purple-bg)', borderRadius: 'var(--sv-r-pill)', padding: '3px 9px' }}>
                       <SvIcon name="calendar" size={9}/>
                       {msg.is_broadcast ? (lang==='cs'?'Zpráva organizátora':'Organizer message') : (lang==='cs'?'K akci':'About event')} · {msg.event_title}
                     </Link>
                   )}
                   <div className={`flex gap-2 ${mine?'flex-row-reverse':''}`}>
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: mine ? '#F0EAFC' : 'var(--sv-surface-muted)', color: mine ? 'var(--sv-brand-purple)' : 'var(--sv-ink-soft)', font: "500 11px 'Outfit', sans-serif" }}>{(mine?(profile?.display_name||user.email):pName(msg.from_email))[0]?.toUpperCase()}</div>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: mine ? 'var(--sv-brand-purple-bg)' : 'var(--sv-surface-muted)', color: mine ? 'var(--sv-brand-purple)' : 'var(--sv-ink-soft)', font: "500 11px 'Outfit', sans-serif" }}>{(mine?(profile?.display_name||user.email):pName(msg.from_email))[0]?.toUpperCase()}</div>
                     <div className="max-w-[70%] flex flex-col" style={{ alignItems: mine?'flex-end':'flex-start' }}>
                       <div style={{ padding: '8px 12px', borderRadius: 14, font: "300 12.5px 'Outfit', sans-serif", background: mine ? 'var(--sv-action-bg)' : 'var(--sv-surface-muted)', color: mine ? 'var(--sv-action-ink)' : 'var(--sv-ink-soft)' }}>{msg.content}</div>
                       <span style={{ font: "400 10px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)', marginTop: 3 }}>{format(new Date(msg.created_at),'HH:mm')}</span>

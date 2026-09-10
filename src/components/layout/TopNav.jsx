@@ -233,7 +233,7 @@ export default function TopNav() {
               <button className="hidden xl:flex items-center justify-center w-9 h-9 rounded-full hover:opacity-80 transition-opacity" onClick={() => navigate('/profile')}>
                 {profile?.avatar_url
                   ? <img src={profile.avatar_url} alt="avatar" className="w-6 h-6 rounded-full object-cover"/>
-                  : <div className="w-6 h-6 rounded-full flex items-center justify-center transition-colors" style={{ background: '#F0EAFC' }} title={lang === 'cs' ? 'Můj profil' : 'My profile'}><User className="w-3.5 h-3.5" style={{ color: 'var(--sv-brand-purple)' }}/></div>
+                  : <div className="w-6 h-6 rounded-full flex items-center justify-center transition-colors" style={{ background: 'var(--sv-brand-purple-bg)' }} title={lang === 'cs' ? 'Můj profil' : 'My profile'}><User className="w-3.5 h-3.5" style={{ color: 'var(--sv-brand-purple)' }}/></div>
                 }
               </button>
             ) : (

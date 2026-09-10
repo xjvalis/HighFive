@@ -17,6 +17,7 @@ import PremiumModal from '@/components/premium/PremiumModal';
 import BadgesSection from '@/components/profile/BadgesSection';
 import { SvIcon } from '@/components/icons/SvIcon';
 import { svPageTitle, svCard, svField, svLabel, svMeta, svSectionLabel } from '@/lib/svStyles';
+import { monthlyJoinsUsed, monthlyCreatesUsed, MONTHLY_JOIN_LIMIT, MONTHLY_CREATE_LIMIT } from '@/lib/premium';
 
 const chip = { display: 'inline-flex', alignItems: 'center', gap: 4, font: "500 10.5px 'Outfit', sans-serif", padding: '3px 9px', borderRadius: 'var(--sv-r-pill)', background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)' };
 const ghostBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)', borderRadius: 'var(--sv-r-pill)', padding: '7px 14px', font: "500 12px 'Outfit', sans-serif" };
@@ -109,7 +110,7 @@ export default function Profile() {
               <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload}/>
               {profile?.avatar_url
                 ? <img src={profile.avatar_url} alt="avatar" className="w-14 h-14 object-cover" style={{ borderRadius: 14 }}/>
-                : <div className="w-14 h-14 flex items-center justify-center" style={{ borderRadius: 14, background: '#F0EAFC', color: 'var(--sv-brand-purple)', font: "500 22px 'Outfit', sans-serif" }}>{user.email?.[0]?.toUpperCase() || '?'}</div>}
+                : <div className="w-14 h-14 flex items-center justify-center" style={{ borderRadius: 14, background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', font: "500 22px 'Outfit', sans-serif" }}>{user.email?.[0]?.toUpperCase() || '?'}</div>}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderRadius: 14, background: 'rgba(58,52,63,0.5)' }}>
                 {uploadingAvatar ? <Loader2 className="w-5 h-5 text-white animate-spin"/> : <Camera className="w-5 h-5 text-white"/>}
               </div>
@@ -125,7 +126,7 @@ export default function Profile() {
               <p style={{ ...svMeta, marginTop: 4 }}>{profile?.joined_events?.length || 0} {tr.eventsAttended} · {myEvents.length} {tr.eventsCreated}</p>
               {!profile?.is_premium && (
                 <div style={{ ...svMeta, background: 'var(--sv-surface-muted)', borderRadius: 8, padding: '6px 10px', marginTop: 8 }}>
-                  {lang === 'cs' ? 'Plán' : 'Plan'}: <strong style={{ color: 'var(--sv-ink-soft)' }}>{profile?.subscription_plan || 'free'}</strong> · {lang === 'cs' ? 'Přihlášení' : 'Joins'}: <strong style={{ color: 'var(--sv-ink-soft)' }}>{profile?.monthly_join_count || 0}/3</strong> · {lang === 'cs' ? 'Vytvořené' : 'Created'}: <strong style={{ color: 'var(--sv-ink-soft)' }}>{profile?.monthly_create_count || 0}/1</strong>
+                  {lang === 'cs' ? 'Plán' : 'Plan'}: <strong style={{ color: 'var(--sv-ink-soft)' }}>{profile?.subscription_plan || 'free'}</strong> · {lang === 'cs' ? 'Přihlášení' : 'Joins'}: <strong style={{ color: 'var(--sv-ink-soft)' }}>{monthlyJoinsUsed(profile)}/{MONTHLY_JOIN_LIMIT}</strong> · {lang === 'cs' ? 'Vytvořené' : 'Created'}: <strong style={{ color: 'var(--sv-ink-soft)' }}>{monthlyCreatesUsed(profile)}/{MONTHLY_CREATE_LIMIT}</strong>
                 </div>
               )}
             </div>
@@ -193,10 +194,10 @@ export default function Profile() {
 
         {/* Premium section */}
         {profile?.is_premium ? (
-          <div style={{ marginTop: 18, borderRadius: 'var(--sv-r-card)', background: '#F0EAFC', padding: 16 }}>
+          <div style={{ marginTop: 18, borderRadius: 'var(--sv-r-card)', background: 'var(--sv-brand-purple-bg)', padding: 16 }}>
             <div className="flex items-center gap-2 mb-3">
-              <span style={{ font: "500 13px 'Outfit', sans-serif", color: '#4A3A73' }}>Spoluvíc Premium</span>
-              <span style={{ ...chip, background: 'rgba(255,255,255,0.6)', color: '#4A3A73' }}>{profile?.subscription_plan === 'creator' ? 'Creator' : 'Plus'}</span>
+              <span style={{ font: "500 13px 'Outfit', sans-serif", color: 'var(--sv-brand-purple-ink)' }}>Spoluvíc Premium</span>
+              <span style={{ ...chip, background: 'rgba(255,255,255,0.6)', color: 'var(--sv-brand-purple-ink)' }}>{profile?.subscription_plan === 'creator' ? 'Creator' : 'Plus'}</span>
             </div>
             <button className="w-full" style={{ ...ghostBtn, background: 'var(--sv-surface)', width: '100%' }} onClick={async () => {
               const { data } = await supabase.functions.invoke('stripe-billing-portal', { body: { return_url: window.location.origin + '/profile' } });
@@ -204,9 +205,9 @@ export default function Profile() {
             }}>{lang === 'cs' ? 'Spravovat předplatné' : 'Manage subscription'}</button>
           </div>
         ) : (
-          <div style={{ marginTop: 18, borderRadius: 'var(--sv-r-card)', background: '#F0EAFC', padding: 16, cursor: 'pointer' }} onClick={() => setShowPremium(true)}>
+          <div style={{ marginTop: 18, borderRadius: 'var(--sv-r-card)', background: 'var(--sv-brand-purple-bg)', padding: 16, cursor: 'pointer' }} onClick={() => setShowPremium(true)}>
             <div className="flex items-center justify-between mb-1.5">
-              <span style={{ font: "500 13px 'Outfit', sans-serif", color: '#4A3A73' }}>Spoluvíc Premium</span>
+              <span style={{ font: "500 13px 'Outfit', sans-serif", color: 'var(--sv-brand-purple-ink)' }}>Spoluvíc Premium</span>
               <span style={{ font: "300 11px 'Outfit', sans-serif", color: '#5A4A83' }}>{lang === 'cs' ? 'Plus od 100 Kč/měs' : 'Plus from 100 Kč/mo'}</span>
             </div>
             <p style={{ font: "300 11.5px 'Outfit', sans-serif", color: '#5A4A83', marginBottom: 12 }}>{lang === 'cs' ? 'Neomezené eventy, bez limitů.' : 'Unlimited events, no limits.'}</p>

@@ -85,7 +85,11 @@ export default function AdminDashboard() {
           is_read: false,
         });
       }
-    } catch (_) {}
+    } catch (err) {
+      // The delete itself already succeeded — failing to notify the
+      // organizer shouldn't undo it, but it must not be invisible either.
+      console.error('Failed to notify organizer of event deletion:', err);
+    }
 
     setDeleteConfirm(null);
     toast.success(lang === 'cs' ? 'Událost smazána' : 'Event deleted');
@@ -108,7 +112,9 @@ export default function AdminDashboard() {
           is_read: false,
         });
       }
-    } catch (_) {}
+    } catch (err) {
+      console.error('Failed to notify organizer of event suspension:', err);
+    }
 
     setEvents(prev => prev.filter(e => e.id !== suspendDialog.id));
     setSuspendDialog(null);
@@ -172,7 +178,7 @@ export default function AdminDashboard() {
       <div className="flex items-center gap-2.5 mb-5">
         <Shield className="w-5 h-5" style={{ color: 'var(--sv-brand-purple)' }}/>
         <h1 style={svPageTitle}>{lang === 'cs' ? 'Moderace' : 'Moderation'}</h1>
-        {isAdmin && <span style={{ font: "500 10px 'Outfit', sans-serif", background: '#F0EAFC', color: 'var(--sv-brand-purple)', padding: '3px 9px', borderRadius: 'var(--sv-r-pill)' }}>Admin</span>}
+        {isAdmin && <span style={{ font: "500 10px 'Outfit', sans-serif", background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', padding: '3px 9px', borderRadius: 'var(--sv-r-pill)' }}>Admin</span>}
         {!isAdmin && isModerator && <span style={{ font: "500 10px 'Outfit', sans-serif", background: 'var(--sv-surface-muted)', color: 'var(--sv-meta)', padding: '3px 9px', borderRadius: 'var(--sv-r-pill)' }}>{lang === 'cs' ? 'Moderátor' : 'Moderator'}</span>}
       </div>
 

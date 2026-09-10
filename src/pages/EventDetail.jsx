@@ -6,6 +6,8 @@ import { ArrowLeft, Flag, Send, Crown, Pencil, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
+import { isEventFull } from '@/lib/events';
+import { isPremiumProfile, canJoinEvent, monthlyJoinsUsed, MONTHLY_JOIN_LIMIT } from '@/lib/premium';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
 import { useT } from '@/lib/i18n';
@@ -81,23 +83,15 @@ export default function EventDetail() {
   const isJoined = user && event?.participants?.includes(user.email);
   const isOnWaitlist = user && event?.waitlist?.includes(user.email);
   const isFav = profile?.favorited_events?.includes(id);
-  const isFull = event?.max_capacity && (event?.participants?.length||0) >= event.max_capacity;
+  const isFull = isEventFull(event);
   const isOrganizer = user && event?.organizer_email === user.email;
   const isAdmin = profile?.is_admin;
   const canEdit = isOrganizer || isAdmin;
 
-  const canJoin = () => {
-    if (!profile) return true;
-    if (profile.is_premium || ['plus','creator'].includes(profile.subscription_plan)) return true;
-    const now=new Date(); const reset=profile.monthly_reset_date?new Date(profile.monthly_reset_date):null;
-    const isNew=!reset||now.getFullYear()>reset.getFullYear()||now.getMonth()>reset.getMonth();
-    return (isNew?0:profile.monthly_join_count||0) < 3;
-  };
-
   const handleJoin = async (skipConfirm=false) => {
     if (!user||!event||joiningEvent) return;
     if ((isJoined||isOnWaitlist) && !skipConfirm) { setLeaveConfirm(true); return; }
-    if (!isJoined&&!isOnWaitlist&&!canJoin()) { setShowPremium(true); return; }
+    if (!isJoined&&!isOnWaitlist&&!canJoinEvent(profile)) { setShowPremium(true); return; }
     setJoinAnim(true); setTimeout(()=>setJoinAnim(false),600);
     const action = isJoined?'leave':isOnWaitlist?'leave_waitlist':isFull?'join_waitlist':'join';
     setJoiningEvent(true);
@@ -179,7 +173,7 @@ export default function EventDetail() {
             <div className="flex-1"><AddToCalendar event={event}/></div>
             <ShareEventButton event={event}/>
             {user && !isOrganizer && event.organizer_email && (
-              <button onClick={()=>setShowDM(true)} className="flex items-center justify-center" style={{ width: 36, borderRadius: 10, background: '#F0EAFC', color: 'var(--sv-brand-purple)' }}>
+              <button onClick={()=>setShowDM(true)} className="flex items-center justify-center" style={{ width: 36, borderRadius: 10, background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)' }}>
                 <Send className="w-3.5 h-3.5"/>
               </button>
             )}
@@ -196,7 +190,7 @@ export default function EventDetail() {
                     const style = isCreator?{boxShadow:'0 0 0 2px var(--sv-brand-orange), 0 0 0 4px var(--sv-brand-purple)'}:{};
                     return pp?.avatar_url
                       ? <img key={i} src={pp.avatar_url} alt={pp.display_name||email} title={pp.display_name||email} className="w-8 h-8 rounded-full object-cover" style={{ border: '2px solid var(--sv-surface)', ...style }}/>
-                      : <div key={i} title={email} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: '#F0EAFC', color: 'var(--sv-brand-purple)', font: "500 11px 'Outfit', sans-serif", ...style }}>{email[0].toUpperCase()}</div>;
+                      : <div key={i} title={email} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', font: "500 11px 'Outfit', sans-serif", ...style }}>{email[0].toUpperCase()}</div>;
                   })}
                   {event.participants.length>12 && <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--sv-surface-muted)', color: 'var(--sv-meta)', font: "400 10.5px 'Outfit', sans-serif" }}>+{event.participants.length-12}</div>}
                 </div>
@@ -208,10 +202,8 @@ export default function EventDetail() {
 
           <ParticipantsPanel event={event} isOrganizer={isOrganizer} open={participantsOpen} onClose={()=>setParticipantsOpen(false)} onEventUpdate={setEvent}/>
 
-          {profile&&!profile.is_premium&&profile.subscription_plan!=='plus'&&profile.subscription_plan!=='creator'&&!isJoined&&!isOnWaitlist&&(()=>{
-            const now=new Date();const reset=profile.monthly_reset_date?new Date(profile.monthly_reset_date):null;
-            const isNew=!reset||now.getFullYear()>reset.getFullYear()||now.getMonth()>reset.getMonth();
-            const remaining=3-(isNew?0:profile.monthly_join_count||0);
+          {profile&&!isPremiumProfile(profile)&&!isJoined&&!isOnWaitlist&&(()=>{
+            const remaining = MONTHLY_JOIN_LIMIT - monthlyJoinsUsed(profile);
             if (remaining<=1&&remaining>0) return (
               <button onClick={()=>setShowPremium(true)} className="w-full mb-3 flex items-center gap-2 transition-colors" style={{ background: 'var(--sv-surface-muted)', borderRadius: 10, padding: '8px 12px', font: "400 11.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>
                 <Crown className="w-3.5 h-3.5" style={{ color: 'var(--sv-brand-orange)' }}/>
@@ -243,7 +235,7 @@ export default function EventDetail() {
       <div className="mt-4" style={{ ...svCard, padding: 18 }}>
         <h2 style={{ font: "500 15px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginBottom: 14 }}>{tr.detailDiscussion} ({comments.length})</h2>
         {user && <div className="flex gap-3 mb-4">
-          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ background: '#F0EAFC', color: 'var(--sv-brand-purple)', font: "500 11px 'Outfit', sans-serif" }}>
+          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', font: "500 11px 'Outfit', sans-serif" }}>
             {profile?.avatar_url
               ? <img src={profile.avatar_url} alt={profile.display_name} className="w-full h-full object-cover"/>
               : <span>{(profile?.display_name||user.email)?.[0]?.toUpperCase()}</span>

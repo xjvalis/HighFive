@@ -29,9 +29,9 @@ export default function SendDMModal({ open, onClose, toEmail, toName, fromUser, 
       <DialogContent className="max-w-md" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
         <DialogHeader><DialogTitle style={{ font: "500 15px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{lang === 'cs' ? 'Soukromá zpráva' : 'Direct message'} → {toName}</DialogTitle></DialogHeader>
         {event && (
-          <div className="flex items-center gap-1.5 mb-1" style={{ background: '#F0EAFC', borderRadius: 10, padding: '8px 12px', font: "300 11.5px 'Outfit', sans-serif", color: '#5A4A83' }}>
+          <div className="flex items-center gap-1.5 mb-1" style={{ background: 'var(--sv-brand-purple-bg)', borderRadius: 10, padding: '8px 12px', font: "300 11.5px 'Outfit', sans-serif", color: '#5A4A83' }}>
             <SvIcon name="calendar" size={12} style={{ color: 'var(--sv-brand-purple)' }}/>
-            {lang === 'cs' ? 'Ohledně události:' : 'Regarding event:'} <span style={{ fontWeight: 500, color: '#4A3A73' }}>{event.title}</span>
+            {lang === 'cs' ? 'Ohledně události:' : 'Regarding event:'} <span style={{ fontWeight: 500, color: 'var(--sv-brand-purple-ink)' }}>{event.title}</span>
           </div>
         )}
         <Textarea value={content} onChange={e=>setContent(e.target.value)} placeholder={lang === 'cs' ? 'Napiš svou zprávu...' : 'Write your message...'} className="resize-none min-h-[120px]" style={svField} autoFocus/>

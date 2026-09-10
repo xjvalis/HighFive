@@ -54,8 +54,8 @@ export default function RightSidebar() {
 
   return (
     <div className="flex flex-col" style={{ gap: 8, fontFamily: "'Outfit', system-ui, sans-serif" }}>
-      <div style={{ background: '#F0EAFC', borderRadius: 'var(--sv-r-card)', padding: 12 }}>
-        <div style={{ font: "500 12px 'Outfit', sans-serif", color: '#4A3A73' }}>{tr.communityTitle}</div>
+      <div style={{ background: 'var(--sv-brand-purple-bg)', borderRadius: 'var(--sv-r-card)', padding: 12 }}>
+        <div style={{ font: "500 12px 'Outfit', sans-serif", color: 'var(--sv-brand-purple-ink)' }}>{tr.communityTitle}</div>
         <div style={{ marginTop: 5, font: "300 11.5px 'Outfit', sans-serif", lineHeight: 1.5, color: '#5A4A83' }}>{tr.communityText}</div>
       </div>
 

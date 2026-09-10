@@ -14,7 +14,7 @@ import { cs, enUS } from 'date-fns/locale';
 // typed suspension reasons) is only ever interpolated verbatim, never
 // translated — only the app-generated wrapper text around it is localized.
 
-export const TYPE_ICONS = {
+const TYPE_ICONS = {
   event_suspended: '⚠️', noshow_warning: '⚠️', event_reminder: '⏰', event_updated: '✏️',
   new_participant: '🙌', waitlist_promoted: '🎉', new_report: '🚩', new_message: '💬',
   new_chat_message: '💬', event_past: '🗓️', reliability_reset_request: '🔄', reliability_reset_done: '✅',

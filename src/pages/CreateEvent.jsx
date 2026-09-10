@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import { CATEGORIES, getCategoryLabel } from '@/lib/categories';
+import { canCreateEvent } from '@/lib/premium';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
 import { useT } from '@/lib/i18n';
@@ -42,14 +43,6 @@ export default function CreateEvent() {
   useEffect(() => {
     if (!user && !userLoading) navigate('/login');
   }, [user, userLoading]);
-
-  const canCreate = () => {
-    if (!profile) return true;
-    if (profile.is_premium || ['plus','creator'].includes(profile.subscription_plan)) return true;
-    const now = new Date(); const reset = profile.monthly_reset_date ? new Date(profile.monthly_reset_date) : null;
-    const isNew = !reset || now.getFullYear() > reset.getFullYear() || now.getMonth() > reset.getMonth();
-    return (isNew ? 0 : profile.monthly_create_count || 0) < 1;
-  };
 
   const pad = n => String(n).padStart(2, '0');
   const toLocalISO = (date) => {
@@ -133,7 +126,7 @@ export default function CreateEvent() {
 
   if (!user && !userLoading) return null;
 
-  if (!canCreate()) return (
+  if (!canCreateEvent(profile)) return (
     <div className="max-w-lg mx-auto text-center" style={{ padding: '48px 0 12px' }}>
       <div className="flex justify-center mb-3"><PixelCircle size={40} color="var(--sv-empty-dot)" /></div>
       <h2 style={{ font: "500 15px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginBottom: 6 }}>{tr.createWeeklyLimitTitle}</h2>

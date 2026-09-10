@@ -10,6 +10,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
+import { isEventOver } from '@/lib/events';
 import { SvIcon } from '@/components/icons/SvIcon';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
@@ -42,6 +43,7 @@ function PastEventCard({ event }) {
 
 export default function MyEvents() {
   const tr = useT();
+  const { lang } = useContext(LanguageContext);
   const navigate = useNavigate();
   const { user, loading } = useCurrentUser();
   const [created, setCreated] = useState([]);
@@ -52,36 +54,27 @@ export default function MyEvents() {
   const [tab, setTab] = useState('going');
   const [leaveConfirm, setLeaveConfirm] = useState(null);
 
-  const now = new Date().toISOString();
-
   useEffect(() => {
     if (!user && !loading) navigate('/login');
   }, [user, loading]);
 
   useEffect(() => {
     if (!user) return;
-    const cutoff = new Date().toISOString(); // Events past their start time are candidates for archiving
 
+    // Past vs. active is split client-side below (isActive), not by a
+    // separate query — both queries just fetch everything created/joined.
     Promise.all([
-      // Active created events
       supabase.from('events').select('*').eq('organizer_email', user.email).order('date', { ascending: false }),
-      // Past created events
-      Promise.resolve({ data: [] }), // past created handled client-side
-      // Active joined events — anything the user is a participant of, including events they organize themselves
+      // Anything the user is a participant of, including events they organize themselves
       supabase.from('events').select('*').contains('participants', [user.email]).order('date', { ascending: true }),
-      // Past joined events
-      Promise.resolve({ data: [] }), // past joined handled client-side
-    ]).then(([{ data: allMine, error: mineError }, _unused1, { data: allJoined, error: joinedError }, _unused2]) => {
+    ]).then(([{ data: allMine, error: mineError }, { data: allJoined, error: joinedError }]) => {
       if (mineError || joinedError) {
-        toast.error('Nepodařilo se načíst tvé události.');
+        toast.error(lang === 'cs' ? 'Nepodařilo se načíst tvé události.' : 'Failed to load your events.');
         setLoadingData(false);
         return;
       }
       const now = new Date();
-      const isActive = (e) => {
-        const end = e.end_time ? new Date(e.end_time) : new Date(new Date(e.date).getTime() + 2*60*60*1000);
-        return end > now;
-      };
+      const isActive = (e) => !isEventOver(e, now);
       const allMyEvents = allMine || [];
       const allJoinedEvents = allJoined || [];
       setCreated(allMyEvents.filter(isActive));
@@ -90,7 +83,7 @@ export default function MyEvents() {
       setPastJoined(allJoinedEvents.filter(e => !isActive(e)));
       setLoadingData(false);
     }).catch(() => {
-      toast.error('Nepodařilo se načíst tvé události.');
+      toast.error(lang === 'cs' ? 'Nepodařilo se načíst tvé události.' : 'Failed to load your events.');
       setLoadingData(false);
     });
   }, [user?.id]);
@@ -103,7 +96,7 @@ export default function MyEvents() {
       setJoined(prev => prev.filter(e => e.id !== event.id));
       toast.success(tr.attendanceCancelled || 'Účast zrušena.');
     } else {
-      toast.error('Nepodařilo se zrušit účast.');
+      toast.error(lang === 'cs' ? 'Nepodařilo se zrušit účast.' : 'Failed to cancel attendance.');
     }
   };
 

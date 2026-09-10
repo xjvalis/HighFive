@@ -15,7 +15,13 @@ production — there is no staging environment).
   primitives (`button.jsx`, `dialog.jsx`, …).
 - `src/lib/` — cross-cutting utilities with no React in them: `supabaseClient.js`,
   `categories.js`, `geocoding.js`, `i18n.js`, `notifTemplates.js`, `svStyles.js`
-  (shared design-token style objects — see below).
+  (shared design-token style objects — see below), `events.js` (`isEventFull`,
+  `isEventOver` — use these, don't re-derive the formula), `premium.js`
+  (`isPremiumProfile`, `canJoinEvent`, `canCreateEvent`,
+  `monthlyJoinsUsed`/`monthlyCreatesUsed`, `MONTHLY_JOIN_LIMIT`/
+  `MONTHLY_CREATE_LIMIT` — client-side UI gating only; `supabase/functions/
+  join-event` and `create-event` hold the authoritative server-side copies
+  and can't import this, so keep both in sync by hand if a limit changes).
 - `src/hooks/`, `src/contexts/` — `CurrentUserContext` is the one context; most state
   is local or fetched per-page.
 - `supabase/` — `schema.sql` is the full current schema (reference/fresh-install use);

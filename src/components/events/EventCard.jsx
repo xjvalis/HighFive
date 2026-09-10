@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { format, isToday, isTomorrow } from "date-fns";
 import { getCategoryStyle, getCategoryLabel } from "@/lib/categories";
+import { isEventFull } from "@/lib/events";
 import { SvIcon } from "@/components/icons/SvIcon";
 import { useContext } from "react";
 import { LanguageContext } from "@/lib/language";
@@ -23,7 +24,7 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
   const navigate = useNavigate();
   const cat = getCategoryStyle(event.category);
   const participantCount = event.participants?.length || 0;
-  const isFull = event.max_capacity && participantCount >= event.max_capacity;
+  const isFull = isEventFull(event);
 
   const handleJoinClick = async (e) => {
     e.preventDefault();

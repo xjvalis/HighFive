@@ -2,6 +2,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-le
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { getCategoryStyle } from "@/lib/categories";
+import { isEventFull } from "@/lib/events";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useContext } from "react";
@@ -91,7 +92,7 @@ export default function EventMap({ events, userLocation, radius }) {
         {/* Event markers */}
         {eventsWithCoords.map(event => {
           const participantCount = event.participants?.length || 0;
-          const isFull = event.max_capacity && participantCount >= event.max_capacity;
+          const isFull = isEventFull(event);
           return (
             <Marker
               key={event.id}

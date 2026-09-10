@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { ChevronDown, ChevronUp, Mail, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
+import { isEventFull } from '@/lib/events';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import { toast } from 'sonner';
@@ -29,7 +30,7 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
   const cat = getCategoryStyle(event.category);
   const participants = event.participants || [];
   const waitlist = event.waitlist || [];
-  const isFull = event.max_capacity && participants.length >= event.max_capacity;
+  const isFull = isEventFull(event);
 
   const sendMessage = async () => {
     const recipients = participants.filter(email => email !== user?.email);

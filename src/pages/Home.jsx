@@ -17,6 +17,8 @@ import { lazy, Suspense } from 'react';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { getCurrentPosition } from '@/lib/nativeGeolocation';
 import EmptyState from '@/components/ui/EmptyState';
+import { isEventFull, isEventOver } from '@/lib/events';
+import { isPremiumProfile, canJoinEvent, monthlyJoinsUsed, MONTHLY_JOIN_LIMIT } from '@/lib/premium';
 const EventMap = lazy(() => import('@/components/events/EventMap'));
 
 const PAGE_SIZE = 15;
@@ -140,7 +142,7 @@ export default function Home() {
     let evts = userLocation ? events.filter(e => !e.latitude || !e.longitude || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius) : events;
     if (sort === 'rightNow') {
       const now = new Date();
-      evts = evts.filter(e => { const end = e.end_time ? new Date(e.end_time) : new Date(new Date(e.date).getTime() + 2*60*60*1000); return now <= end; });
+      evts = evts.filter(e => !isEventOver(e, now));
     }
     if (sort === 'forYou' && profile?.favorite_categories?.length) {
       const favCats = new Set(profile.favorite_categories);
@@ -166,15 +168,8 @@ export default function Home() {
     if (!user) { toast.info(lang === 'cs' ? 'Přihlas se pro přidání na event.' : 'Sign in to join events.'); return; }
     const isJoined = event.participants?.includes(user.email);
     const isOnWaitlist = event.waitlist?.includes(user.email);
-    const isFull = event.max_capacity && (event.participants?.length || 0) >= event.max_capacity;
-    if (!isJoined && !isOnWaitlist) {
-      const isPremium = profile?.is_premium || ['plus','creator'].includes(profile?.subscription_plan);
-      if (!isPremium) {
-        const now = new Date(); const reset = profile?.monthly_reset_date ? new Date(profile.monthly_reset_date) : null;
-        const isNew = !reset || now.getFullYear()>reset.getFullYear() || now.getMonth()>reset.getMonth();
-        if ((isNew ? 0 : profile?.monthly_join_count||0) >= 3) { setShowPremium(true); return; }
-      }
-    }
+    const isFull = isEventFull(event);
+    if (!isJoined && !isOnWaitlist && !canJoinEvent(profile)) { setShowPremium(true); return; }
     const action = isJoined ? 'leave' : isOnWaitlist ? 'leave_waitlist' : isFull ? 'join_waitlist' : 'join';
     const { data, error } = await supabase.functions.invoke('join-event', { body: { event_id: event.id, action } });
     if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.'); return data; }
@@ -289,17 +284,15 @@ export default function Home() {
         )}
       </div>
 
-      {!profileLoading && profile && !profile.is_premium && profile.subscription_plan !== 'plus' && profile.subscription_plan !== 'creator' && !premiumBannerDismissed && (() => {
-        const now=new Date(); const reset=profile.monthly_reset_date?new Date(profile.monthly_reset_date):null;
-        const isNew=!reset||now.getFullYear()>reset.getFullYear()||now.getMonth()>reset.getMonth();
-        const used=isNew?0:profile.monthly_join_count||0; const remaining=3-used;
+      {!profileLoading && profile && !isPremiumProfile(profile) && !premiumBannerDismissed && (() => {
+        const remaining = MONTHLY_JOIN_LIMIT - monthlyJoinsUsed(profile);
         return (
           <div className="mb-2 flex items-center justify-between gap-2 bg-violet-50/50 border border-violet-200/60 rounded-xl px-3 py-2">
             <button className="flex-1 text-left" onClick={()=>setShowPremium(true)}>
               <span className="text-xs font-medium text-violet-700">
                 {lang === 'cs'
-                  ? (remaining<=0?'Vyčerpal/a jsi limit 3 přihlášení · Upgraduj na Plus →':remaining<=1?`Zbývá ${remaining} ze 3 přihlášení · Upgraduj →`:'Získej neomezené přihlašování - Plus od 100 Kč/měs')
-                  : (remaining<=0?"You've used your 3 free joins this month · Upgrade to Plus →":remaining<=1?`${remaining} of 3 joins left · Upgrade →`:'Get unlimited joins - Plus from 100 Kč/mo')}
+                  ? (remaining<=0?`Vyčerpal/a jsi limit ${MONTHLY_JOIN_LIMIT} přihlášení · Upgraduj na Plus →`:remaining<=1?`Zbývá ${remaining} ze ${MONTHLY_JOIN_LIMIT} přihlášení · Upgraduj →`:'Získej neomezené přihlašování - Plus od 100 Kč/měs')
+                  : (remaining<=0?`You've used your ${MONTHLY_JOIN_LIMIT} free joins this month · Upgrade to Plus →`:remaining<=1?`${remaining} of ${MONTHLY_JOIN_LIMIT} joins left · Upgrade →`:'Get unlimited joins - Plus from 100 Kč/mo')}
               </span>
             </button>
             <button onClick={()=>{setPremiumBannerDismissed(true);sessionStorage.setItem('hf_premium_banner_dismissed','1');}} className="text-muted-foreground p-0.5"><X className="w-3 h-3"/></button>

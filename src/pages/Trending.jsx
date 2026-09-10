@@ -6,12 +6,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { useT } from '@/lib/i18n';
 import { toast } from 'sonner';
 import { svPageTitle, svSubtitle, svCard } from '@/lib/svStyles';
-
-// Same "is it over?" rule the rest of the app uses (MyEvents, Home's Right Now
-// tab): an event ends at end_time, or 2h after it starts if none was set.
-const endOf = (e) => e.end_time
-  ? new Date(e.end_time)
-  : new Date(new Date(e.date).getTime() + 2 * 60 * 60 * 1000);
+import { isEventOver } from '@/lib/events';
 
 // hot_score exists in the DB but is null on most rows, so rank on the signals
 // the app actually maintains: people signed up, an active discussion, being
@@ -39,7 +34,7 @@ export default function Trending() {
 
   useEffect(() => {
     // Events may run up to 24h (enforced in CreateEvent), so anything started
-    // within the last 24h could still be going; endOf() decides precisely.
+    // within the last 24h could still be going; isEventOver() decides precisely.
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     supabase.from('events').select('*').eq('is_approved', true)
       .gt('date', cutoff).order('date', { ascending: true }).limit(100)
@@ -53,7 +48,7 @@ export default function Trending() {
   const trending = useMemo(() => {
     const now = new Date();
     return (events || [])
-      .filter(e => endOf(e) > now)
+      .filter(e => !isEventOver(e, now))
       .sort((a, b) => liveliness(b, now) - liveliness(a, now) || new Date(a.date) - new Date(b.date))
       .slice(0, 30);
   }, [events]);

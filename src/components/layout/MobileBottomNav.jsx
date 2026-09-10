@@ -28,7 +28,7 @@ export default function MobileBottomNav() {
     }
     if (user) {
       return (
-        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#F0EAFC' }}>
+        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'var(--sv-brand-purple-bg)' }}>
           <User className="w-3.5 h-3.5" style={{ color: 'var(--sv-brand-purple)' }} />
         </div>
       );
