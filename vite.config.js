@@ -44,5 +44,13 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.js'],
     css: false,
+    env: {
+      // geocoding.test.js exercises the Mapy.cz code path and asserts on its
+      // response shape — that must not depend on whether the machine
+      // running the tests happens to have a real key in .env (it won't in
+      // CI). A synthetic key here just needs to be truthy; every network
+      // call in that test is mocked, nothing real is ever sent.
+      VITE_MAPY_CZ_API_KEY: 'test-key',
+    },
   },
 })
