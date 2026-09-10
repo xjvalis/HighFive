@@ -14,7 +14,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # jsdom 30's bundled undici calls a webidl helper only present in
+          # newer Node builds — Node 20 on Actions' runner image hits
+          # "webidl.util.markAsUncloneable is not a function" trying to
+          # start the test workers. Node 22 (and Vite 6 supports it) has it.
+          node-version: 22
           cache: npm
 
       - run: npm ci
