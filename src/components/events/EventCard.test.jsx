@@ -49,4 +49,15 @@ describe('EventCard', () => {
     renderCard({ event: { ...baseEvent, category: 'NopeNotACategory', max_capacity: 5 } });
     expect(screen.getByText('Test Event')).toBeInTheDocument();
   });
+
+  it('agrees "účastník" for 1, "účastníci" for 2-4, "účastníků" for 5+', () => {
+    const { container: one } = renderCard({ event: { ...baseEvent, max_capacity: 5, participants: ['a@x.com'] } });
+    expect(one.textContent).toContain('1 účastník ze 5');
+
+    const { container: three } = renderCard({ event: { ...baseEvent, max_capacity: 5, participants: ['a@x.com', 'b@x.com', 'c@x.com'] } });
+    expect(three.textContent).toContain('3 účastníci ze 5');
+
+    const { container: seven } = renderCard({ event: { ...baseEvent, max_capacity: 10, participants: Array(7).fill('a@x.com') } });
+    expect(seven.textContent).toContain('7 účastníků ze 10');
+  });
 });

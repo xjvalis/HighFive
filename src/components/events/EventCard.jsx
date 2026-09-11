@@ -18,6 +18,15 @@ function whenLabel(date, lang) {
   return lang === 'cs' ? WEEKDAYS_CS[d.getDay()] : format(d, 'EEEE').toLowerCase();
 }
 
+// Czech noun agreement for "participant(s)" — 1/2-4/5+ (doesn't special-case
+// compound numbers like 21, but those are rare for event headcounts).
+function participantWord(n, lang) {
+  if (lang !== 'cs') return n === 1 ? 'participant' : 'participants';
+  if (n === 1) return 'účastník';
+  if (n >= 2 && n <= 4) return 'účastníci';
+  return 'účastníků';
+}
+
 export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavorited }) {
   const { lang } = useContext(LanguageContext);
   const [joining, setJoining] = useState(false);
@@ -71,7 +80,10 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
         <span className="ml-auto flex items-center flex-shrink-0" style={{ gap: 8 }}>
           {event.max_capacity && (
             <span style={{ font: "400 10.5px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)' }}>
-              {lang === 'cs' ? `${participantCount} ze ${event.max_capacity}` : `${participantCount} of ${event.max_capacity}`}
+              <span style={{ color: 'var(--sv-brand-orange)', fontWeight: 500 }}>{participantCount}</span>
+              {' '}{participantWord(participantCount, lang)}{' '}
+              {lang === 'cs' ? 'ze' : 'of'}{' '}
+              <span style={{ color: 'var(--sv-brand-purple)', fontWeight: 500 }}>{event.max_capacity}</span>
             </span>
           )}
           <button onClick={handleFavoriteClick} aria-label={lang === 'cs' ? 'Přidat do oblíbených' : 'Add to favorites'}>

@@ -75,7 +75,7 @@ export const translations = {
     hotRightNow: "Hot Right Now",
     justPosted: "Just Posted",
     communityTitle: "Community",
-    communityText: "Together is always more. Find people for whatever you're in the mood for today - no pressure, no elaborate profiles. Just good company when you want it. 🙌",
+    communityText: "Everything's better together. Find people for shared activities - no likes, no stress, no ads. Just friends and community. Being Spoluvíc.",
 
     motivationMessages: (todayCount, activePeople, newToday, firstTimers) => [
       `${activePeople} people looking for someone to go out with today`,
@@ -354,7 +354,7 @@ export const translations = {
     hotRightNow: "Hot právě teď",
     justPosted: "Právě přidáno",
     communityTitle: "Komunita",
-    communityText: "Spolu je toho vždycky víc. Najdeš tu lidi na to, na co máš zrovna chuť - bez tlaku, bez velkých profilů. Jen dobrá parta, když ji potřebuješ. 🙌",
+    communityText: "Spolu se dělá všechno lépe. Najdi si parťáky na společné aktivity - bez lajků, bez stresu, bez reklam. Jen přátelé a komunita. Být Spoluvíc.",
 
     motivationMessages: (todayCount, activePeople, newToday, firstTimers) => [
       `${activePeople} lidí dneska hledá parťáka`,
