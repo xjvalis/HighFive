@@ -22,7 +22,7 @@ function LangSwitcher() {
   return (
     <button
       onClick={() => setLang(lang === 'cs' ? 'en' : 'cs')}
-      style={{ font: "400 10px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)' }}
+      style={{ font: "400 10.5px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)' }}
       className="px-2 py-1.5 rounded-xl hover:bg-[var(--sv-surface-muted)] transition-colors"
     >
       {lang === 'cs' ? 'CZ' : 'EN'}
@@ -98,7 +98,7 @@ function DesktopSearch() {
             onChange={handleInput}
             onFocus={() => results.length > 0 && setOpen(true)}
             placeholder={tr.searchPlaceholder}
-            style={{ font: "300 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}
+            style={{ font: "300 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}
             className="flex-1 min-w-0 bg-transparent border-0 outline-none placeholder:text-[var(--sv-placeholder)]"
           />
           {loading
@@ -245,7 +245,7 @@ export default function TopNav() {
             <button
               onClick={() => navigate(user ? '/create' : '/login')}
               className="hidden xl:flex items-center gap-1.5 rounded-full transition-opacity hover:opacity-90"
-              style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', font: "500 11.5px 'Outfit', sans-serif", padding: '7px 14px' }}
+              style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', font: "500 12px 'Outfit', sans-serif", padding: '7px 14px' }}
             >
               <Plus className="w-3.5 h-3.5"/>
               {lang === 'cs' ? 'Přidat' : 'Add'}

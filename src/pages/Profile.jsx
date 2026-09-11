@@ -19,9 +19,9 @@ import { SvIcon } from '@/components/icons/SvIcon';
 import { svPageTitle, svCard, svField, svLabel, svMeta, svSectionLabel } from '@/lib/svStyles';
 import { monthlyJoinsUsed, monthlyCreatesUsed, MONTHLY_JOIN_LIMIT, MONTHLY_CREATE_LIMIT } from '@/lib/premium';
 
-const chip = { display: 'inline-flex', alignItems: 'center', gap: 4, font: "500 10.5px 'Outfit', sans-serif", padding: '3px 9px', borderRadius: 'var(--sv-r-pill)', background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)' };
-const ghostBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)', borderRadius: 'var(--sv-r-pill)', padding: '7px 14px', font: "500 12px 'Outfit', sans-serif" };
-const actionBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 'var(--sv-r-pill)', padding: '7px 14px', font: "500 12px 'Outfit', sans-serif" };
+const chip = { display: 'inline-flex', alignItems: 'center', gap: 4, font: "500 11px 'Outfit', sans-serif", padding: '3px 9px', borderRadius: 'var(--sv-r-pill)', background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)' };
+const ghostBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)', borderRadius: 'var(--sv-r-pill)', padding: '7px 14px', font: "500 12.5px 'Outfit', sans-serif" };
+const actionBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 'var(--sv-r-pill)', padding: '7px 14px', font: "500 12.5px 'Outfit', sans-serif" };
 
 function ReliabilityBadge({ score, noshowCount, lang }) {
   if (score === null || score === undefined || noshowCount === 0) {
@@ -110,14 +110,14 @@ export default function Profile() {
               <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload}/>
               {profile?.avatar_url
                 ? <img src={profile.avatar_url} alt="avatar" className="w-14 h-14 object-cover" style={{ borderRadius: 14 }}/>
-                : <div className="w-14 h-14 flex items-center justify-center" style={{ borderRadius: 14, background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', font: "500 22px 'Outfit', sans-serif" }}>{user.email?.[0]?.toUpperCase() || '?'}</div>}
+                : <div className="w-14 h-14 flex items-center justify-center" style={{ borderRadius: 14, background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', font: "500 23.5px 'Outfit', sans-serif" }}>{user.email?.[0]?.toUpperCase() || '?'}</div>}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderRadius: 14, background: 'rgba(58,52,63,0.5)' }}>
                 {uploadingAvatar ? <Loader2 className="w-5 h-5 text-white animate-spin"/> : <Camera className="w-5 h-5 text-white"/>}
               </div>
             </label>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 style={{ ...svPageTitle, fontSize: 16 }}>{profile?.display_name || user.email}</h1>
+                <h1 style={{ ...svPageTitle, fontSize: 17 }}>{profile?.display_name || user.email}</h1>
                 {profile?.is_verified && <BadgeCheck className="w-4 h-4" style={{ color: 'var(--sv-brand-purple)' }}/>}
                 {profile?.is_premium && <span style={chip}>Premium</span>}
                 <ReliabilityBadge score={profile?.reliability_score} noshowCount={profile?.noshow_count || 0} lang={lang}/>
@@ -162,7 +162,7 @@ export default function Profile() {
                   return (
                     <button key={cat.name} type="button" onClick={() => toggleCategory(cat.name)} className="flex items-center transition-all"
                       style={{ gap: 5, padding: '6px 12px', borderRadius: 'var(--sv-r-pill)', font: `${active ? 500 : 400} 12px 'Outfit', sans-serif`, background: active ? cat.bg : 'var(--sv-surface-muted)', color: active ? cat.ink : 'var(--sv-meta)' }}>
-                      <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 12 }}>{cat.emoji}</span>
+                      <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 12.5 }}>{cat.emoji}</span>
                       {getCategoryLabel(cat.name, lang)}
                     </button>
                   );
@@ -172,7 +172,7 @@ export default function Profile() {
           </div>
         ) : (
           <div>
-            {profile?.bio && <p style={{ font: "300 13px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginBottom: 10 }}>{profile.bio}</p>}
+            {profile?.bio && <p style={{ font: "300 14px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginBottom: 10 }}>{profile.bio}</p>}
             <div className="flex flex-wrap gap-3 mb-2.5">
               {profile?.location && <p style={svMeta} className="flex items-center gap-1"><SvIcon name="pin" size={11} style={{ color: '#B4AEA6' }}/>{profile.location}</p>}
               {profile?.age && <p style={svMeta}>{profile.age} {tr.yearsOld}</p>}
@@ -182,8 +182,8 @@ export default function Profile() {
                 {profile.favorite_categories.map(c => {
                   const cat = CATEGORIES.find(cat => cat.name === c);
                   return cat ? (
-                    <span key={c} className="flex items-center" style={{ gap: 4, background: cat.bg, color: cat.ink, borderRadius: 'var(--sv-r-pill)', padding: '3px 9px', font: "400 10.5px 'Outfit', sans-serif" }}>
-                      <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 10 }}>{cat.emoji}</span>{getCategoryLabel(c, lang)}
+                    <span key={c} className="flex items-center" style={{ gap: 4, background: cat.bg, color: cat.ink, borderRadius: 'var(--sv-r-pill)', padding: '3px 9px', font: "400 11px 'Outfit', sans-serif" }}>
+                      <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 10.5 }}>{cat.emoji}</span>{getCategoryLabel(c, lang)}
                     </span>
                   ) : null;
                 })}
@@ -196,7 +196,7 @@ export default function Profile() {
         {profile?.is_premium ? (
           <div style={{ marginTop: 18, borderRadius: 'var(--sv-r-card)', background: 'var(--sv-brand-purple-bg)', padding: 16 }}>
             <div className="flex items-center gap-2 mb-3">
-              <span style={{ font: "500 13px 'Outfit', sans-serif", color: 'var(--sv-brand-purple-ink)' }}>Spoluvíc Premium</span>
+              <span style={{ font: "500 14px 'Outfit', sans-serif", color: 'var(--sv-brand-purple-ink)' }}>Spoluvíc Premium</span>
               <span style={{ ...chip, background: 'rgba(255,255,255,0.6)', color: 'var(--sv-brand-purple-ink)' }}>{profile?.subscription_plan === 'creator' ? 'Creator' : 'Plus'}</span>
             </div>
             <button className="w-full" style={{ ...ghostBtn, background: 'var(--sv-surface)', width: '100%' }} onClick={async () => {
@@ -207,10 +207,10 @@ export default function Profile() {
         ) : (
           <div style={{ marginTop: 18, borderRadius: 'var(--sv-r-card)', background: 'var(--sv-brand-purple-bg)', padding: 16, cursor: 'pointer' }} onClick={() => setShowPremium(true)}>
             <div className="flex items-center justify-between mb-1.5">
-              <span style={{ font: "500 13px 'Outfit', sans-serif", color: 'var(--sv-brand-purple-ink)' }}>Spoluvíc Premium</span>
-              <span style={{ font: "300 11px 'Outfit', sans-serif", color: '#5A4A83' }}>{lang === 'cs' ? 'Plus od 100 Kč/měs' : 'Plus from 100 Kč/mo'}</span>
+              <span style={{ font: "500 14px 'Outfit', sans-serif", color: 'var(--sv-brand-purple-ink)' }}>Spoluvíc Premium</span>
+              <span style={{ font: "300 11.5px 'Outfit', sans-serif", color: '#5A4A83' }}>{lang === 'cs' ? 'Plus od 100 Kč/měs' : 'Plus from 100 Kč/mo'}</span>
             </div>
-            <p style={{ font: "300 11.5px 'Outfit', sans-serif", color: '#5A4A83', marginBottom: 12 }}>{lang === 'cs' ? 'Neomezené eventy, bez limitů.' : 'Unlimited events, no limits.'}</p>
+            <p style={{ font: "300 12px 'Outfit', sans-serif", color: '#5A4A83', marginBottom: 12 }}>{lang === 'cs' ? 'Neomezené eventy, bez limitů.' : 'Unlimited events, no limits.'}</p>
             <button onClick={e => { e.stopPropagation(); setShowPremium(true); }} className="w-full" style={{ ...ghostBtn, background: 'var(--sv-surface)', width: '100%' }}>{tr.viewPlans}</button>
           </div>
         )}
@@ -233,7 +233,7 @@ export default function Profile() {
             { key: 'notify_email_event_updates', label: tr.notifyEmailUpdates, desc: tr.notifyEmailUpdatesDesc },
           ].map(({ key, label, desc }) => (
             <div key={key} className="flex items-center justify-between gap-3">
-              <div><p style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>{label}</p><p style={svMeta}>{desc}</p></div>
+              <div><p style={{ font: "500 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>{label}</p><p style={svMeta}>{desc}</p></div>
               <button onClick={() => updateProfile({ [key]: !profile?.[key] })} className="relative inline-flex flex-shrink-0 transition-colors" style={{ height: 20, width: 36, borderRadius: 999, background: profile?.[key] ? 'var(--sv-brand-purple)' : 'var(--sv-surface-muted)' }}>
                 <span className="pointer-events-none inline-block transform rounded-full bg-white shadow transition" style={{ height: 16, width: 16, marginTop: 2, marginLeft: profile?.[key] ? 18 : 2 }}/>
               </button>
@@ -259,7 +259,7 @@ export default function Profile() {
 
       {/* Danger zone */}
       <div style={{ ...svCard, padding: 18 }}>
-        <h3 style={{ font: "500 13px 'Outfit', sans-serif", color: '#A9564C', marginBottom: 4 }}>
+        <h3 style={{ font: "500 14px 'Outfit', sans-serif", color: '#A9564C', marginBottom: 4 }}>
           {lang === 'cs' ? 'Nebezpečná zóna' : 'Danger zone'}
         </h3>
         <p style={{ ...svMeta, marginBottom: 12 }}>
@@ -269,7 +269,7 @@ export default function Profile() {
         {/* Reliability reset - Premium only, only if has noshows */}
         {(profile?.is_premium || ['plus','creator'].includes(profile?.subscription_plan)) && (profile?.noshow_count || 0) > 0 && (
           <div className="mb-4" style={{ padding: 12, background: 'var(--sv-surface-muted)', borderRadius: 10 }}>
-            <p style={{ font: "500 11.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginBottom: 4 }}>
+            <p style={{ font: "500 12px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginBottom: 4 }}>
               {lang === 'cs' ? `Skóre spolehlivosti: ${profile?.reliability_score ?? 100}/100` : `Reliability score: ${profile?.reliability_score ?? 100}/100`}
             </p>
             <p style={{ ...svMeta, marginBottom: 8 }}>
@@ -318,7 +318,7 @@ export default function Profile() {
         />
       </div>
 
-      <p className="text-center" style={{ font: "300 10.5px 'Outfit', sans-serif", color: 'var(--sv-meta)', marginTop: 8, marginBottom: 8 }}>
+      <p className="text-center" style={{ font: "300 11px 'Outfit', sans-serif", color: 'var(--sv-meta)', marginTop: 8, marginBottom: 8 }}>
         <Link to="/terms">{lang === 'cs' ? 'Podmínky používání' : 'Terms of use'}</Link>
         {' · '}
         <Link to="/privacy">{lang === 'cs' ? 'Ochrana osobních údajů' : 'Privacy policy'}</Link>

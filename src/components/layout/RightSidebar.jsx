@@ -53,29 +53,29 @@ export default function RightSidebar() {
   }, []);
 
   return (
-    <div className="flex flex-col" style={{ gap: 8, fontFamily: "'Outfit', system-ui, sans-serif" }}>
+    <div className="flex flex-col" style={{ gap: 8, paddingTop: 4, fontFamily: "'Outfit', system-ui, sans-serif" }}>
       <div style={{ background: 'var(--sv-brand-purple-bg)', borderRadius: 'var(--sv-r-card)', padding: 12 }}>
-        <div style={{ font: "500 12px 'Outfit', sans-serif", color: 'var(--sv-brand-purple-ink)' }}>{tr.communityTitle}</div>
-        <div style={{ marginTop: 5, font: "300 11.5px 'Outfit', sans-serif", lineHeight: 1.5, color: '#5A4A83' }}>{tr.communityText}</div>
+        <div style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-brand-purple-ink)' }}>{tr.communityTitle}</div>
+        <div style={{ marginTop: 5, font: "300 12px 'Outfit', sans-serif", lineHeight: 1.5, color: '#5A4A83' }}>{tr.communityText}</div>
       </div>
 
       <div style={cardStyle}>
-        <div className="flex items-center gap-1.5" style={{ font: "500 11.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>
-          <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 12 }}>🔥</span>{tr.hotRightNow}
+        <div className="flex items-center gap-1.5" style={{ font: "500 12px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>
+          <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 12.5 }}>🔥</span>{tr.hotRightNow}
         </div>
         <div className="flex flex-col mt-2" style={{ gap: 6 }}>
           {hotEvents.map(e => <EventLine key={e.id} event={e}/>)}
-          {hotEvents.length === 0 && <p style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>{tr.noEventsYet}</p>}
+          {hotEvents.length === 0 && <p style={{ font: "300 12px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>{tr.noEventsYet}</p>}
         </div>
       </div>
 
       <div style={cardStyle}>
-        <div className="flex items-center gap-1.5" style={{ font: "500 11.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>
-          <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 12 }}>🕐</span>{tr.justPosted}
+        <div className="flex items-center gap-1.5" style={{ font: "500 12px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>
+          <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 12.5 }}>🕐</span>{tr.justPosted}
         </div>
         <div className="flex flex-col mt-2" style={{ gap: 6 }}>
           {recentEvents.map(e => <EventLine key={e.id} event={e}/>)}
-          {recentEvents.length === 0 && <p style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>{tr.noEventsYet}</p>}
+          {recentEvents.length === 0 && <p style={{ font: "300 12px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>{tr.noEventsYet}</p>}
         </div>
       </div>
     </div>
@@ -88,11 +88,11 @@ function EventLine({ event }) {
     <Link to={`/event/${event.id}`} className="flex items-baseline justify-between gap-2 group">
       <span
         className="line-clamp-1 group-hover:opacity-70 transition-opacity"
-        style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}
+        style={{ font: "300 12px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}
       >
         {event.title}
       </span>
-      {capacity && <span style={{ font: "400 10px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)', flexShrink: 0 }}>{capacity}</span>}
+      {capacity && <span style={{ font: "400 10.5px 'IBM Plex Mono', monospace", color: 'var(--sv-meta)', flexShrink: 0 }}>{capacity}</span>}
     </Link>
   );
 }

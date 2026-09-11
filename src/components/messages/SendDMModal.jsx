@@ -27,17 +27,17 @@ export default function SendDMModal({ open, onClose, toEmail, toName, fromUser, 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
-        <DialogHeader><DialogTitle style={{ font: "500 15px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{lang === 'cs' ? 'Soukromá zpráva' : 'Direct message'} → {toName}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle style={{ font: "500 16px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{lang === 'cs' ? 'Soukromá zpráva' : 'Direct message'} → {toName}</DialogTitle></DialogHeader>
         {event && (
-          <div className="flex items-center gap-1.5 mb-1" style={{ background: 'var(--sv-brand-purple-bg)', borderRadius: 10, padding: '8px 12px', font: "300 11.5px 'Outfit', sans-serif", color: '#5A4A83' }}>
+          <div className="flex items-center gap-1.5 mb-1" style={{ background: 'var(--sv-brand-purple-bg)', borderRadius: 10, padding: '8px 12px', font: "300 12px 'Outfit', sans-serif", color: '#5A4A83' }}>
             <SvIcon name="calendar" size={12} style={{ color: 'var(--sv-brand-purple)' }}/>
             {lang === 'cs' ? 'Ohledně události:' : 'Regarding event:'} <span style={{ fontWeight: 500, color: 'var(--sv-brand-purple-ink)' }}>{event.title}</span>
           </div>
         )}
         <Textarea value={content} onChange={e=>setContent(e.target.value)} placeholder={lang === 'cs' ? 'Napiš svou zprávu...' : 'Write your message...'} className="resize-none min-h-[120px]" style={svField} autoFocus/>
         <div className="flex gap-2 justify-end">
-          <button onClick={onClose} style={{ background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)', borderRadius: 'var(--sv-r-pill)', padding: '8px 16px', font: "500 12.5px 'Outfit', sans-serif" }}>{lang === 'cs' ? 'Zrušit' : 'Cancel'}</button>
-          <button onClick={handleSend} disabled={sending||!content.trim()} className="flex items-center gap-2" style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 'var(--sv-r-pill)', padding: '8px 16px', font: "500 12.5px 'Outfit', sans-serif", opacity: (sending||!content.trim())?0.5:1 }}>{sending?<Loader2 className="w-4 h-4 animate-spin"/>:<Send className="w-4 h-4"/>}{lang === 'cs' ? 'Odeslat' : 'Send'}</button>
+          <button onClick={onClose} style={{ background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)', borderRadius: 'var(--sv-r-pill)', padding: '8px 16px', font: "500 13.5px 'Outfit', sans-serif" }}>{lang === 'cs' ? 'Zrušit' : 'Cancel'}</button>
+          <button onClick={handleSend} disabled={sending||!content.trim()} className="flex items-center gap-2" style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 'var(--sv-r-pill)', padding: '8px 16px', font: "500 13.5px 'Outfit', sans-serif", opacity: (sending||!content.trim())?0.5:1 }}>{sending?<Loader2 className="w-4 h-4 animate-spin"/>:<Send className="w-4 h-4"/>}{lang === 'cs' ? 'Odeslat' : 'Send'}</button>
         </div>
       </DialogContent>
     </Dialog>

@@ -29,7 +29,7 @@ export default function LeftSidebar() {
   const visibleCategories = expanded ? CATEGORIES : CATEGORIES.slice(0, VISIBLE_COUNT);
 
   return (
-    <div className="flex flex-col gap-5" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+    <div className="flex flex-col gap-5" style={{ paddingTop: 8, fontFamily: "'Outfit', system-ui, sans-serif" }}>
       <div className="flex flex-col" style={{ gap: 2 }}>
         {navItems.map(({ icon, label, path }) => {
           const active = location.pathname === path && !activeCategory;
@@ -39,7 +39,7 @@ export default function LeftSidebar() {
               to={path}
               style={{
                 display: "flex", alignItems: "center", gap: 9, padding: "7px 12px 7px 0",
-                fontSize: 12.5, fontWeight: active ? 500 : 400,
+                fontSize: 13.5, fontWeight: active ? 500 : 400,
                 color: active ? 'var(--sv-ink)' : 'var(--sv-muted)',
                 background: active ? '#FFF3E6' : 'transparent',
                 borderRadius: 'var(--sv-r-pill)',
@@ -53,7 +53,7 @@ export default function LeftSidebar() {
       </div>
 
       <div>
-        <div style={{ font: "500 8.5px 'IBM Plex Mono', monospace", letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--sv-meta)' }}>
+        <div style={{ font: "500 9px 'IBM Plex Mono', monospace", letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--sv-meta)' }}>
           {tr.categories}
         </div>
         <div className="flex flex-col mt-2.5" style={{ gap: 8 }}>
@@ -62,11 +62,11 @@ export default function LeftSidebar() {
               key={cat.name}
               to={`/?category=${encodeURIComponent(cat.name)}`}
               className="flex items-center"
-              style={{ gap: 9, fontSize: 12.5, fontWeight: activeCategory === cat.name ? 500 : 400, color: 'var(--sv-ink-soft)' }}
+              style={{ gap: 9, fontSize: 13.5, fontWeight: activeCategory === cat.name ? 500 : 400, color: 'var(--sv-ink-soft)' }}
             >
               <span
                 className="flex items-center justify-center flex-shrink-0"
-                style={{ width: 21, height: 21, borderRadius: 'var(--sv-r-tile)', background: cat.bg, fontSize: 11, fontFamily: "var(--sv-font-emoji)" }}
+                style={{ width: 21, height: 21, borderRadius: 'var(--sv-r-tile)', background: cat.bg, fontSize: 11.5, fontFamily: "var(--sv-font-emoji)" }}
               >
                 {cat.emoji}
               </span>
@@ -77,7 +77,7 @@ export default function LeftSidebar() {
         <button
           onClick={() => setExpanded(e => !e)}
           className="mt-1"
-          style={{ paddingLeft: 30, fontSize: 11.5, fontWeight: 400, color: 'var(--sv-link)' }}
+          style={{ paddingLeft: 30, fontSize: 12, fontWeight: 400, color: 'var(--sv-link)' }}
         >
           {expanded ? tr.showLess : tr.moreCategories(CATEGORIES.length - VISIBLE_COUNT)}
         </button>

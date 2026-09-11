@@ -129,12 +129,12 @@ export default function CreateEvent() {
   if (!canCreateEvent(profile)) return (
     <div className="max-w-lg mx-auto text-center" style={{ padding: '48px 0 12px' }}>
       <div className="flex justify-center mb-3"><PixelCircle size={40} color="var(--sv-empty-dot)" /></div>
-      <h2 style={{ font: "500 15px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginBottom: 6 }}>{tr.createWeeklyLimitTitle}</h2>
+      <h2 style={{ font: "500 16px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginBottom: 6 }}>{tr.createWeeklyLimitTitle}</h2>
       <p style={{ ...metaStyle, marginBottom: 20 }}>{tr.createWeeklyLimitDesc}</p>
       <button
         onClick={() => setShowPremium(true)}
         className="inline-flex items-center gap-1.5 transition-opacity hover:opacity-90"
-        style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', font: "500 12px 'Outfit', sans-serif", padding: '8px 16px', borderRadius: 'var(--sv-r-pill)' }}
+        style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', font: "500 12.5px 'Outfit', sans-serif", padding: '8px 16px', borderRadius: 'var(--sv-r-pill)' }}
       >
         <Crown className="w-3.5 h-3.5"/>{tr.createViewPlans}
       </button>
@@ -148,7 +148,7 @@ export default function CreateEvent() {
         <ArrowLeft className="w-3.5 h-3.5"/>{tr.createBack}
       </button>
       <div style={{ background: 'var(--sv-surface)', border: '1px solid var(--sv-hairline)', borderRadius: 'var(--sv-r-card)', padding: 22 }}>
-        <h1 style={{ font: "500 19px 'Outfit', sans-serif", letterSpacing: '-0.03em', color: 'var(--sv-ink)', marginBottom: 4 }}>{tr.createTitle}</h1>
+        <h1 style={{ font: "500 20px 'Outfit', sans-serif", letterSpacing: '-0.03em', color: 'var(--sv-ink)', marginBottom: 4 }}>{tr.createTitle}</h1>
         <p style={{ ...metaStyle, marginBottom: 2 }}>{tr.createSubtitle}</p>
         <p style={{ ...metaStyle, marginBottom: 18 }}>{lang === 'cs' ? 'Pole označená * jsou povinná' : 'Fields marked * are required'}</p>
         <PremiumModal open={showPremium} onClose={() => setShowPremium(false)} profile={profile} onUpgrade={u => updateProfile(u)}/>
@@ -175,7 +175,7 @@ export default function CreateEvent() {
                       color: active ? cat.ink : 'var(--sv-meta)',
                     }}
                   >
-                    <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 12 }}>{cat.emoji}</span>
+                    <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 12.5 }}>{cat.emoji}</span>
                     {getCategoryLabel(cat.name, lang)}
                   </button>
                 );
@@ -204,7 +204,7 @@ export default function CreateEvent() {
                 <span style={{ color: 'var(--sv-meta)', fontWeight: 400, marginLeft: 4 }}>(max 24h)</span>
               </label>
               <DateTimePicker value={form.end_time} onChange={handleEndTimeChange} placeholder={lang === 'cs' ? 'Konec' : 'End time'} minDate={form.date || new Date().toISOString()}/>
-              {endTimeError && <p style={{ font: "300 11px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginTop: 4 }}>{endTimeError}</p>}
+              {endTimeError && <p style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', marginTop: 4 }}>{endTimeError}</p>}
             </div>
           </div>
 
@@ -216,7 +216,7 @@ export default function CreateEvent() {
                 type="button" onClick={() => setForm(f => ({ ...f, max_capacity: f.max_capacity === 'unlimited' ? '' : 'unlimited' }))}
                 className="flex-shrink-0 transition-all"
                 style={{
-                  padding: '0 14px', borderRadius: 10, font: "500 12px 'Outfit', sans-serif",
+                  padding: '0 14px', borderRadius: 10, font: "500 12.5px 'Outfit', sans-serif",
                   background: form.max_capacity === 'unlimited' ? 'var(--sv-action-bg)' : 'var(--sv-surface-muted)',
                   color: form.max_capacity === 'unlimited' ? 'var(--sv-action-ink)' : 'var(--sv-meta)',
                 }}
@@ -251,7 +251,7 @@ export default function CreateEvent() {
             {form.image_url ? (
               <div className="relative overflow-hidden h-40" style={{ borderRadius: 10 }}>
                 <img src={form.image_url} alt="Cover" className="w-full h-full object-cover"/>
-                <button type="button" onClick={() => setForm(f => ({ ...f, image_url: '' }))} className="absolute top-2 right-2" style={{ background: 'rgba(58,52,63,0.6)', color: '#fff', font: "400 11px 'Outfit', sans-serif", padding: '4px 10px', borderRadius: 'var(--sv-r-pill)' }}>{tr.createRemoveImage}</button>
+                <button type="button" onClick={() => setForm(f => ({ ...f, image_url: '' }))} className="absolute top-2 right-2" style={{ background: 'rgba(58,52,63,0.6)', color: '#fff', font: "400 11.5px 'Outfit', sans-serif", padding: '4px 10px', borderRadius: 'var(--sv-r-pill)' }}>{tr.createRemoveImage}</button>
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center h-28 cursor-pointer transition-colors" style={{ border: '1px dashed var(--sv-hairline)', borderRadius: 10, background: 'var(--sv-surface-muted)' }}>
@@ -266,7 +266,7 @@ export default function CreateEvent() {
           <button
             type="submit" disabled={loading || !form.title || !form.category || !form.location || !form.date || !form.description || !!endTimeError}
             className="w-full flex items-center justify-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 'var(--sv-r-pill)', padding: '11px 0', font: "500 13px 'Outfit', sans-serif" }}
+            style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 'var(--sv-r-pill)', padding: '11px 0', font: "500 14px 'Outfit', sans-serif" }}
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin"/>}
             {loading ? tr.createPosting : tr.createPostBtn}

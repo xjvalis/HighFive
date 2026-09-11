@@ -10,8 +10,8 @@ import { isNative, signInWithGoogleNative, NATIVE_AUTH_REDIRECT } from '@/lib/na
 import { SpoluvicLockup } from '@/components/brand/SpoluvicLogo';
 import { svField, svCard, svMeta, svActionPill } from '@/lib/svStyles';
 
-const loginBtn = { ...svActionPill, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '9px 0', font: "500 13px 'Outfit', sans-serif" };
-const outlineBtn = { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'var(--sv-surface)', border: '1px solid var(--sv-hairline)', borderRadius: 'var(--sv-r-pill)', padding: '9px 0', font: "400 13px 'Outfit', sans-serif", color: 'var(--sv-ink)' };
+const loginBtn = { ...svActionPill, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '9px 0', font: "500 14px 'Outfit', sans-serif" };
+const outlineBtn = { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'var(--sv-surface)', border: '1px solid var(--sv-hairline)', borderRadius: 'var(--sv-r-pill)', padding: '9px 0', font: "400 14px 'Outfit', sans-serif", color: 'var(--sv-ink)' };
 
 // Explicit redirect target for signup-confirmation and password-reset
 // emails — without this Supabase falls back to the dashboard's "Site URL",
@@ -152,9 +152,9 @@ export default function Login() {
 
           {mode === 'reset' && (
             <div>
-              <h2 style={{ font: "500 15px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginBottom: 14 }}>{lang === 'cs' ? 'Resetovat heslo' : 'Reset password'}</h2>
+              <h2 style={{ font: "500 16px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginBottom: 14 }}>{lang === 'cs' ? 'Resetovat heslo' : 'Reset password'}</h2>
               {resetSent
-                ? <p style={{ font: "300 12.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>{lang === 'cs' ? 'Email odeslán!' : 'Email sent!'}</p>
+                ? <p style={{ font: "300 13.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>{lang === 'cs' ? 'Email odeslán!' : 'Email sent!'}</p>
                 : <form onSubmit={handleReset} className="space-y-3">
                     <Input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required style={svField} />
                     <button type="submit" disabled={loading} style={{ ...loginBtn, opacity: loading ? 0.6 : 1 }}>

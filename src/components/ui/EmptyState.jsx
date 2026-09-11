@@ -24,8 +24,8 @@ export default function EmptyState({ title, note }) {
   return (
     <div style={{ padding: "22px 0 6px", textAlign: "center" }}>
       <PixelCircle />
-      <div style={{ marginTop: 14, font: "500 13.5px 'Outfit', system-ui, sans-serif", color: "#4C4652" }}>{title}</div>
-      {note && <div style={{ marginTop: 4, font: "300 12px 'Outfit', system-ui, sans-serif", color: "#8C8790" }}>{note}</div>}
+      <div style={{ marginTop: 14, font: "500 14.5px 'Outfit', system-ui, sans-serif", color: "#4C4652" }}>{title}</div>
+      {note && <div style={{ marginTop: 4, font: "300 12.5px 'Outfit', system-ui, sans-serif", color: "#8C8790" }}>{note}</div>}
     </div>
   );
 }

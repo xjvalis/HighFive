@@ -85,14 +85,14 @@ export default function Favorites() {
           <div style={{ ...svCard, padding: 14 }} className="flex items-center gap-3">
             <SvIcon name="calendar" size={16} style={{ color: 'var(--sv-meta)', flexShrink: 0 }}/>
             <div>
-              <p style={{ font: "500 17px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{upcoming.length}</p>
+              <p style={{ font: "500 18px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{upcoming.length}</p>
               <p style={svSubtitle}>{lang === 'cs' ? 'Nadcházející' : 'Upcoming'}</p>
             </div>
           </div>
           <div style={{ ...svCard, padding: 14 }} className="flex items-center gap-3">
             <SvIcon name="star" size={16} style={{ color: 'var(--sv-brand-orange)', flexShrink: 0 }}/>
             <div>
-              <p style={{ font: "500 17px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{events.length}</p>
+              <p style={{ font: "500 18px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{events.length}</p>
               <p style={svSubtitle}>{lang === 'cs' ? 'Celkem uloženo' : 'Total saved'}</p>
             </div>
           </div>

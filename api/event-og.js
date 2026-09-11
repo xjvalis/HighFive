@@ -4,12 +4,11 @@
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 
-const CATEGORY_EMOJIS = {
-  'Hangout': '☕', 'One-on-One': '🤝', 'Sport': '⚽', 'Board Games': '🎲',
-  'Outdoors': '🌿', 'Culture': '🎭', 'Film': '🎬', 'Music': '🎵',
-  'Gaming': '🎮', 'Food & Drinks': '🍕', 'Creative': '🎨', 'Tech': '💻',
-  'Study': '📚', 'Travel': '✈️', 'Wellness': '🧘',
-};
+function spotsWord(n) {
+  if (n === 1) return 'místo volné';
+  if (n >= 2 && n <= 4) return 'místa volná';
+  return 'míst volných';
+}
 
 export default async function handler(req) {
   const { searchParams } = new URL(req.url);
@@ -20,7 +19,7 @@ export default async function handler(req) {
   if (id && SUPABASE_URL && SUPABASE_ANON_KEY) {
     try {
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/events?id=eq.${id}&select=title,description,location,date,category,image_url,participants&limit=1`,
+        `${SUPABASE_URL}/rest/v1/events?id=eq.${id}&select=title,location,date,category,participants,max_capacity&limit=1`,
         { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
       );
       const data = await res.json();
@@ -36,21 +35,20 @@ export default async function handler(req) {
   let url = siteUrl;
 
   if (event) {
-    const emoji = CATEGORY_EMOJIS[event.category] || '🙌';
     const date = event.date
-      ? new Date(event.date).toLocaleDateString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      ? new Date(event.date).toLocaleDateString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' })
       : '';
     const count = event.participants?.length || 0;
+    const spots = event.max_capacity != null ? Math.max(event.max_capacity - count, 0) : null;
 
-    title = `${emoji} ${event.title}`;
+    title = event.title;
     description = [
-      event.location && `📍 ${event.location}`,
-      date && `📅 ${date}`,
-      count > 0 && `👥 ${count} ${count === 1 ? 'účastník' : count < 5 ? 'účastníci' : 'účastníků'}`,
-      event.description ? event.description.slice(0, 100) + (event.description.length > 100 ? '…' : '') : null,
+      date,
+      event.location,
+      spots != null ? `${spots} ${spotsWord(spots)}` : null,
     ].filter(Boolean).join(' · ');
 
-    image = event.image_url || image;
+    image = `${siteUrl}/api/og?id=${id}`;
     url = `${siteUrl}/event/${id}`;
   }
 

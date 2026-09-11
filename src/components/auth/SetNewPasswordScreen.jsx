@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { SpoluvicMark } from '@/components/brand/SpoluvicLogo';
 import { svField, svCard, svMeta, svActionPill } from '@/lib/svStyles';
 
-const submitBtn = { ...svActionPill, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '9px 0', font: "500 13px 'Outfit', sans-serif" };
+const submitBtn = { ...svActionPill, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '9px 0', font: "500 14px 'Outfit', sans-serif" };
 
 // Shown as a full-screen takeover whenever the auth session was established
 // via a password-recovery link (see the PASSWORD_RECOVERY listener in
@@ -42,7 +42,7 @@ export default function SetNewPasswordScreen() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-3"><SpoluvicMark variant="orange" height={40}/></div>
-          <h1 style={{ font: "500 19px 'Outfit', sans-serif", letterSpacing: '-0.03em', color: 'var(--sv-ink)' }}>{lang === 'cs' ? 'Nastav nové heslo' : 'Set a new password'}</h1>
+          <h1 style={{ font: "500 20px 'Outfit', sans-serif", letterSpacing: '-0.03em', color: 'var(--sv-ink)' }}>{lang === 'cs' ? 'Nastav nové heslo' : 'Set a new password'}</h1>
           <p style={{ ...svMeta, marginTop: 4 }}>
             {lang === 'cs' ? 'Dokonči reset hesla zadáním nového.' : 'Finish the reset by choosing a new password.'}
           </p>

@@ -82,10 +82,10 @@ function SplashScreen() {
       fontFamily: "'Outfit', system-ui, sans-serif",
     }}>
       <div style={{ marginBottom: 16 }}><SpoluvicMark variant="orange" height={56}/></div>
-      <h1 style={{ font: "500 20px 'Outfit', sans-serif", letterSpacing: '-0.03em', margin: '0 0 6px 0', color: 'var(--sv-ink)' }}>
+      <h1 style={{ font: "500 21px 'Outfit', sans-serif", letterSpacing: '-0.03em', margin: '0 0 6px 0', color: 'var(--sv-ink)' }}>
         Spoluvíc
       </h1>
-      <p style={{ font: "300 13px 'Outfit', sans-serif", color: 'var(--sv-meta)', textAlign: 'center', maxWidth: '240px', margin: 0, lineHeight: '1.5' }}>
+      <p style={{ font: "300 14px 'Outfit', sans-serif", color: 'var(--sv-meta)', textAlign: 'center', maxWidth: '240px', margin: 0, lineHeight: '1.5' }}>
         {lang === 'cs' ? 'Spolu je toho víc' : 'More, together'}
       </p>
     </div>

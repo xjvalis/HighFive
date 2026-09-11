@@ -88,7 +88,7 @@ export default function SearchPage({ onClose }) {
             onChange={handleInput}
             placeholder={lang === 'cs' ? 'Hledej události, místa, kategorie...' : 'Search events, places, categories...'}
             className="w-full outline-none"
-            style={{ height: 38, paddingLeft: 34, paddingRight: 32, background: 'var(--sv-surface-muted)', borderRadius: 'var(--sv-r-pill)', font: "300 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}
+            style={{ height: 38, paddingLeft: 34, paddingRight: 32, background: 'var(--sv-surface-muted)', borderRadius: 'var(--sv-r-pill)', font: "300 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}
           />
           {query && (
             <button onClick={() => { setQuery(''); setResults([]); }} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--sv-placeholder)' }}>
@@ -96,7 +96,7 @@ export default function SearchPage({ onClose }) {
             </button>
           )}
         </div>
-        <button onClick={onClose} className="flex-shrink-0" style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-link)' }}>
+        <button onClick={onClose} className="flex-shrink-0" style={{ font: "500 13.5px 'Outfit', sans-serif", color: 'var(--sv-link)' }}>
           {lang === 'cs' ? 'Zrušit' : 'Cancel'}
         </button>
       </div>
@@ -110,7 +110,7 @@ export default function SearchPage({ onClose }) {
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <p style={svSectionLabel}>{lang === 'cs' ? 'Nedávné' : 'Recent'}</p>
-                  <button onClick={handleClearRecent} style={{ font: "300 11px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
+                  <button onClick={handleClearRecent} style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
                     {lang === 'cs' ? 'Smazat' : 'Clear'}
                   </button>
                 </div>
@@ -118,7 +118,7 @@ export default function SearchPage({ onClose }) {
                   <button key={i} onClick={() => handleRecentClick(q)}
                     className="flex items-center gap-3 w-full text-left transition-colors" style={{ padding: '10px 8px', borderRadius: 10 }}>
                     <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--sv-meta)' }}/>
-                    <span style={{ font: "400 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>{q}</span>
+                    <span style={{ font: "400 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>{q}</span>
                   </button>
                 ))}
               </div>
@@ -141,11 +141,11 @@ export default function SearchPage({ onClose }) {
               return (
                 <button key={event.id} onClick={() => handleSelect(event)}
                   className="flex items-center gap-3 w-full text-left transition-colors" style={{ padding: '10px 12px', borderRadius: 14 }}>
-                  <span className="flex-shrink-0" style={{ background: cat.bg, color: cat.ink, borderRadius: 'var(--sv-r-pill)', padding: '5px 9px', fontFamily: 'var(--sv-font-emoji)', fontSize: 12 }}>
+                  <span className="flex-shrink-0" style={{ background: cat.bg, color: cat.ink, borderRadius: 'var(--sv-r-pill)', padding: '5px 9px', fontFamily: 'var(--sv-font-emoji)', fontSize: 12.5 }}>
                     {cat.emoji}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="truncate" style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{event.title}</p>
+                    <p className="truncate" style={{ font: "500 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{event.title}</p>
                     <p className="truncate" style={{ ...svMeta, marginTop: 1 }}>
                       {event.location} · {event.date ? format(new Date(event.date), 'EEE d MMM · HH:mm') : ''}
                       {event.participants?.length > 0 && ` · ${event.participants.length}`}

@@ -168,7 +168,7 @@ export default function AdminDashboard() {
   if (!hasAccess) return (
     <div className="flex flex-col items-center justify-center py-20 text-center" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
       <Shield className="w-10 h-10 mb-3" style={{ color: 'var(--sv-meta)' }}/>
-      <h2 style={{ ...svPageTitle, fontSize: 16, marginBottom: 4 }}>{lang === 'cs' ? 'Přístup odepřen' : 'Access denied'}</h2>
+      <h2 style={{ ...svPageTitle, fontSize: 17, marginBottom: 4 }}>{lang === 'cs' ? 'Přístup odepřen' : 'Access denied'}</h2>
       <p style={svMeta}>{lang === 'cs' ? 'Tato sekce je jen pro moderátory.' : 'This section is for moderators only.'}</p>
     </div>
   );
@@ -178,21 +178,21 @@ export default function AdminDashboard() {
       <div className="flex items-center gap-2.5 mb-5">
         <Shield className="w-5 h-5" style={{ color: 'var(--sv-brand-purple)' }}/>
         <h1 style={svPageTitle}>{lang === 'cs' ? 'Moderace' : 'Moderation'}</h1>
-        {isAdmin && <span style={{ font: "500 10px 'Outfit', sans-serif", background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', padding: '3px 9px', borderRadius: 'var(--sv-r-pill)' }}>Admin</span>}
-        {!isAdmin && isModerator && <span style={{ font: "500 10px 'Outfit', sans-serif", background: 'var(--sv-surface-muted)', color: 'var(--sv-meta)', padding: '3px 9px', borderRadius: 'var(--sv-r-pill)' }}>{lang === 'cs' ? 'Moderátor' : 'Moderator'}</span>}
+        {isAdmin && <span style={{ font: "500 10.5px 'Outfit', sans-serif", background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', padding: '3px 9px', borderRadius: 'var(--sv-r-pill)' }}>Admin</span>}
+        {!isAdmin && isModerator && <span style={{ font: "500 10.5px 'Outfit', sans-serif", background: 'var(--sv-surface-muted)', color: 'var(--sv-meta)', padding: '3px 9px', borderRadius: 'var(--sv-r-pill)' }}>{lang === 'cs' ? 'Moderátor' : 'Moderator'}</span>}
       </div>
 
       <div className="grid grid-cols-3 gap-2.5 mb-5">
         <div style={{ ...svCard, padding: 14, textAlign: 'center' }}>
-          <p style={{ font: "500 19px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{totalCounts.events}</p>
+          <p style={{ font: "500 20px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{totalCounts.events}</p>
           <p style={{ ...svMeta, marginTop: 2 }}>{lang === 'cs' ? 'Čeká na schválení' : 'Pending approval'}</p>
         </div>
         <div style={{ ...svCard, padding: 14, textAlign: 'center' }}>
-          <p style={{ font: "500 19px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{totalCounts.reports}</p>
+          <p style={{ font: "500 20px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{totalCounts.reports}</p>
           <p style={{ ...svMeta, marginTop: 2 }}>{lang === 'cs' ? 'Otevřené reporty' : 'Open reports'}</p>
         </div>
         <div style={{ ...svCard, padding: 14, textAlign: 'center' }}>
-          <p style={{ font: "500 19px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{totalCounts.reliability}</p>
+          <p style={{ font: "500 20px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{totalCounts.reliability}</p>
           <p style={{ ...svMeta, marginTop: 2 }}>{lang === 'cs' ? 'Žádosti o reset' : 'Reset requests'}</p>
         </div>
       </div>
@@ -217,7 +217,7 @@ export default function AdminDashboard() {
           {events.map(e => (
             <div key={e.id} style={{ ...svCard, padding: 14 }}>
               <div className="mb-2.5">
-                <p style={{ font: "500 13px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{e.title}</p>
+                <p style={{ font: "500 14px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{e.title}</p>
                 <p style={{ ...svMeta, marginTop: 2 }}>{getCategoryLabel(e.category, lang)} · {e.location}</p>
                 <p style={svMeta}>{e.organizer_email} · {format(new Date(e.created_at), 'MMM d HH:mm')}</p>
               </div>
@@ -248,7 +248,7 @@ export default function AdminDashboard() {
               <div className="flex items-start gap-2 mb-2.5">
                 <Flag className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: '#A9564C' }}/>
                 <div>
-                  <p style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{r.reason}</p>
+                  <p style={{ font: "500 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{r.reason}</p>
                   {r.description && <p style={{ ...svMeta, marginTop: 2 }}>{r.description}</p>}
                   <p style={{ ...svMeta, marginTop: 4 }}>od {r.reporter_email} · {format(new Date(r.created_at), 'MMM d HH:mm')}</p>
                 </div>
@@ -289,7 +289,7 @@ export default function AdminDashboard() {
               <div className="flex items-start gap-2 mb-2.5">
                 <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: 'var(--sv-brand-orange)' }}/>
                 <div>
-                  <p style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{renderNotification(notif, lang).body}</p>
+                  <p style={{ font: "500 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{renderNotification(notif, lang).body}</p>
                   <p style={{ ...svMeta, marginTop: 4 }}>{format(new Date(notif.created_at), 'MMM d HH:mm')}</p>
                 </div>
               </div>
@@ -315,7 +315,7 @@ export default function AdminDashboard() {
           <div className="relative w-full max-w-md" style={{ ...svCard, padding: 22 }}>
             <div className="flex items-center gap-2 mb-3.5">
               <AlertTriangle className="w-4 h-4" style={{ color: 'var(--sv-brand-orange)' }}/>
-              <h3 style={{ font: "500 15px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{lang === 'cs' ? 'Pozastavit událost' : 'Suspend event'}</h3>
+              <h3 style={{ font: "500 16px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>{lang === 'cs' ? 'Pozastavit událost' : 'Suspend event'}</h3>
             </div>
             <p style={{ ...svMeta, marginBottom: 10 }}>
               {lang === 'cs'

@@ -13,8 +13,8 @@ import ParticipantsPanel from '@/components/events/ParticipantsPanel';
 import { SvIcon } from '@/components/icons/SvIcon';
 import { svCard, svField, svSectionLabel } from '@/lib/svStyles';
 
-const ghostBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)', borderRadius: 10, padding: '8px 14px', font: "500 12px 'Outfit', sans-serif" };
-const actionBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 10, padding: '8px 14px', font: "500 12px 'Outfit', sans-serif" };
+const ghostBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)', borderRadius: 10, padding: '8px 14px', font: "500 12.5px 'Outfit', sans-serif" };
+const actionBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 10, padding: '8px 14px', font: "500 12.5px 'Outfit', sans-serif" };
 
 export default function OrganizerEventCard({ event, onParticipantsChange }) {
   const tr = useT();
@@ -91,14 +91,14 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
       <button className="w-full flex items-start gap-3 text-left transition-colors" style={{ padding: '12px 14px' }} onClick={()=>setExpanded(e=>!e)}>
         <div className="flex-1 min-w-0">
           <div className="flex items-center flex-wrap" style={{ gap: 5, marginBottom: 6 }}>
-            <span className="flex items-center flex-shrink-0" style={{ gap: 5, background: cat.bg, color: cat.ink, borderRadius: 'var(--sv-r-pill)', padding: '3px 8px', font: "400 10px 'Outfit', sans-serif" }}>
-              <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 10 }}>{cat.emoji}</span>
+            <span className="flex items-center flex-shrink-0" style={{ gap: 5, background: cat.bg, color: cat.ink, borderRadius: 'var(--sv-r-pill)', padding: '3px 8px', font: "400 10.5px 'Outfit', sans-serif" }}>
+              <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 10.5 }}>{cat.emoji}</span>
               {getCategoryLabel(event.category,lang)}
             </span>
-            {isFull && <span style={{ font: "400 10px 'Outfit', sans-serif", color: 'var(--sv-meta)', background: 'var(--sv-surface-muted)', borderRadius: 'var(--sv-r-pill)', padding: '3px 8px' }}>{lang === 'cs' ? 'Plné' : 'Full'}</span>}
+            {isFull && <span style={{ font: "400 10.5px 'Outfit', sans-serif", color: 'var(--sv-meta)', background: 'var(--sv-surface-muted)', borderRadius: 'var(--sv-r-pill)', padding: '3px 8px' }}>{lang === 'cs' ? 'Plné' : 'Full'}</span>}
           </div>
-          <p className="line-clamp-1" style={{ font: "500 14.5px 'Outfit', sans-serif", letterSpacing: '-0.015em', color: 'var(--sv-ink)' }}>{event.title}</p>
-          <div className="flex flex-wrap" style={{ gap: 12, marginTop: 5, font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
+          <p className="line-clamp-1" style={{ font: "500 15.5px 'Outfit', sans-serif", letterSpacing: '-0.015em', color: 'var(--sv-ink)' }}>{event.title}</p>
+          <div className="flex flex-wrap" style={{ gap: 12, marginTop: 5, font: "300 12px 'Outfit', sans-serif", color: 'var(--sv-meta)' }}>
             <span className="flex items-center gap-1"><SvIcon name="pin" size={11} style={{ color: '#B4AEA6' }}/>{event.location}</span>
             <span className="flex items-center gap-1"><SvIcon name="clock" size={11} style={{ color: '#B4AEA6' }}/>{format(new Date(event.date),'EEE d MMM · HH:mm')}</span>
             <span className="flex items-center gap-1"><SvIcon name="users" size={11} style={{ color: '#B4AEA6' }}/>{participants.length}{event.max_capacity?`/${event.max_capacity}`:''}</span>

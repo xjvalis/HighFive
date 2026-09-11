@@ -26,7 +26,7 @@ export default function AppLayout() {
       <TopNav />
       <div className="max-w-7xl mx-auto px-3 sm:px-4 pb-safe" style={{ paddingTop: "calc(56px + env(safe-area-inset-top))" }}>
         <div className="flex gap-5">
-          <aside className="hidden xl:block w-56 flex-shrink-0">
+          <aside className="hidden xl:block w-56 flex-shrink-0 self-start">
             <div className="sticky top-20 max-h-[calc(100vh-5rem)] overflow-y-auto no-scrollbar">
               <LeftSidebar />
             </div>
@@ -34,7 +34,7 @@ export default function AppLayout() {
           <main className="flex-1 min-w-0 overflow-x-hidden">
             <Outlet />
           </main>
-          <aside className="hidden xl:block w-64 flex-shrink-0">
+          <aside className="hidden xl:block w-64 flex-shrink-0 self-start">
             <div className="sticky top-20 max-h-[calc(100vh-5rem)] overflow-y-auto no-scrollbar">
               <RightSidebar />
             </div>

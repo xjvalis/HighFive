@@ -243,11 +243,11 @@ export default function Home() {
       {/* Header */}
       <div className="mb-3" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
         <div className="flex items-baseline justify-between mb-3">
-          <h1 style={{ font: "500 19px 'Outfit', sans-serif", letterSpacing: '-0.03em', color: 'var(--sv-ink)' }}>
+          <h1 style={{ font: "500 20px 'Outfit', sans-serif", letterSpacing: '-0.03em', color: 'var(--sv-ink)' }}>
             {activeCategory || tr.whatsHappening}
           </h1>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span style={{ font: "400 10px 'IBM Plex Mono', monospace", letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--sv-meta)' }}>
+            <span style={{ font: "400 10.5px 'IBM Plex Mono', monospace", letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--sv-meta)' }}>
               {userLocation ? `${radius} km` : (lang === 'cs' ? 'poloha nenastavena' : 'location not set')}
             </span>
             <div className="flex items-center rounded-lg p-0.5" style={{ background: 'var(--sv-surface-muted)' }}>

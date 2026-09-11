@@ -147,10 +147,10 @@ export default function EventDetail() {
         <div style={{ padding: 22 }}>
           <div className="flex items-start justify-between gap-3 mb-3.5">
             <div className="flex-1">
-              <span className="inline-flex items-center mb-2" style={{ gap: 5, background: cat.bg, color: cat.ink, borderRadius: 'var(--sv-r-pill)', padding: '3px 9px', font: "400 10.5px 'Outfit', sans-serif" }}>
-                <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 11 }}>{cat.emoji}</span>{getCategoryLabel(event.category,lang)}
+              <span className="inline-flex items-center mb-2" style={{ gap: 5, background: cat.bg, color: cat.ink, borderRadius: 'var(--sv-r-pill)', padding: '3px 9px', font: "400 11px 'Outfit', sans-serif" }}>
+                <span style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 11.5 }}>{cat.emoji}</span>{getCategoryLabel(event.category,lang)}
               </span>
-              <h1 style={{ font: "500 20px 'Outfit', sans-serif", letterSpacing: '-0.03em', color: 'var(--sv-ink)' }}>{event.title}</h1>
+              <h1 style={{ font: "500 21px 'Outfit', sans-serif", letterSpacing: '-0.03em', color: 'var(--sv-ink)' }}>{event.title}</h1>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
               {canEdit && <button onClick={()=>setShowEdit(true)} style={ghostIcon}><Pencil className="w-4 h-4"/></button>}
@@ -160,13 +160,13 @@ export default function EventDetail() {
             </div>
           </div>
 
-          {event.description && <p style={{ font: "300 13.5px 'Outfit', sans-serif", lineHeight: 1.6, color: 'var(--sv-ink-soft)', marginBottom: 18 }}>{event.description}</p>}
+          {event.description && <p style={{ font: "300 14.5px 'Outfit', sans-serif", lineHeight: 1.6, color: 'var(--sv-ink-soft)', marginBottom: 18 }}>{event.description}</p>}
 
           <div className="grid grid-cols-2 gap-2.5 mb-4">
-            <div style={infoTile}><p style={svMeta}>{tr.detailLocation}</p><p style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginTop: 2 }}>{event.location}</p></div>
-            <div style={infoTile}><p style={svMeta}>{tr.detailDateTime}</p><p style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginTop: 2 }}>{format(new Date(event.date),'EEEEEE d. MMM · HH:mm', { locale: cs })}</p></div>
-            <div style={infoTile}><p style={svMeta}>{tr.detailPeople}</p><p style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginTop: 2 }}>{event.participants?.length||0}{event.max_capacity?`/${event.max_capacity}`:''} {tr.detailGoing}</p></div>
-            <div style={infoTile}><p style={svMeta}>{tr.detailOrganizer}</p><p style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginTop: 2 }}>{event.organizer_name||tr.detailAnonymous}</p></div>
+            <div style={infoTile}><p style={svMeta}>{tr.detailLocation}</p><p style={{ font: "500 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginTop: 2 }}>{event.location}</p></div>
+            <div style={infoTile}><p style={svMeta}>{tr.detailDateTime}</p><p style={{ font: "500 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginTop: 2 }}>{format(new Date(event.date),'EEEEEE d. MMM · HH:mm', { locale: cs })}</p></div>
+            <div style={infoTile}><p style={svMeta}>{tr.detailPeople}</p><p style={{ font: "500 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginTop: 2 }}>{event.participants?.length||0}{event.max_capacity?`/${event.max_capacity}`:''} {tr.detailGoing}</p></div>
+            <div style={infoTile}><p style={svMeta}>{tr.detailOrganizer}</p><p style={{ font: "500 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginTop: 2 }}>{event.organizer_name||tr.detailAnonymous}</p></div>
           </div>
 
           <div className="flex gap-2 mb-3.5">
@@ -190,9 +190,9 @@ export default function EventDetail() {
                     const style = isCreator?{boxShadow:'0 0 0 2px var(--sv-brand-orange), 0 0 0 4px var(--sv-brand-purple)'}:{};
                     return pp?.avatar_url
                       ? <img key={i} src={pp.avatar_url} alt={pp.display_name||email} title={pp.display_name||email} className="w-8 h-8 rounded-full object-cover" style={{ border: '2px solid var(--sv-surface)', ...style }}/>
-                      : <div key={i} title={email} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', font: "500 11px 'Outfit', sans-serif", ...style }}>{email[0].toUpperCase()}</div>;
+                      : <div key={i} title={email} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', font: "500 11.5px 'Outfit', sans-serif", ...style }}>{email[0].toUpperCase()}</div>;
                   })}
-                  {event.participants.length>12 && <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--sv-surface-muted)', color: 'var(--sv-meta)', font: "400 10.5px 'Outfit', sans-serif" }}>+{event.participants.length-12}</div>}
+                  {event.participants.length>12 && <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--sv-surface-muted)', color: 'var(--sv-meta)', font: "400 11px 'Outfit', sans-serif" }}>+{event.participants.length-12}</div>}
                 </div>
               ) : (
                 <p style={svMeta}>{tr.noParticipants}</p>
@@ -205,7 +205,7 @@ export default function EventDetail() {
           {profile&&!isPremiumProfile(profile)&&!isJoined&&!isOnWaitlist&&(()=>{
             const remaining = MONTHLY_JOIN_LIMIT - monthlyJoinsUsed(profile);
             if (remaining<=1&&remaining>0) return (
-              <button onClick={()=>setShowPremium(true)} className="w-full mb-3 flex items-center gap-2 transition-colors" style={{ background: 'var(--sv-surface-muted)', borderRadius: 10, padding: '8px 12px', font: "400 11.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>
+              <button onClick={()=>setShowPremium(true)} className="w-full mb-3 flex items-center gap-2 transition-colors" style={{ background: 'var(--sv-surface-muted)', borderRadius: 10, padding: '8px 12px', font: "400 12px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>
                 <Crown className="w-3.5 h-3.5" style={{ color: 'var(--sv-brand-orange)' }}/>
                 {lang === 'cs' ? `Zbývá ${remaining} volné zúčastnění · Upgrade na Plus →` : `${remaining} free join${remaining===1?'':'s'} left · Upgrade to Plus →`}
               </button>
@@ -216,7 +216,7 @@ export default function EventDetail() {
           <div className="flex gap-3">
             <motion.button animate={joinAnim?{scale:[1,1.2,0.95,1.05,1]}:{}} onClick={handleJoin} disabled={joiningEvent}
               className="flex-1 flex items-center justify-center transition-all disabled:opacity-70"
-              style={{ ...joinStyle, padding: '13px 0', font: "500 13.5px 'Outfit', sans-serif" }}>
+              style={{ ...joinStyle, padding: '13px 0', font: "500 14.5px 'Outfit', sans-serif" }}>
               {joiningEvent ? <Loader2 className="w-4 h-4 animate-spin"/> : joinLabel}
             </motion.button>
             <button onClick={()=>setReportOpen(true)} className="flex items-center justify-center flex-shrink-0" style={{ width: 48, height: 48, borderRadius: 'var(--sv-r-pill)', background: 'var(--sv-surface-muted)', color: 'var(--sv-meta)' }}><Flag className="w-4 h-4"/></button>
@@ -233,9 +233,9 @@ export default function EventDetail() {
       <AttendanceMarker event={event} onMarked={() => {}}/>
 
       <div className="mt-4" style={{ ...svCard, padding: 18 }}>
-        <h2 style={{ font: "500 15px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginBottom: 14 }}>{tr.detailDiscussion} ({comments.length})</h2>
+        <h2 style={{ font: "500 16px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginBottom: 14 }}>{tr.detailDiscussion} ({comments.length})</h2>
         {user && <div className="flex gap-3 mb-4">
-          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', font: "500 11px 'Outfit', sans-serif" }}>
+          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', font: "500 11.5px 'Outfit', sans-serif" }}>
             {profile?.avatar_url
               ? <img src={profile.avatar_url} alt={profile.display_name} className="w-full h-full object-cover"/>
               : <span>{(profile?.display_name||user.email)?.[0]?.toUpperCase()}</span>
@@ -244,7 +244,7 @@ export default function EventDetail() {
           <div className="flex-1">
             <Textarea value={newComment} onChange={e=>setNewComment(e.target.value)} placeholder={tr.detailCommentPlaceholder} className="resize-none min-h-[80px]" style={svField}/>
             <div className="flex justify-end mt-2">
-              <button onClick={handleComment} disabled={submittingComment||!newComment.trim()} className="flex items-center gap-1.5" style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 'var(--sv-r-pill)', padding: '7px 14px', font: "500 12px 'Outfit', sans-serif", opacity: (submittingComment||!newComment.trim())?0.5:1 }}>
+              <button onClick={handleComment} disabled={submittingComment||!newComment.trim()} className="flex items-center gap-1.5" style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 'var(--sv-r-pill)', padding: '7px 14px', font: "500 12.5px 'Outfit', sans-serif", opacity: (submittingComment||!newComment.trim())?0.5:1 }}>
                 {submittingComment?<Loader2 className="w-3 h-3 animate-spin"/>:<Send className="w-3 h-3"/>} {tr.detailCommentBtn}
               </button>
             </div>
@@ -253,15 +253,15 @@ export default function EventDetail() {
         <div className="space-y-3.5">
           {comments.map(c=>(
             <div key={c.id} className="flex gap-3">
-              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)', font: "500 11px 'Outfit', sans-serif" }} title={c.author_name}>
+              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)', font: "500 11.5px 'Outfit', sans-serif" }} title={c.author_name}>
                 {c.author_avatar?<img src={c.author_avatar} alt={c.author_name} className="w-full h-full object-cover"/>:(c.author_name?.[0]||'?')}
               </div>
               <div className="flex-1">
                 <div className="flex items-baseline gap-2">
-                  <span style={{ font: "500 12px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>{c.author_name}</span>
+                  <span style={{ font: "500 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)' }}>{c.author_name}</span>
                   <span style={svMeta}>{format(new Date(c.created_at),'d. MMM, HH:mm', { locale: cs })}</span>
                 </div>
-                <p style={{ font: "300 12.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', lineHeight: 1.5, marginTop: 2 }}>{c.content}</p>
+                <p style={{ font: "300 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', lineHeight: 1.5, marginTop: 2 }}>{c.content}</p>
               </div>
             </div>
           ))}

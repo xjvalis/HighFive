@@ -64,9 +64,9 @@ export default function Notifications() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Bell className="w-4 h-4" style={{ color: 'var(--sv-meta)' }}/><h1 style={svPageTitle}>{tr.notificationsTitle}</h1>
-          {unreadCount>0&&<span className="flex items-center justify-center" style={{ minWidth: 18, height: 18, padding: '0 5px', borderRadius: 999, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', font: "500 10.5px 'Outfit', sans-serif" }}>{unreadCount}</span>}
+          {unreadCount>0&&<span className="flex items-center justify-center" style={{ minWidth: 18, height: 18, padding: '0 5px', borderRadius: 999, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', font: "500 11px 'Outfit', sans-serif" }}>{unreadCount}</span>}
         </div>
-        {unreadCount>0&&<button onClick={markAllRead} className="flex items-center gap-1.5" style={{ font: "500 11px 'Outfit', sans-serif", color: 'var(--sv-link)' }}><CheckCheck className="w-3.5 h-3.5"/>{tr.markAllRead}</button>}
+        {unreadCount>0&&<button onClick={markAllRead} className="flex items-center gap-1.5" style={{ font: "500 11.5px 'Outfit', sans-serif", color: 'var(--sv-link)' }}><CheckCheck className="w-3.5 h-3.5"/>{tr.markAllRead}</button>}
       </div>
       {loading ? <div className="flex justify-center py-16"><div className="w-7 h-7 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--sv-hairline)', borderTopColor: 'var(--sv-brand-purple)' }}/></div>
       : notifications.length===0 ? <EmptyState title={tr.noNotifications} note={tr.noNotificationsHint} />
@@ -76,18 +76,18 @@ export default function Notifications() {
             return (
             <div key={n.id} onClick={()=>{markRead(n);if(n.event_id)window.open(`/event/${n.event_id}`,'_blank');}} className="cursor-pointer transition-colors" style={{ ...svCard, padding: 14, borderColor: n.is_read ? 'var(--sv-hairline)' : '#E4D4F7', background: n.is_read ? 'var(--sv-surface)' : '#F8F4FC' }}>
               <div className="flex gap-3">
-                <span className="flex-shrink-0" style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 18 }}>{rendered.icon}</span>
+                <span className="flex-shrink-0" style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 19 }}>{rendered.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <p className="leading-snug" style={{ font: "500 12.5px 'Outfit', sans-serif", color: n.is_read ? 'var(--sv-ink-soft)' : 'var(--sv-ink)' }}>{rendered.title}</p>
+                    <p className="leading-snug" style={{ font: "500 13.5px 'Outfit', sans-serif", color: n.is_read ? 'var(--sv-ink-soft)' : 'var(--sv-ink)' }}>{rendered.title}</p>
                     {!n.is_read&&(
                       <button onClick={e=>{e.stopPropagation();markRead(n);}} className="flex-shrink-0" style={{ padding: 6, margin: -6 }} title={tr.markAllRead}>
                         <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--sv-empty-dot)' }}/>
                       </button>
                     )}
                   </div>
-                  {rendered.body&&<p style={{ font: "300 11.5px 'Outfit', sans-serif", color: 'var(--sv-meta)', lineHeight: 1.5, marginTop: 2 }}>{rendered.body}</p>}
-                  <span style={{ ...svMeta, font: "400 10px 'IBM Plex Mono', monospace", marginTop: 8, display: 'block' }}>{format(new Date(n.created_at),'MMM d, HH:mm')}</span>
+                  {rendered.body&&<p style={{ font: "300 12px 'Outfit', sans-serif", color: 'var(--sv-meta)', lineHeight: 1.5, marginTop: 2 }}>{rendered.body}</p>}
+                  <span style={{ ...svMeta, font: "400 10.5px 'IBM Plex Mono', monospace", marginTop: 8, display: 'block' }}>{format(new Date(n.created_at),'MMM d, HH:mm')}</span>
                 </div>
               </div>
             </div>

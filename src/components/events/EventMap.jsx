@@ -106,21 +106,21 @@ export default function EventMap({ events, userLocation, radius }) {
                       <img src={event.image_url} alt={event.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
                   )}
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a2e", marginBottom: 6, lineHeight: 1.3, fontFamily: "'Space Grotesk', sans-serif" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a2e", marginBottom: 6, lineHeight: 1.3, fontFamily: "'Space Grotesk', sans-serif" }}>
                     {event.title}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 8 }}>
                     {event.location && (
-                      <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#6b7280" }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, color: "#6b7280" }}>
                         📍 {event.location}
                       </span>
                     )}
                     {event.date && (
-                      <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#6b7280" }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, color: "#6b7280" }}>
                         🕐 {format(new Date(event.date), "d. M. · HH:mm")}
                       </span>
                     )}
-                    <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#6b7280" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, color: "#6b7280" }}>
                       👥 {participantCount}{event.max_capacity ? `/${event.max_capacity}` : ""}
                       {isFull && <span style={{ color: "#9ca3af", marginLeft: 2 }}>{lang === 'cs' ? '(Plné)' : '(Full)'}</span>}
                     </span>
@@ -133,7 +133,7 @@ export default function EventMap({ events, userLocation, radius }) {
                       background: "#7c3aed",
                       color: "white",
                       borderRadius: 10,
-                      fontSize: 11,
+                      fontSize: 11.5,
                       fontWeight: 600,
                       textDecoration: "none",
                     }}
