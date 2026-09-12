@@ -226,8 +226,9 @@ export default function ShareEventButton({ event }) {
   const imgUrlRef = useRef(null);
 
   const cat = getCategoryStyle(event.category);
+  // middleware.js serves link-preview bots the branded OG card for this
+  // exact URL, so every channel can share the one clean address.
   const eventUrl = `${window.location.origin}/event/${event.id}`;
-  const ogUrl = `${window.location.origin}/api/event-og?id=${event.id}`;
   const shareText = shareMessage(event, lang, eventUrl);
 
   const ensureCardImage = async () => {
@@ -276,12 +277,12 @@ export default function ShareEventButton({ event }) {
     {
       label: "Facebook", bg: "#D6E4FF", ink: "#2F4FA8",
       icon: <span style={{ font: "600 20px/1 'Outfit', sans-serif", color: '#2F4FA8', height: 21, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>f</span>,
-      action: () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(ogUrl)}`, "_blank"),
+      action: () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}`, "_blank"),
     },
     {
       label: "X / Twitter", bg: "#E8E4DC", ink: "#2E2836",
       icon: <XIcon color="#2E2836" />,
-      action: () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(ogUrl)}`, "_blank"),
+      action: () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(eventUrl)}`, "_blank"),
     },
     {
       label: "Instagram", bg: "#FFE0C2", ink: "#8A5A2B",

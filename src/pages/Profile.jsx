@@ -88,10 +88,17 @@ export default function Profile() {
   const handleDeleteAccount = async () => {
     setDeleting(true);
     try {
-      await supabase.from('user_profiles').delete().eq('user_id', user.id);
+      // Deletes the actual auth.users record via a service-role edge function
+      // — the client can't do that itself, and just removing the profile row
+      // (the old behavior) left the login credentials intact, so "deleted"
+      // accounts could immediately sign back in. user_profiles cascades off
+      // auth.users, so it's cleaned up as part of the same delete.
+      const { error } = await supabase.functions.invoke('delete-account');
+      if (error) throw error;
       await supabase.auth.signOut();
     } catch (err) {
       console.error('Delete error:', err);
+      toast.error(lang === 'cs' ? 'Nepodařilo se smazat účet.' : 'Failed to delete account.');
     } finally {
       setDeleting(false);
     }

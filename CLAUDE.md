@@ -29,9 +29,33 @@ is no staging environment).
   `supabase/migrations/*.sql` is the append-only history — **every schema change from
   now on is a new migration file, never an edit to schema.sql or an old migration in
   place** (see "Database schema changes" below). `supabase/functions/*/index.ts` are
-  the edge functions (Deno).
+  the edge functions (Deno) — `create-event`/`join-event` write events,
+  `delete-account` is the only thing allowed to remove an `auth.users` row (needs the
+  service role; the client never can). These deploy separately from the frontend —
+  `supabase functions deploy <name>` — a `git push` alone does not update them.
+- `api/*.js`/`*.jsx` — Vercel Edge Functions (separate build from the Vite app, deploy
+  automatically with `git push`). `api/event-og.js` serves link-preview-crawler-safe
+  meta tags for an event; `api/og.jsx` renders the branded OG image behind it via
+  `@vercel/og`/satori.
+- `middleware.js` (repo root) — Vercel Edge Middleware. Detects known link-preview bots
+  (WhatsApp, Facebook, Slack, Discord, …) hitting `/event/:id` and serves them
+  `api/event-og.js`'s output instead of the SPA shell, so every share channel can use
+  the one clean `spoluvic.app/event/:id` URL and still get a branded preview —
+  real browsers are unaffected and get the normal client-rendered page.
 - `@/` resolves to `src/` (see `vite.config.js` / `jsconfig.json`) — always import via
   the alias, not relative `../../..` paths.
+
+## Transactional email
+
+Supabase Auth's built-in mailer (used for `Confirm signup` and `Reset Password`) sends
+from a generic Supabase address with a very low rate limit — fine for development, not
+for production. Custom SMTP (Resend, sending as `noreply@spoluvic.app`) needs to be
+configured by hand in the Supabase Dashboard → Project Settings → Auth → SMTP Settings,
+after verifying the domain in Resend (DNS records at the registrar) — none of that is
+doable from this repo. `supabase/email-templates/*.html` are reference copies of the
+designed templates for the Dashboard's Auth → Email Templates editor; editing the file
+here does **not** change what Supabase actually sends — re-paste it into the Dashboard
+after changing it.
 
 ## Design system
 
