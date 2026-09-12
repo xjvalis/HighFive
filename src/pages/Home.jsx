@@ -303,8 +303,8 @@ export default function Home() {
             <button className="flex-1 text-left" onClick={()=>setShowPremium(true)}>
               <span className="text-xs font-medium text-violet-700">
                 {lang === 'cs'
-                  ? (remaining<=0?`Vyčerpal/a jsi limit ${MONTHLY_JOIN_LIMIT} přihlášení · Upgraduj na Plus →`:remaining<=1?`Zbývá ${remaining} ze ${MONTHLY_JOIN_LIMIT} přihlášení · Upgraduj →`:'Získej neomezené přihlašování - Plus od 100 Kč/měs')
-                  : (remaining<=0?`You've used your ${MONTHLY_JOIN_LIMIT} free joins this month · Upgrade to Plus →`:remaining<=1?`${remaining} of ${MONTHLY_JOIN_LIMIT} joins left · Upgrade →`:'Get unlimited joins - Plus from 100 Kč/mo')}
+                  ? (remaining<=0?`Vyčerpal/a jsi limit ${MONTHLY_JOIN_LIMIT} přihlášení · Upgraduj na Plus →`:remaining<=1?`Zbývá ${remaining} ze ${MONTHLY_JOIN_LIMIT} přihlášení · Upgraduj →`:'Získej neomezené přihlašování - Plus od 69 Kč/měs')
+                  : (remaining<=0?`You've used your ${MONTHLY_JOIN_LIMIT} free joins this month · Upgrade to Plus →`:remaining<=1?`${remaining} of ${MONTHLY_JOIN_LIMIT} joins left · Upgrade →`:'Get unlimited joins - Plus from 69 Kč/mo')}
               </span>
             </button>
             <button onClick={()=>{setPremiumBannerDismissed(true);sessionStorage.setItem('hf_premium_banner_dismissed','1');}} className="text-muted-foreground p-0.5"><X className="w-3 h-3"/></button>

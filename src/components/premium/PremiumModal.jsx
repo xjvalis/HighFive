@@ -21,7 +21,7 @@ export default function PremiumModal({ open, onClose, profile, highlightPlan, on
     {
       id: "plus",
       name: "Plus",
-      price: 100,
+      price: 69,
       perks: lang === 'cs'
         ? ["Neomezené přihlašování na eventy", "Neomezené vytváření eventů"]
         : ["Unlimited event joins", "Unlimited event creation"],
@@ -29,7 +29,7 @@ export default function PremiumModal({ open, onClose, profile, highlightPlan, on
     {
       id: "creator",
       name: "Creator",
-      price: 200,
+      price: 139,
       perks: lang === 'cs'
         ? ["Vše z Plus plánu", "Zlatý rámeček avatara v celé aplikaci"]
         : ["Everything in Plus", "Gold avatar frame across the app"],

@@ -215,7 +215,7 @@ export default function Profile() {
           <div style={{ marginTop: 18, borderRadius: 'var(--sv-r-card)', background: 'var(--sv-brand-purple-bg)', padding: 16, cursor: 'pointer' }} onClick={() => setShowPremium(true)}>
             <div className="flex items-center justify-between mb-1.5">
               <span style={{ font: "500 14px 'Outfit', sans-serif", color: 'var(--sv-brand-purple-ink)' }}>Spoluvíc Premium</span>
-              <span style={{ font: "300 11.5px 'Outfit', sans-serif", color: '#5A4A83' }}>{lang === 'cs' ? 'Plus od 100 Kč/měs' : 'Plus from 100 Kč/mo'}</span>
+              <span style={{ font: "300 11.5px 'Outfit', sans-serif", color: '#5A4A83' }}>{lang === 'cs' ? 'Plus od 69 Kč/měs' : 'Plus from 69 Kč/mo'}</span>
             </div>
             <p style={{ font: "300 12px 'Outfit', sans-serif", color: '#5A4A83', marginBottom: 12 }}>{lang === 'cs' ? 'Neomezené eventy, bez limitů.' : 'Unlimited events, no limits.'}</p>
             <button onClick={e => { e.stopPropagation(); setShowPremium(true); }} className="w-full" style={{ ...ghostBtn, background: 'var(--sv-surface)', width: '100%' }}>{tr.viewPlans}</button>
