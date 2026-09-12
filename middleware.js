@@ -27,4 +27,10 @@ export default async function middleware(request) {
   return eventOgHandler(new Request(ogUrl));
 }
 
-export const config = { matcher: '/event/:id*' };
+// Node.js runtime, not Edge: Vercel's Edge runtime restricts which modules a
+// function can reference, and since middleware.js and api/og.js sit in the
+// same directory, the build was bundling middleware together with og.js's
+// @vercel/og dependency — which Edge doesn't allow — silently breaking
+// middleware's deploy (confirmed in the build log: 'The Edge Function
+// "middleware" is referencing unsupported modules: - @vercel: module').
+export const config = { matcher: '/event/:id*', runtime: 'nodejs' };
