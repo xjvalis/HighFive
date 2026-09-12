@@ -9,7 +9,32 @@
 // an image. satori (which @vercel/og wraps) accepts this plain
 // {type, props: {style, children}} shape directly, no React/JSX needed.
 import { ImageResponse } from '@vercel/og';
-import { getCategoryStyle, getCategoryLabel } from '../src/lib/categories.js';
+
+// Duplicated (not imported) from src/lib/categories.js: Vercel's Edge Function
+// bundler doesn't reliably pick up relative imports that reach outside api/
+// (this is very likely why the function silently never deployed before —
+// see the file-level comment above) — keep only the fields this file needs,
+// share/shareInk in sync with src/lib/categories.js by hand if they change.
+const CATEGORIES = [
+  { name: "Hangout", labelCs: "Hangout", emoji: "☕", share: "#FFDCBE", shareInk: "#6B3E14" },
+  { name: "One-on-One", labelCs: "One-on-One", emoji: "🤝", share: "#FFEFB8", shareInk: "#5F4608" },
+  { name: "Sport", labelCs: "Sport", emoji: "⚽", share: "#D2E1FF", shareInk: "#23407F" },
+  { name: "Board Games", labelCs: "Deskové hry", emoji: "🎲", share: "#E6DCFA", shareInk: "#3F2E70" },
+  { name: "Outdoors", labelCs: "Příroda", emoji: "🌿", share: "#D8ECCD", shareInk: "#33552A" },
+  { name: "Culture", labelCs: "Kultura", emoji: "🎨", share: "#E5C3A4", shareInk: "#673D1D" },
+  { name: "Movies", labelCs: "Film", emoji: "🎬", share: "#FFD5A8", shareInk: "#6B3A0C" },
+  { name: "Music", labelCs: "Hudba", emoji: "🎵", share: "#CCC7F0", shareInk: "#333468" },
+  { name: "Gaming", labelCs: "Gaming", emoji: "🎮", share: "#B7E6EC", shareInk: "#114F5E" },
+  { name: "Food", labelCs: "Jídlo a pití", emoji: "🍜", share: "#ECBEBE", shareInk: "#752A2A" },
+  { name: "Creative", labelCs: "Kreativa", emoji: "✏️", share: "#E9D691", shareInk: "#644D0A" },
+  { name: "Tech", labelCs: "Tech", emoji: "💻", share: "#C6CDDA", shareInk: "#2C3748" },
+  { name: "Study", labelCs: "Studium", emoji: "📚", share: "#FFF2C2", shareInk: "#5E4408" },
+  { name: "Wellness", labelCs: "Wellness", emoji: "🧘", share: "#C5DCCB", shareInk: "#2A503A" },
+  { name: "Nightlife", labelCs: "Party", emoji: "🌙", share: "#BAC1E0", shareInk: "#222C58" },
+  { name: "Other", labelCs: "Ostatní", emoji: "✨", share: "#D6D0C5", shareInk: "#48423A" },
+];
+const getCategoryStyle = (name) => CATEGORIES.find(c => c.name === name) || CATEGORIES[CATEGORIES.length - 1];
+const getCategoryLabel = (name) => (CATEGORIES.find(c => c.name === name) || CATEGORIES[CATEGORIES.length - 1]).labelCs;
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
@@ -74,7 +99,7 @@ export default async function handler(req) {
 
   const title = event?.title || 'Spoluvíc';
   const cat = getCategoryStyle(event?.category);
-  const categoryLabel = getCategoryLabel(event?.category, 'cs');
+  const categoryLabel = getCategoryLabel(event?.category);
   const when = event?.date
     ? new Date(event.date).toLocaleDateString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' })
     : '';
