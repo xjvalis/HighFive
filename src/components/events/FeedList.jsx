@@ -26,7 +26,7 @@ function scoreEvent(event, profile, userEmail, isPersonalized) {
   const daysUntil = (eventDate - now) / (1000 * 60 * 60 * 24);
   if (daysUntil >= 0 && daysUntil <= 7) score += 15;
   else if (daysUntil > 7 && daysUntil <= 30) score += 5;
-  const createdAt = new Date(event.created_date || 0);
+  const createdAt = new Date(event.created_at || 0);
   const daysSinceCreated = (now - createdAt) / (1000 * 60 * 60 * 24);
   if (daysSinceCreated < 2) score += 8;
   else if (daysSinceCreated < 7) score += 4;

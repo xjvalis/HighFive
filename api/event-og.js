@@ -27,7 +27,7 @@ export default async function handler(req) {
     } catch (_) {}
   }
 
-  const siteUrl = 'https://high-five-nine.vercel.app';
+  const siteUrl = 'https://spoluvic.app';
 
   let title = 'Spoluvíc — Spolu je toho víc';
   let description = 'Najdi lidi na to, na co máš zrovna chuť — bez tlaku, bez velkých profilů. Spolu je toho vždycky víc.';

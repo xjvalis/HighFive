@@ -115,7 +115,7 @@ export default async function handler(req) {
                   {spots} {spotsWord(spots)}
                 </span>
               )}
-              <span style={{ display: 'flex', fontFamily: 'IBM Plex Mono', fontWeight: 500, fontSize: 28, color: cat.shareInk }}>spoluvic.cz</span>
+              <span style={{ display: 'flex', fontFamily: 'IBM Plex Mono', fontWeight: 500, fontSize: 28, color: cat.shareInk }}>spoluvic.app</span>
             </div>
           </div>
         </div>

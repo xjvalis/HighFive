@@ -321,9 +321,9 @@ export const translations = {
     cancelAttendanceBtn: "Zrušit účast",
     attendanceCancelled: "Účast zrušena.",
 
-    trendingTitle: "🔥 Trendy",
+    trendingTitle: "🔥 Populární",
     trendingSubtitle: "Nejoblíbenější události právě teď",
-    nothingTrending: "Zatím nic v trendech",
+    nothingTrending: "Zatím nic populárního",
 
     favoritesTitle: "Oblíbené",
     favoritesSubtitle: "Události, které jsi označil/a ⭐",

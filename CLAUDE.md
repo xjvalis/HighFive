@@ -3,8 +3,9 @@
 Czech social/event-discovery app: find what's happening nearby today, join without a
 profile-building ritual. React 18 + Vite + Capacitor (Android/iOS) + Supabase
 (Postgres/Auth/Storage/Realtime/Edge Functions) + Stripe + Sentry. Live at
-https://high-five-nine.vercel.app, deployed on Vercel (every push to `main` ships to
-production — there is no staging environment).
+https://spoluvic.app (custom domain on Vercel; the project's `*.vercel.app` address
+still works too), deployed on Vercel (every push to `main` ships to production — there
+is no staging environment).
 
 ## Where things live
 

@@ -119,12 +119,13 @@ export default function EventDetail() {
     if (!newComment.trim()||!user||submittingComment) return;
     setSubmittingComment(true);
     try {
+      // events.comments_count is kept in sync by a DB trigger on this insert
+      // (see supabase/schema.sql) — the old client-side update() here could
+      // never work for a non-organizer commenter, since events RLS only lets
+      // the event's own organizer update its row.
       const {data:comment, error} = await supabase.from('comments').insert({ event_id:id, author_id:user.id, author_email:user.email, author_name:profile?.display_name||user.email, author_avatar:profile?.avatar_url||null, content:newComment.trim() }).select().single();
       if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se přidat komentář.' : 'Failed to add comment.'); return; }
       if (comment) { setComments(prev=>[...prev,comment]); setNewComment(''); }
-      const { error: updateError } = await supabase.from('events').update({comments_count:(event.comments_count||0)+1}).eq('id',id);
-      if (updateError) { toast.error(lang === 'cs' ? 'Nepodařilo se aktualizovat počet komentářů.' : 'Failed to update comment count.'); return; }
-      setEvent(e=>({...e,comments_count:(e.comments_count||0)+1}));
     } finally { setSubmittingComment(false); }
   };
 

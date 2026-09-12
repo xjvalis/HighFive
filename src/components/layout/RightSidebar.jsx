@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useT } from '@/lib/i18n';
 import { toast } from 'sonner';
+import { sortByTrending } from '@/lib/trending';
 
 const cardStyle = { background: 'var(--sv-surface)', border: '1px solid var(--sv-hairline)', borderRadius: 'var(--sv-r-card)', padding: 12 };
 
@@ -14,16 +15,22 @@ export default function RightSidebar() {
   useEffect(() => {
     const now = new Date().toISOString();
 
-    supabase.from('events').select('*')
-      .eq('is_approved', true)
-      .gt('date', now)
-      .order('hot_score', { ascending: false })
-      .order('date', { ascending: true })
-      .limit(5)
-      .then(({ data, error }) => {
-        if (error) toast.error(tr.sidebarHotLoadFailed);
-        setHotEvents(data || []);
-      });
+    // Rank client-side via the shared trending score (src/lib/trending.js) —
+    // same logic as /trending and Home's Populární tab. Pull a modest
+    // candidate pool (soonest-first) rather than trying to rank in SQL.
+    const loadHot = () => {
+      supabase.from('events').select('*')
+        .eq('is_approved', true)
+        .gt('date', new Date().toISOString())
+        .order('date', { ascending: true })
+        .limit(30)
+        .then(({ data, error }) => {
+          if (error) { toast.error(tr.sidebarHotLoadFailed); return; }
+          setHotEvents(sortByTrending(data || []).slice(0, 5));
+        });
+    };
+
+    loadHot();
 
     supabase.from('events').select('*')
       .eq('is_approved', true)
@@ -39,15 +46,7 @@ export default function RightSidebar() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events' },
         p => setRecentEvents(prev => [p.new, ...prev].slice(0, 5)))
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'events' },
-        () => {
-          // Refresh hot events when any event updates (join, favorite, comment)
-          supabase.from('events').select('*').eq('is_approved', true).gt('date', new Date().toISOString())
-            .order('hot_score', { ascending: false }).limit(5)
-            .then(({ data, error }) => {
-              if (error) return; // silent — background refresh, avoid noisy repeated toasts
-              setHotEvents(data || []);
-            });
-        })
+        loadHot) // re-rank when any event's participants/comments/favorites change
       .subscribe();
     return () => supabase.removeChannel(ch);
   }, []);

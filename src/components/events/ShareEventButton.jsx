@@ -134,7 +134,7 @@ function ModalPreviewCard({ event, cat, lang }) {
         <span style={{ font: "500 12px 'Outfit', sans-serif", color: cat.shareInk }}>
           {getCategoryLabel(event.category, lang)} · Spoluvíc
         </span>
-        <span style={{ marginLeft: 'auto', font: "500 11px 'IBM Plex Mono', monospace", color: cat.shareInk }}>spoluvic.cz</span>
+        <span style={{ marginLeft: 'auto', font: "500 11px 'IBM Plex Mono', monospace", color: cat.shareInk }}>spoluvic.app</span>
       </div>
     </div>
   );
@@ -211,7 +211,7 @@ function DownloadCard({ event, cat, lang, nodeRef }) {
         <div style={{ font: "500 47px/1.35 'Outfit', sans-serif", color: cat.shareInk }}>
           {lang === 'cs' ? <>Přidej se, nebo si<br />najdi něco svého.</> : <>Join in, or find<br />something of your own.</>}
         </div>
-        <div style={{ font: "500 43px 'IBM Plex Mono', monospace", color: cat.shareInk }}>spoluvic.cz</div>
+        <div style={{ font: "500 43px 'IBM Plex Mono', monospace", color: cat.shareInk }}>spoluvic.app</div>
       </div>
     </div>
   );

@@ -57,7 +57,7 @@ export default function PremiumModal({ open, onClose, profile, highlightPlan, on
       // internal origin, not the real site — so always point success/cancel
       // at the real domain. The Stripe webhook updates the subscription
       // server-side regardless of how the user gets back to the app.
-      const webOrigin = isNative() ? 'https://high-five-nine.vercel.app' : window.location.origin;
+      const webOrigin = isNative() ? 'https://spoluvic.app' : window.location.origin;
       const { data: res, error } = await supabase.functions.invoke('stripe-checkout', {
         body: {
           plan: selected,

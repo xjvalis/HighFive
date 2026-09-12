@@ -7,23 +7,7 @@ import { useT } from '@/lib/i18n';
 import { toast } from 'sonner';
 import { svPageTitle, svSubtitle, svCard } from '@/lib/svStyles';
 import { isEventOver } from '@/lib/events';
-
-// hot_score exists in the DB but is null on most rows, so rank on the signals
-// the app actually maintains: people signed up, an active discussion, being
-// favorited a lot, only a few spots left (scarcity — a near-full event reads
-// as "in demand" far more than raw headcount does), and already underway.
-const liveliness = (e, now) => {
-  const capacity = e.max_capacity;
-  const going = e.participants?.length || 0;
-  const spotsLeft = capacity ? capacity - going : null;
-  const almostFull = spotsLeft !== null && spotsLeft > 0 && spotsLeft <= 3;
-
-  return going * 3
-    + (e.comments_count || 0) * 2
-    + (e.favorites_count || 0) * 2
-    + (almostFull ? 8 : 0)
-    + (new Date(e.date) <= now ? 5 : 0);
-};
+import { sortByTrending } from '@/lib/trending';
 
 export default function Trending() {
   const tr = useT();
@@ -47,10 +31,7 @@ export default function Trending() {
 
   const trending = useMemo(() => {
     const now = new Date();
-    return (events || [])
-      .filter(e => !isEventOver(e, now))
-      .sort((a, b) => liveliness(b, now) - liveliness(a, now) || new Date(a.date) - new Date(b.date))
-      .slice(0, 30);
+    return sortByTrending((events || []).filter(e => !isEventOver(e, now)), now).slice(0, 30);
   }, [events]);
 
   const handleJoin = async (event) => {

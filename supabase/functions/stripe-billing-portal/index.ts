@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
     // Create billing portal session
     const session = await stripe.billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
-      return_url: return_url || `${Deno.env.get("SUPABASE_URL")?.replace("supabase.co", "vercel.app")}/profile`,
+      return_url: return_url || "https://spoluvic.app/profile",
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

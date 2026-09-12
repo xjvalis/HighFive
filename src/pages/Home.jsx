@@ -18,6 +18,7 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { getCurrentPosition } from '@/lib/nativeGeolocation';
 import EmptyState from '@/components/ui/EmptyState';
 import { isEventFull, isEventOver } from '@/lib/events';
+import { sortByTrending } from '@/lib/trending';
 import { isPremiumProfile, canJoinEvent, monthlyJoinsUsed, MONTHLY_JOIN_LIMIT } from '@/lib/premium';
 const EventMap = lazy(() => import('@/components/events/EventMap'));
 
@@ -84,7 +85,9 @@ export default function Home() {
     } else if (sort === 'upcoming') {
       q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('date', { ascending: true });
     } else if (sort === 'popular') {
-      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('favorites_count', { ascending: false });
+      // Ranked client-side in filteredEvents via the shared trending score
+      // (src/lib/trending.js) — same logic as /trending and Hot právě teď.
+      q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('date', { ascending: true });
     } else if (sort === 'new') {
       q = supabase.from('events').select('*').eq('is_approved', true).gt('date', nowIso).order('created_at', { ascending: false });
     } else {
@@ -144,25 +147,34 @@ export default function Home() {
       const now = new Date();
       evts = evts.filter(e => !isEventOver(e, now));
     }
-    if (sort === 'forYou' && profile?.favorite_categories?.length) {
-      const favCats = new Set(profile.favorite_categories);
-      evts = [...evts].sort((a, b) => {
-        const aF = favCats.has(a.category) ? 0 : 1;
-        const bF = favCats.has(b.category) ? 0 : 1;
-        if (aF !== bF) return aF - bF;
-        return 0;
-      });
+    // 'forYou' isn't sorted here — FeedList (isPersonalized) does the actual
+    // category/preference-weighted ranking via scoreEvent(); sorting twice
+    // would just have the second pass throw away the first.
+    if (sort === 'popular') {
+      evts = sortByTrending(evts);
     }
     return evts;
 
   }, [events, sort, radius, userLocation]);
 
   const mapEvents = events.filter(e => e.latitude && e.longitude && (!userLocation || haversineKm(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= radius));
+
+  // Derived from profile.joined_events (the user's full join history,
+  // maintained by the join-event edge function) rather than whatever's
+  // currently loaded/paginated on screen — otherwise this signal would
+  // depend on scroll position and the active sort/filter.
+  const [joinedCategories, setJoinedCategories] = useState([]);
+  useEffect(() => {
+    const ids = profile?.joined_events || [];
+    if (!ids.length) { setJoinedCategories([]); return; }
+    supabase.from('events').select('category').in('id', ids)
+      .then(({ data }) => setJoinedCategories([...new Set((data || []).map(e => e.category).filter(Boolean))]));
+  }, [profile?.joined_events]);
+
   const profileWithCategories = useMemo(() => {
     if (!profile) return profile;
-    return { ...profile, joined_categories: [...new Set(events.filter(e => e.participants?.includes(user?.email)).map(e => e.category).filter(Boolean))] };
-     
-  }, [profile?.id, events.length]);
+    return { ...profile, joined_categories: joinedCategories };
+  }, [profile, joinedCategories]);
 
   const handleJoin = async (event) => {
     if (!user) { toast.info(lang === 'cs' ? 'Přihlas se pro přidání na event.' : 'Sign in to join events.'); return; }
@@ -184,9 +196,9 @@ export default function Home() {
       if (!user || !profile) return;
       const isFav = (profile.favorited_events||[]).includes(event.id);
       const updated = isFav ? (profile.favorited_events||[]).filter(i=>i!==event.id) : [...(profile.favorited_events||[]),event.id];
+      // events.favorites_count is kept in sync by a DB trigger on this write
+      // (see supabase/schema.sql) — no separate client-side update needed.
       await updateProfile({ favorited_events: updated });
-      supabase.from('events').update({ favorites_count: Math.max(0,(event.favorites_count||0)+(isFav?-1:1)) }).eq('id',event.id)
-        .then(({ error }) => { if (error) toast.error(lang === 'cs' ? 'Nepodařilo se aktualizovat počet oblíbených.' : 'Failed to update favorite count.'); });
     } catch {
       toast.error(lang === 'cs' ? 'Nepodařilo se uložit oblíbenou položku.' : 'Failed to update favorite.');
     } finally { favRef.current.delete(event.id); }
