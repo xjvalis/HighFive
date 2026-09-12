@@ -22,7 +22,7 @@ export default function Privacy() {
           <p style={{ font: "300 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', lineHeight: 1.6 }}>
             Provozovatelem platformy Spoluvíc (dále jen „my", „Spoluvíc" nebo „Služba") a správcem osobních
             údajů je <strong>Jan Vališ, se sídlem Praha - Záběhlice, Roztylské náměstí 2396/1, 141 00, IČO: 04859944</strong>, kontaktní e-mail pro otázky
-            ochrany soukromí: <strong>xjvalis+spoluvic@gmail.com</strong>.
+            ochrany soukromí: <strong>podpora@spoluvic.app</strong>.
           </p>
         </section>
 
@@ -99,7 +99,7 @@ export default function Privacy() {
             <li>podat stížnost u Úřadu pro ochranu osobních údajů (uoou.cz), pokud se domníváte, že vaše práva byla porušena.</li>
           </ul>
           <p style={{ font: "300 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', lineHeight: 1.6 }}>
-            Pro uplatnění těchto práv nás kontaktujte na <strong>xjvalis+spoluvic@gmail.com</strong>.
+            Pro uplatnění těchto práv nás kontaktujte na <strong>podpora@spoluvic.app</strong>.
           </p>
         </section>
 
@@ -140,7 +140,7 @@ export default function Privacy() {
           <h2 style={{ font: "500 15.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>12. Kontakt</h2>
           <p style={{ font: "300 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', lineHeight: 1.6 }}>
             Máte-li jakékoliv dotazy ohledně zpracování vašich osobních údajů, napište nám na
-            <strong> xjvalis+spoluvic@gmail.com</strong>.
+            <strong> podpora@spoluvic.app</strong>.
           </p>
         </section>
       </div>

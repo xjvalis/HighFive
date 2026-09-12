@@ -134,7 +134,7 @@ export default function Terms() {
         <section className="space-y-2">
           <h2 style={{ font: "500 15.5px 'Outfit', sans-serif", color: 'var(--sv-ink)' }}>12. Kontakt</h2>
           <p style={{ font: "300 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink-soft)', lineHeight: 1.6 }}>
-            Dotazy k těmto podmínkám posílejte na <strong>xjvalis+spoluvic@gmail.com</strong>.
+            Dotazy k těmto podmínkám posílejte na <strong>podpora@spoluvic.app</strong>.
           </p>
         </section>
       </div>
