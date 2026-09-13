@@ -175,7 +175,7 @@ export default function EventDetail() {
             {user && !isOrganizer && event.organizer_email && (
               <button
                 onClick={()=>setShowDM(true)}
-                className="flex items-center justify-center text-xs font-medium transition-colors px-3 py-2 rounded-xl"
+                className="flex items-center justify-center text-xs font-medium transition-colors px-3 py-2 rounded-xl min-h-[44px]"
                 style={{ background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)' }}
               >
                 {lang === 'cs' ? 'DM organizátorovi' : 'DM to organizer'}

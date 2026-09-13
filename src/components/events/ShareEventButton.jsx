@@ -295,7 +295,7 @@ export default function ShareEventButton({ event }) {
     <div className="relative">
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors bg-secondary hover:bg-secondary/80 px-3 py-2 rounded-xl"
+        className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors bg-secondary hover:bg-secondary/80 px-3 py-2 rounded-xl min-h-[44px]"
       >
         <Share2 className="w-3.5 h-3.5" />
         {lang === 'cs' ? 'Sdílet' : 'Share'}
