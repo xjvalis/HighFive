@@ -1,32 +1,31 @@
-// Vercel Edge Function — generates the branded 1200×630 OG share image for an
-// event (design_handoff_spoluvic_web/"share karty"/SHARE_EVENT.md, variant 13c).
-// URL: /api/og?id=EVENT_ID
+// Vercel Function, Node.js runtime — generates the branded 1200×630 OG share
+// image for an event (design_handoff_spoluvic_web/"share karty"/SHARE_EVENT.md,
+// variant 13c). URL: /api/og?id=EVENT_ID
 //
-// Uses satori + @resvg/resvg-wasm directly instead of the @vercel/og wrapper.
-// @vercel/og's package.json only resolves to its edge build under the
-// "edge"/"edge-light"/"worker" export conditions, which Next.js sets itself
-// when bundling for Edge — a plain Vercel Function build (this is a Vite
-// project, not Next.js) never sets them, so the bare specifier always
-// resolved to its Node.js build and crashed at runtime with "Dynamic
-// require of 'fs' is not supported" (reproduced identically in production
-// and locally). A deep import of its edge build
-// (@vercel/og/dist/index.edge.js) is blocked by Node's "exports"
-// restriction (only "." is exported); vendoring that built file locally got
-// past the restriction but Vercel's own Edge Function validator then
-// rejected the vendored bundle outright ("referencing unsupported
-// modules"). satori has no such split (a single universal build) and
-// @resvg/resvg-wasm explicitly exports its .wasm file
-// (`"./index_bg.wasm": "./index_bg.wasm"` in its package.json) for exactly
-// this edge-import pattern, so neither hits the problem.
-//
-// Written as plain object trees (a tiny `h()` helper) instead of JSX: Vercel's
-// zero-config Function build doesn't transform JSX for API routes, so an
-// earlier JSX version of this file silently never deployed. satori accepts
-// this plain {type, props: {style, children}} shape directly, no React/JSX
-// needed.
+// History, briefly (this file has been through it):
+// - @vercel/og resolves to its Node.js build outside Next.js regardless of
+//   config.runtime, and that build crashes with "Dynamic require of 'fs' is
+//   not supported" — reproduced in production and locally, both as ESM and
+//   as CommonJS. Not usable here at all.
+// - satori + @resvg/resvg-wasm (what @vercel/og wraps internally) as Edge
+//   Functions kept getting Vercel's Edge Function *build* itself rejected —
+//   "referencing unsupported modules" — twice, for different transitive
+//   dependencies (first @vercel/og leftovers, then harfbuzzjs's fs usage),
+//   each time actually failing the deploy, not just warning.
+// - Node.js runtime is what actually deploys reliably (confirmed: an earlier
+//   Node.js attempt at this file deployed fine and only failed at runtime,
+//   because it was still using @vercel/og's broken bundle). Node has real
+//   `fs`, so @resvg/resvg-wasm's WASM can be loaded the plain, boring way —
+//   readFileSync from node_modules — instead of the Edge-only
+//   `import wasm from '*.wasm'` syntax, which is what actually needs Edge.
 import satori from 'satori';
 import { Resvg, initWasm } from '@resvg/resvg-wasm';
-import resvgWasmModule from '@resvg/resvg-wasm/index_bg.wasm';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const resvgWasmBuffer = readFileSync(join(__dirname, '../node_modules/@resvg/resvg-wasm/index_bg.wasm'));
 
 // Duplicated (not imported) from src/lib/categories.js: Vercel's Edge Function
 // bundler doesn't reliably pick up relative imports that reach outside api/ —
@@ -56,7 +55,22 @@ const getCategoryLabel = (name) => (CATEGORIES.find(c => c.name === name) || CAT
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 
-const EMOJI_FONT_STACK = "'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif";
+// satori has no access to a system emoji font (there isn't one on a server),
+// so a plain <span> with an emoji font-family stack just renders tofu —
+// satori's documented fix is `graphemeImages`, swapping the character for an
+// actual image. Twemoji covers every category emoji used in categories.js.
+// resvg (the final SVG→PNG rasterization step) has no network access, so a
+// remote <image href> in the SVG satori produces never loads — the image
+// content has to already be inlined as a data URI by the time satori runs.
+async function twemojiDataUri(emoji) {
+  const codepoints = [...emoji]
+    .map((c) => c.codePointAt(0).toString(16))
+    .filter((cp) => cp !== 'fe0f') // strip the variation selector — Twemoji's filenames omit it
+    .join('-');
+  const url = `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/${codepoints}.svg`;
+  const svg = await fetch(url).then((r) => r.text());
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+}
 
 function h(type, props = {}, children) {
   return { type, props: { ...props, children } };
@@ -86,23 +100,36 @@ function spotsWord(n) {
   return 'míst volných';
 }
 
-async function loadGoogleFont(family, weight) {
+// Google's CSS2 API replies with one @font-face block per Unicode subset
+// (latin, latin-ext, ...) — Czech diacritics split across both, so a single
+// subset alone renders half the alphabet as tofu. satori does NOT do
+// browser-style unicode-range fallback within one font name — passing both
+// buffers under the *same* name just silently uses one and ignores the
+// other. It does, like CSS, fall through a `fontFamily: "A, B"` list per
+// glyph, so each subset gets registered under its own synthetic name and
+// chained that way instead.
+async function loadGoogleFontStack(family, weight) {
   const cssUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:wght@${weight}&display=swap`;
   const css = await fetch(cssUrl, {
-    // Old Chrome UA — Google Fonts serves TTF (not WOFF2) to it, which satori needs.
+    // Old Chrome UA — Google Fonts serves TTF/WOFF (not WOFF2) to it, which satori needs.
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36' },
   }).then((r) => r.text());
-  const match = css.match(/src: url\(([^)]+)\)/);
-  if (!match) throw new Error(`font src not found for ${family} ${weight}`);
-  const fontRes = await fetch(match[1]);
-  return fontRes.arrayBuffer();
+  const urls = [...css.matchAll(/src: url\(([^)]+)\)/g)].map((m) => m[1]);
+  if (!urls.length) throw new Error(`font src not found for ${family} ${weight}`);
+  const buffers = await Promise.all(urls.map((url) => fetch(url).then((r) => r.arrayBuffer())));
+  const slug = family.replace(/\s+/g, '');
+  const names = buffers.map((_, i) => `${slug}-${weight}-${i}`);
+  return {
+    fontFamily: names.join(', '),
+    fonts: buffers.map((data, i) => ({ name: names[i], data, weight, style: 'normal' })),
+  };
 }
 
 // initWasm() throws if called twice, so the module-level promise is memoized
 // across warm invocations of this same edge function instance.
 let wasmReady = null;
 function ensureResvgWasm() {
-  if (!wasmReady) wasmReady = initWasm(resvgWasmModule);
+  if (!wasmReady) wasmReady = initWasm(resvgWasmBuffer);
   return wasmReady;
 }
 
@@ -133,49 +160,50 @@ export default async function handler(req) {
   const spots = event?.max_capacity != null ? Math.max(event.max_capacity - count, 0) : null;
 
   let fonts = [];
+  let outfitFamily = 'Outfit';
+  let monoFamily = 'IBM Plex Mono';
   try {
-    const [outfit500, plexMono500, plexMono600] = await Promise.all([
-      loadGoogleFont('Outfit', 500),
-      loadGoogleFont('IBM+Plex+Mono', 500),
-      loadGoogleFont('IBM+Plex+Mono', 600),
+    const [outfitStack, monoStack] = await Promise.all([
+      loadGoogleFontStack('Outfit', 500),
+      loadGoogleFontStack('IBM Plex Mono', 500),
     ]);
-    fonts = [
-      { name: 'Outfit', data: outfit500, weight: 500, style: 'normal' },
-      { name: 'IBM Plex Mono', data: plexMono500, weight: 500, style: 'normal' },
-      { name: 'IBM Plex Mono', data: plexMono600, weight: 600, style: 'normal' },
-    ];
+    fonts = [...outfitStack.fonts, ...monoStack.fonts];
+    outfitFamily = outfitStack.fontFamily;
+    monoFamily = monoStack.fontFamily;
   } catch (_) {
-    // satori requires at least one font — fall back to a minimal system stack
-    // reference if Google Fonts couldn't be reached (satori still needs real
-    // font data, so this case just lets the request fail gracefully below).
+    // satori requires at least one font — this just lets the request fail
+    // gracefully below if Google Fonts couldn't be reached.
   }
 
   const tree = h('div', { style: { width: 1200, height: 630, display: 'flex', background: cat.share } }, [
     h('div', { style: { flex: 1, padding: '58px 53px', display: 'flex', flexDirection: 'column' } }, [
       h('div', { style: { display: 'flex', alignItems: 'center', gap: 9 } }, [
         pixelMark(20),
-        h('span', { style: { fontFamily: 'Outfit', fontWeight: 500, fontSize: 17, letterSpacing: '-0.03em', color: '#2E2836' } }, 'Spoluvíc'),
+        h('span', { style: { fontFamily: outfitFamily, fontWeight: 500, fontSize: 17, letterSpacing: '-0.03em', color: '#2E2836' } }, 'Spoluvíc'),
       ]),
       h('div', { style: { marginTop: 'auto', display: 'flex', flexDirection: 'column' } }, [
-        h('span', { style: { display: 'flex', alignSelf: 'flex-start', fontFamily: 'Outfit', fontWeight: 500, fontSize: 26, color: cat.shareInk, background: '#fff', borderRadius: 999, padding: '12px 26px' } }, categoryLabel),
-        h('div', { style: { marginTop: 29, display: 'flex', fontFamily: 'Outfit', fontWeight: 500, fontSize: 72, letterSpacing: '-0.035em', color: '#2E2836' } }, title),
-        whenLoc ? h('div', { style: { marginTop: 26, display: 'flex', fontFamily: 'Outfit', fontWeight: 500, fontSize: 31, color: cat.shareInk } }, whenLoc) : null,
+        h('span', { style: { display: 'flex', alignSelf: 'flex-start', fontFamily: outfitFamily, fontWeight: 500, fontSize: 26, color: cat.shareInk, background: '#fff', borderRadius: 999, padding: '12px 26px' } }, categoryLabel),
+        h('div', { style: { marginTop: 29, display: 'flex', fontFamily: outfitFamily, fontWeight: 500, fontSize: 72, letterSpacing: '-0.035em', color: '#2E2836' } }, title),
+        whenLoc ? h('div', { style: { marginTop: 26, display: 'flex', fontFamily: outfitFamily, fontWeight: 500, fontSize: 31, color: cat.shareInk } }, whenLoc) : null,
         h('div', { style: { marginTop: 34, display: 'flex', alignItems: 'center', gap: 29 } }, [
-          spots != null ? h('span', { style: { display: 'flex', fontFamily: 'Outfit', fontWeight: 600, fontSize: 31, color: '#2E2836', background: '#FFB84D', borderRadius: 999, padding: '14px 31px' } }, `${spots} ${spotsWord(spots)}`) : null,
-          h('span', { style: { display: 'flex', fontFamily: 'IBM Plex Mono', fontWeight: 500, fontSize: 28, color: cat.shareInk } }, 'spoluvic.app'),
+          spots != null ? h('span', { style: { display: 'flex', fontFamily: outfitFamily, fontWeight: 600, fontSize: 31, color: '#2E2836', background: '#FFB84D', borderRadius: 999, padding: '14px 31px' } }, `${spots} ${spotsWord(spots)}`) : null,
+          h('span', { style: { display: 'flex', fontFamily: monoFamily, fontWeight: 500, fontSize: 28, color: cat.shareInk } }, 'spoluvic.app'),
         ].filter(Boolean)),
       ].filter(Boolean)),
     ]),
     h('div', { style: { width: 494, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' } },
-      h('span', { style: { fontFamily: EMOJI_FONT_STACK, fontSize: 269, lineHeight: 1, display: 'flex' } }, cat.emoji)
+      h('span', { style: { fontSize: 269, lineHeight: 1, display: 'flex' } }, cat.emoji)
     ),
   ]);
 
   try {
-    const [svg] = await Promise.all([
-      satori(tree, { width: 1200, height: 630, fonts }),
-      ensureResvgWasm(),
-    ]);
+    const [emojiDataUri] = await Promise.all([twemojiDataUri(cat.emoji), ensureResvgWasm()]);
+    const svg = await satori(tree, {
+      width: 1200,
+      height: 630,
+      fonts,
+      graphemeImages: { [cat.emoji]: emojiDataUri },
+    });
     const png = new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } }).render().asPng();
     return new Response(png, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=3600' } });
   } catch (error) {
@@ -184,4 +212,4 @@ export default async function handler(req) {
   }
 }
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
