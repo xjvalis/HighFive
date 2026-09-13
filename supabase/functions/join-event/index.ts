@@ -93,14 +93,18 @@ Deno.serve(async (req) => {
 
       const isPremium = profile?.is_premium || profile?.subscription_plan === 'plus' || profile?.subscription_plan === 'creator';
 
-      if (!isPremium && profile) {
-        const now = new Date();
-        const resetDate = profile.monthly_reset_date ? new Date(profile.monthly_reset_date) : null;
-        const isNewMonth = !resetDate || now.getFullYear() > resetDate.getFullYear() || now.getMonth() > resetDate.getMonth();
-        const used = isNewMonth ? 0 : (profile.monthly_join_count || 0);
-        if (used >= 3) {
-          return new Response(JSON.stringify({ error: 'monthly_limit_reached' }), { status: 403, headers: corsHeaders });
-        }
+      // monthly_join_count tracks DISTINCT events spent a slot on this month,
+      // not raw join actions — leaving an event and rejoining it later the
+      // same month re-uses the same slot instead of costing a new one. The
+      // slot is only freed by the calendar rolling over to a new month.
+      const now = new Date();
+      const resetDate = profile?.monthly_reset_date ? new Date(profile.monthly_reset_date) : null;
+      const isNewMonth = !resetDate || now.getFullYear() > resetDate.getFullYear() || now.getMonth() > resetDate.getMonth();
+      const usedEventIds = isNewMonth ? [] : (profile?.monthly_joined_event_ids || []);
+      const alreadyUsedSlotThisMonth = usedEventIds.includes(event_id);
+
+      if (!isPremium && profile && !alreadyUsedSlotThisMonth && usedEventIds.length >= 3) {
+        return new Response(JSON.stringify({ error: 'monthly_limit_reached' }), { status: 403, headers: corsHeaders });
       }
 
       const participants = [...(event.participants || []), user.email];
@@ -110,15 +114,13 @@ Deno.serve(async (req) => {
       if (profile) {
         const joined = [...(profile.joined_events || [])];
         if (!joined.includes(event_id)) joined.push(event_id);
-        const now = new Date();
-        const resetDate = profile.monthly_reset_date ? new Date(profile.monthly_reset_date) : null;
-        const isNewMonth = !resetDate || now.getFullYear() > resetDate.getFullYear() || now.getMonth() > resetDate.getMonth();
-        const newCount = isNewMonth ? 1 : (profile.monthly_join_count || 0) + 1;
+        const newEventIds = alreadyUsedSlotThisMonth ? usedEventIds : [...usedEventIds, event_id];
         const monthlyResetDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
 
         await serviceClient.from('user_profiles').update({
           joined_events: joined,
-          monthly_join_count: newCount,
+          monthly_join_count: newEventIds.length,
+          monthly_joined_event_ids: newEventIds,
           monthly_reset_date: monthlyResetDate,
         }).eq('user_id', user.id);
       }

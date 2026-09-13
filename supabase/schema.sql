@@ -34,6 +34,7 @@ create table public.user_profiles (
   monthly_join_count integer default 0,
   monthly_create_count integer default 0,
   monthly_reset_date date,
+  monthly_joined_event_ids uuid[] default '{}',
   stripe_subscription_id text,
   stripe_customer_id text,
   notify_email_reminders boolean default true,
