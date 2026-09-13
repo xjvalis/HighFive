@@ -1,21 +1,30 @@
-// Vercel Function (Node.js runtime — see config at the bottom) — generates the
-// branded 1200×630 OG share image for an event
-// (design_handoff_spoluvic_web/"share karty"/SHARE_EVENT.md, variant 13c).
+// Vercel Edge Function — generates the branded 1200×630 OG share image for an
+// event (design_handoff_spoluvic_web/"share karty"/SHARE_EVENT.md, variant 13c).
 // URL: /api/og?id=EVENT_ID
 //
-// Written as plain object trees (a tiny `h()` helper) instead of JSX: this was
-// originally api/og.jsx, but Vercel's zero-config Function build doesn't
-// transform JSX for API routes, so the whole file silently never deployed —
-// every request fell through to the SPA's index.html instead of generating
-// an image. satori (which @vercel/og wraps) accepts this plain
-// {type, props: {style, children}} shape directly, no React/JSX needed.
+// Has to stay on the Edge runtime: @vercel/og's Node.js build crashes at
+// runtime with "Dynamic require of 'fs' is not supported" (confirmed both in
+// production logs and locally, as plain ESM and as CommonJS via a .cjs file —
+// it's the package's own bundle that's broken under Node here, not a module-
+// format issue on our end). Its Edge build works fine.
+//
+// This does make Vercel's build log print "The Edge Function '<sibling>' is
+// referencing unsupported modules: @vercel" for whichever other Edge
+// Function happens to sit in api/ alongside this one (seen on both
+// event-og.js and middleware.js at different times) — confirmed harmless:
+// the flagged sibling keeps deploying and working normally regardless.
+//
+// Written as plain object trees (a tiny `h()` helper) instead of JSX: Vercel's
+// zero-config Function build doesn't transform JSX for API routes, so an
+// earlier JSX version of this file silently never deployed. satori (which
+// @vercel/og wraps) accepts this plain {type, props: {style, children}}
+// shape directly, no React/JSX needed.
 import { ImageResponse } from '@vercel/og';
 
 // Duplicated (not imported) from src/lib/categories.js: Vercel's Edge Function
-// bundler doesn't reliably pick up relative imports that reach outside api/
-// (this is very likely why the function silently never deployed before —
-// see the file-level comment above) — keep only the fields this file needs,
-// share/shareInk in sync with src/lib/categories.js by hand if they change.
+// bundler doesn't reliably pick up relative imports that reach outside api/ —
+// keep only the fields this file needs, share/shareInk in sync with
+// src/lib/categories.js by hand if they change.
 const CATEGORIES = [
   { name: "Hangout", labelCs: "Hangout", emoji: "☕", share: "#FFDCBE", shareInk: "#6B3E14" },
   { name: "One-on-One", labelCs: "One-on-One", emoji: "🤝", share: "#FFEFB8", shareInk: "#5F4608" },
@@ -148,9 +157,4 @@ export default async function handler(req) {
   return new ImageResponse(tree, { width: 1200, height: 630, fonts });
 }
 
-// Node.js runtime, not Edge: Vercel's build was flagging every Edge Function
-// that merely shares the api/ directory with this file as "referencing
-// unsupported modules: @vercel" (it happened to event-og.js and middleware.js
-// too, neither of which import @vercel/og) — moving the one function that
-// actually needs @vercel/og off Edge stops that cross-contamination.
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
