@@ -172,17 +172,16 @@ export default function EventDetail() {
 
           <div className="flex gap-2 mb-3.5">
             <div className="flex-1"><AddToCalendar event={event}/></div>
-            <div className="flex flex-col gap-2 items-end">
-              <ShareEventButton event={event}/>
-              {user && !isOrganizer && event.organizer_email && (
-                <button
-                  onClick={()=>setShowDM(true)}
-                  className="flex items-center justify-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors bg-secondary hover:bg-secondary/80 px-3 py-2 rounded-xl"
-                >
-                  {lang === 'cs' ? 'DM organizátorovi' : 'DM to organizer'}
-                </button>
-              )}
-            </div>
+            {user && !isOrganizer && event.organizer_email && (
+              <button
+                onClick={()=>setShowDM(true)}
+                className="flex items-center justify-center text-xs font-medium transition-colors px-3 py-2 rounded-xl"
+                style={{ background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)' }}
+              >
+                {lang === 'cs' ? 'DM organizátorovi' : 'DM to organizer'}
+              </button>
+            )}
+            <ShareEventButton event={event}/>
           </div>
 
           {(isOrganizer || event.participants?.length > 0) && (
