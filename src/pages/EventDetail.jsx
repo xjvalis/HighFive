@@ -8,6 +8,7 @@ import { cs } from 'date-fns/locale';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
 import { isEventFull } from '@/lib/events';
 import { isPremiumProfile, canJoinEvent, monthlyJoinsUsed, MONTHLY_JOIN_LIMIT } from '@/lib/premium';
+import { callJoinEvent } from '@/lib/joinEvent';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
 import { useT } from '@/lib/i18n';
@@ -43,6 +44,11 @@ export default function EventDetail() {
   const [newComment, setNewComment] = useState('');
   const [joinAnim, setJoinAnim] = useState(false);
   const [joiningEvent, setJoiningEvent] = useState(false);
+  // React state updates aren't synchronous, so the button's disabled={joiningEvent}
+  // doesn't actually block a second click fired in the same tick (e.g. a user
+  // double-clicking because the UI feels unresponsive) — a plain ref does,
+  // since it's read/written immediately, not on the next render.
+  const joiningRef = useRef(false);
   const [leaveConfirm, setLeaveConfirm] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [participantProfiles, setParticipantProfiles] = useState({});
@@ -89,26 +95,19 @@ export default function EventDetail() {
   const canEdit = isOrganizer || isAdmin;
 
   const handleJoin = async (skipConfirm=false) => {
-    if (!user||!event||joiningEvent) return;
+    if (!user||!event||joiningRef.current) return;
     if ((isJoined||isOnWaitlist) && !skipConfirm) { setLeaveConfirm(true); return; }
     if (!isJoined&&!isOnWaitlist&&!canJoinEvent(profile)) { setShowPremium(true); return; }
     setJoinAnim(true); setTimeout(()=>setJoinAnim(false),600);
     const action = isJoined?'leave':isOnWaitlist?'leave_waitlist':isFull?'join_waitlist':'join';
+    joiningRef.current = true;
     setJoiningEvent(true);
     try {
-      const { data, error } = await supabase.functions.invoke('join-event', { body: { event_id: event.id, action } });
-      // On a non-2xx response, supabase-js puts the JSON body on error.context
-      // (the raw Response), not on `data` — checking data?.error here first
-      // was dead code, so "hit the free-plan limit" always fell through to
-      // the generic failure toast below instead of opening the paywall.
-      let errorCode = data?.error;
-      if (error && !errorCode) {
-        try { errorCode = (await error.context.json())?.error; } catch { /* no JSON body */ }
-      }
+      const { event: updatedEvent, errorCode } = await callJoinEvent(event.id, action);
       if (errorCode === 'monthly_limit_reached') { setShowPremium(true); return; }
-      if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.'); return; }
-      if (data?.event) {
-        setEvent(data.event);
+      if (errorCode) { toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.'); return; }
+      if (updatedEvent) {
+        setEvent(updatedEvent);
         // The join button's own label change is easy to miss (it's a small
         // text swap), so confirm the action explicitly instead of leaving
         // the user unsure whether the click actually did anything.
@@ -120,9 +119,7 @@ export default function EventDetail() {
         };
         toast.success(messages[action]);
       }
-    } catch (_) {
-      toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.');
-    } finally { setJoiningEvent(false); }
+    } finally { joiningRef.current = false; setJoiningEvent(false); }
   };
 
   const handleFavorite = async () => {

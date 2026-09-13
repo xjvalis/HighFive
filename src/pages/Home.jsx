@@ -20,6 +20,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { isEventFull, isEventOver } from '@/lib/events';
 import { sortByTrending } from '@/lib/trending';
 import { isPremiumProfile, canJoinEvent, monthlyJoinsUsed, MONTHLY_JOIN_LIMIT } from '@/lib/premium';
+import { callJoinEvent } from '@/lib/joinEvent';
 const EventMap = lazy(() => import('@/components/events/EventMap'));
 
 const PAGE_SIZE = 15;
@@ -183,10 +184,20 @@ export default function Home() {
     const isFull = isEventFull(event);
     if (!isJoined && !isOnWaitlist && !canJoinEvent(profile)) { setShowPremium(true); return; }
     const action = isJoined ? 'leave' : isOnWaitlist ? 'leave_waitlist' : isFull ? 'join_waitlist' : 'join';
-    const { data, error } = await supabase.functions.invoke('join-event', { body: { event_id: event.id, action } });
-    if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.'); return data; }
-    if (data?.event) setEvents(prev => prev.map(e => e.id === event.id ? data.event : e));
-    return data;
+    const { event: updatedEvent, errorCode } = await callJoinEvent(event.id, action);
+    if (errorCode === 'monthly_limit_reached') { setShowPremium(true); return; }
+    if (errorCode) { toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.'); return; }
+    if (updatedEvent) {
+      setEvents(prev => prev.map(e => e.id === event.id ? updatedEvent : e));
+      const messages = {
+        join: lang === 'cs' ? 'Jdeš na akci!' : "You're in!",
+        join_waitlist: lang === 'cs' ? 'Jsi na čekačce.' : "You're on the waitlist.",
+        leave: lang === 'cs' ? 'Účast zrušena.' : 'Attendance cancelled.',
+        leave_waitlist: lang === 'cs' ? 'Odhlášeno z čekačky.' : 'Left the waitlist.',
+      };
+      toast.success(messages[action]);
+    }
+    return updatedEvent;
   };
 
   const handleFavorite = async (event) => {

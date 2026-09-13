@@ -8,12 +8,19 @@ import { toast } from 'sonner';
 import { svPageTitle, svSubtitle, svCard } from '@/lib/svStyles';
 import { isEventOver } from '@/lib/events';
 import { sortByTrending } from '@/lib/trending';
+import { canJoinEvent } from '@/lib/premium';
+import { callJoinEvent } from '@/lib/joinEvent';
+import { useContext } from 'react';
+import { LanguageContext } from '@/lib/language';
+import PremiumModal from '@/components/premium/PremiumModal';
 
 export default function Trending() {
   const tr = useT();
+  const { lang } = useContext(LanguageContext);
   const { user, profile, updateProfile } = useCurrentUser();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showPremium, setShowPremium] = useState(false);
   const favRef = useRef(new Set());
 
   useEffect(() => {
@@ -36,10 +43,16 @@ export default function Trending() {
 
   const handleJoin = async (event) => {
     if (!user) return;
-    const isJoined=event.participants?.includes(user.email);
-    const action=isJoined?'leave':'join';
-    const {data}=await supabase.functions.invoke('join-event',{body:{event_id:event.id,action}});
-    if (data?.event) setEvents(prev=>prev.map(e=>e.id===event.id?data.event:e));
+    const isJoined = event.participants?.includes(user.email);
+    if (!isJoined && !canJoinEvent(profile)) { setShowPremium(true); return; }
+    const action = isJoined ? 'leave' : 'join';
+    const { event: updatedEvent, errorCode } = await callJoinEvent(event.id, action);
+    if (errorCode === 'monthly_limit_reached') { setShowPremium(true); return; }
+    if (errorCode) { toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.'); return; }
+    if (updatedEvent) {
+      setEvents(prev => prev.map(e => e.id === event.id ? updatedEvent : e));
+      toast.success(action === 'join' ? (lang === 'cs' ? 'Jdeš na akci!' : "You're in!") : (lang === 'cs' ? 'Účast zrušena.' : 'Attendance cancelled.'));
+    }
   };
 
   const handleFavorite = async (event) => {
@@ -73,6 +86,8 @@ export default function Trending() {
           {trending.map(e=><EventCard key={e.id} event={e} onJoin={handleJoin} onFavorite={handleFavorite} isJoined={!!(user&&e.participants?.includes(user.email))} isFavorited={!!(profile?.favorited_events?.includes(e.id))}/>)}
         </div>
       )}
+
+      <PremiumModal open={showPremium} onClose={()=>setShowPremium(false)} profile={profile} onUpgrade={u=>updateProfile(u)}/>
     </div>
   );
 }

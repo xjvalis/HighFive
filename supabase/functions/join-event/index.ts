@@ -40,16 +40,25 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Event not found' }), { status: 404, headers: corsHeaders });
     }
 
+    // The actual participants/waitlist mutation goes through this Postgres
+    // function, which locks the event row for the duration of the check+update
+    // (see migration 20260913000001) — reading the arrays into JS and writing
+    // the whole column back here would race: two different users joining the
+    // same near-full event at nearly the same instant could both pass a
+    // capacity check read from stale data, and whichever write lands last
+    // would silently overwrite (not merge) the other's addition.
+    async function applyAttendance(a) {
+      const { data, error } = await serviceClient.rpc('update_event_attendance', {
+        p_event_id: event_id, p_action: a, p_user_email: user.email,
+      });
+      return { data, error };
+    }
+
     let updatedEvent;
 
     if (action === 'leave') {
-      const participants = (event.participants || []).filter(e => e !== user.email);
-      const { data } = await serviceClient
-        .from('events')
-        .update({ participants })
-        .eq('id', event_id)
-        .select()
-        .single();
+      const { data, error } = await applyAttendance('leave');
+      if (error) return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: corsHeaders });
       updatedEvent = data;
 
       const { data: profile } = await serviceClient
@@ -64,27 +73,19 @@ Deno.serve(async (req) => {
       }
 
     } else if (action === 'leave_waitlist') {
-      const waitlist = (event.waitlist || []).filter(e => e !== user.email);
-      const { data } = await serviceClient.from('events').update({ waitlist }).eq('id', event_id).select().single();
+      const { data, error } = await applyAttendance('leave_waitlist');
+      if (error) return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: corsHeaders });
       updatedEvent = data;
 
     } else if (action === 'join_waitlist') {
-      if ((event.waitlist || []).includes(user.email)) {
-        return new Response(JSON.stringify({ error: 'Already on waitlist' }), { status: 400, headers: corsHeaders });
+      const { data, error } = await applyAttendance('join_waitlist');
+      if (error) {
+        const status = error.message?.includes('not_found') ? 404 : 400;
+        return new Response(JSON.stringify({ error: error.message?.includes('already') ? 'Already on waitlist' : error.message }), { status, headers: corsHeaders });
       }
-      const waitlist = [...(event.waitlist || []), user.email];
-      const { data } = await serviceClient.from('events').update({ waitlist }).eq('id', event_id).select().single();
       updatedEvent = data;
 
     } else if (action === 'join') {
-      if ((event.participants || []).includes(user.email)) {
-        return new Response(JSON.stringify({ error: 'Already joined' }), { status: 400, headers: corsHeaders });
-      }
-      const isFull = event.max_capacity && (event.participants || []).length >= event.max_capacity;
-      if (isFull) {
-        return new Response(JSON.stringify({ error: 'Event is full' }), { status: 400, headers: corsHeaders });
-      }
-
       const { data: profile } = await serviceClient
         .from('user_profiles')
         .select('*')
@@ -97,6 +98,8 @@ Deno.serve(async (req) => {
       // not raw join actions — leaving an event and rejoining it later the
       // same month re-uses the same slot instead of costing a new one. The
       // slot is only freed by the calendar rolling over to a new month.
+      // (Per-user, so unlike participants/waitlist there's no cross-user
+      // race on this profile row worth locking for.)
       const now = new Date();
       const resetDate = profile?.monthly_reset_date ? new Date(profile.monthly_reset_date) : null;
       const isNewMonth = !resetDate || now.getFullYear() > resetDate.getFullYear() || now.getMonth() > resetDate.getMonth();
@@ -107,8 +110,14 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: 'monthly_limit_reached' }), { status: 403, headers: corsHeaders });
       }
 
-      const participants = [...(event.participants || []), user.email];
-      const { data } = await serviceClient.from('events').update({ participants }).eq('id', event_id).select().single();
+      const { data, error } = await applyAttendance('join');
+      if (error) {
+        const msg = error.message || '';
+        if (msg.includes('already_joined')) return new Response(JSON.stringify({ error: 'Already joined' }), { status: 400, headers: corsHeaders });
+        if (msg.includes('event_full')) return new Response(JSON.stringify({ error: 'Event is full' }), { status: 400, headers: corsHeaders });
+        if (msg.includes('event_not_found')) return new Response(JSON.stringify({ error: 'Event not found' }), { status: 404, headers: corsHeaders });
+        return new Response(JSON.stringify({ error: msg }), { status: 400, headers: corsHeaders });
+      }
       updatedEvent = data;
 
       if (profile) {

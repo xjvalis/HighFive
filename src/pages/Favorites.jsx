@@ -10,6 +10,9 @@ import { LanguageContext } from '@/lib/language';
 import { toast } from 'sonner';
 import { SvIcon } from '@/components/icons/SvIcon';
 import { svPageTitle, svSubtitle, svCard, svSectionLabel } from '@/lib/svStyles';
+import { canJoinEvent } from '@/lib/premium';
+import { callJoinEvent } from '@/lib/joinEvent';
+import PremiumModal from '@/components/premium/PremiumModal';
 
 export default function Favorites() {
   const tr = useT();
@@ -18,6 +21,7 @@ export default function Favorites() {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showPremium, setShowPremium] = useState(false);
   const favRef = useRef(new Set());
 
   useEffect(() => {
@@ -51,10 +55,15 @@ export default function Favorites() {
   const handleJoin = async (event) => {
     if (!user) return;
     const isJoined = event.participants?.includes(user.email);
+    if (!isJoined && !canJoinEvent(profile)) { setShowPremium(true); return; }
     const action = isJoined ? 'leave' : 'join';
-    const { data, error } = await supabase.functions.invoke('join-event', { body: { event_id: event.id, action } });
-    if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.'); return; }
-    if (data?.event) setEvents(prev => prev.map(e => e.id === event.id ? data.event : e));
+    const { event: updatedEvent, errorCode } = await callJoinEvent(event.id, action);
+    if (errorCode === 'monthly_limit_reached') { setShowPremium(true); return; }
+    if (errorCode) { toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.'); return; }
+    if (updatedEvent) {
+      setEvents(prev => prev.map(e => e.id === event.id ? updatedEvent : e));
+      toast.success(action === 'join' ? (lang === 'cs' ? 'Jdeš na akci!' : "You're in!") : (lang === 'cs' ? 'Účast zrušena.' : 'Attendance cancelled.'));
+    }
   };
 
   // Split into upcoming and past
@@ -153,6 +162,8 @@ export default function Favorites() {
           )}
         </div>
       )}
+
+      <PremiumModal open={showPremium} onClose={()=>setShowPremium(false)} profile={profile} onUpgrade={u=>updateProfile(u)}/>
     </div>
   );
 }

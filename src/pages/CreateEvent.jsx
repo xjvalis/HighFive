@@ -116,7 +116,15 @@ export default function CreateEvent() {
         end_time: form.end_time || null,
       };
       const { data, error } = await supabase.functions.invoke('create-event', { body: { eventData } });
-      if (data?.error === 'monthly_limit_reached') { setShowPremium(true); return; }
+      // Same pitfall as join-event: a non-2xx response's JSON body lands on
+      // error.context (the raw Response), not on `data` — data?.error here
+      // was dead code, so hitting the free-plan create limit always fell
+      // through to the generic failure toast instead of the paywall.
+      let errorCode = data?.error;
+      if (error && !errorCode) {
+        try { errorCode = (await error.context.json())?.error; } catch { /* no JSON body */ }
+      }
+      if (errorCode === 'monthly_limit_reached') { setShowPremium(true); return; }
       if (error) { toast.error(lang === 'cs' ? 'Vytvoření události se nezdařilo.' : 'Failed to create event.'); return; }
       if (data?.event) navigate(`/event/${data.event.id}`);
     } catch {

@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
 import { isEventOver } from '@/lib/events';
+import { callJoinEvent } from '@/lib/joinEvent';
 import { SvIcon } from '@/components/icons/SvIcon';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
@@ -91,8 +92,8 @@ export default function MyEvents() {
   const confirmLeave = async () => {
     const event = leaveConfirm;
     setLeaveConfirm(null);
-    const { data } = await supabase.functions.invoke('join-event', { body: { event_id: event.id, action: 'leave' } });
-    if (data?.event) {
+    const { event: updatedEvent } = await callJoinEvent(event.id, 'leave');
+    if (updatedEvent) {
       setJoined(prev => prev.filter(e => e.id !== event.id));
       toast.success(tr.attendanceCancelled || 'Účast zrušena.');
     } else {
