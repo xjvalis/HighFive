@@ -133,7 +133,14 @@ function ensureResvgWasm() {
   return wasmReady;
 }
 
-export default async function handler(req) {
+// Object-with-fetch export, not a plain default function: on the Node.js
+// runtime (unlike Edge, which always hands the handler a Web-standard
+// Request) a bare `export default function handler(req)` gets invoked in
+// Vercel's legacy Node req/res mode instead, where req.url is a relative
+// path — new URL(req.url) then throws ERR_INVALID_URL (confirmed in prod
+// logs). The { fetch(request) {...} } shape opts into the real Fetch API
+// Request/Response contract on Node too.
+async function handler(req) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
 
@@ -211,5 +218,7 @@ export default async function handler(req) {
     return new Response(`Image generation failed: ${error.message}`, { status: 500 });
   }
 }
+
+export default { fetch: handler };
 
 export const config = { runtime: 'nodejs' };
