@@ -49,7 +49,7 @@ export default function Home() {
   const params = new URLSearchParams(location.search);
   const activeCategory = params.get('category');
 
-  usePageMeta({ title: activeCategory ? `${activeCategory} | Spoluvíc` : 'Spoluvíc', description: lang === 'cs' ? 'Spolu je toho víc.' : 'More, together.' });
+  usePageMeta({ title: activeCategory ? `${activeCategory} | Spoluvíc` : 'Spoluvíc', description: lang === 'cs' ? 'Sdílej své plány s ostatními.' : 'Share your plans with others.' });
 
   useEffect(() => {
     getCurrentPosition().then(setUserLocation).catch(() => {});

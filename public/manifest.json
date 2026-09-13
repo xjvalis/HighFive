@@ -1,7 +1,7 @@
 {
   "name": "Spoluvíc",
   "short_name": "Spoluvíc",
-  "description": "Spolu je toho víc",
+  "description": "Sdílej své plány s ostatními",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FDFCFA",
