@@ -1,5 +1,6 @@
-// Vercel Edge Function — generates the branded 1200×630 OG share image for an
-// event (design_handoff_spoluvic_web/"share karty"/SHARE_EVENT.md, variant 13c).
+// Vercel Function (Node.js runtime — see config at the bottom) — generates the
+// branded 1200×630 OG share image for an event
+// (design_handoff_spoluvic_web/"share karty"/SHARE_EVENT.md, variant 13c).
 // URL: /api/og?id=EVENT_ID
 //
 // Written as plain object trees (a tiny `h()` helper) instead of JSX: this was
@@ -147,4 +148,9 @@ export default async function handler(req) {
   return new ImageResponse(tree, { width: 1200, height: 630, fonts });
 }
 
-export const config = { runtime: 'edge' };
+// Node.js runtime, not Edge: Vercel's build was flagging every Edge Function
+// that merely shares the api/ directory with this file as "referencing
+// unsupported modules: @vercel" (it happened to event-og.js and middleware.js
+// too, neither of which import @vercel/og) — moving the one function that
+// actually needs @vercel/og off Edge stops that cross-contamination.
+export const config = { runtime: 'nodejs' };
