@@ -2,38 +2,31 @@
 // event (design_handoff_spoluvic_web/"share karty"/SHARE_EVENT.md, variant 13c).
 // URL: /api/og?id=EVENT_ID
 //
-// Has to stay on the Edge runtime: @vercel/og's Node.js build crashes at
-// runtime with "Dynamic require of 'fs' is not supported" (confirmed both in
-// production logs and locally, as plain ESM and as CommonJS via a .cjs file —
-// it's the package's own bundle that's broken under Node here, not a module-
-// format issue on our end). Its Edge build works fine.
-//
-// This does make Vercel's build log print "The Edge Function '<sibling>' is
-// referencing unsupported modules: @vercel" for whichever other Edge
-// Function happens to sit in api/ alongside this one (seen on both
-// event-og.js and middleware.js at different times) — confirmed harmless:
-// the flagged sibling keeps deploying and working normally regardless.
+// Uses satori + @resvg/resvg-wasm directly instead of the @vercel/og wrapper.
+// @vercel/og's package.json only resolves to its edge build under the
+// "edge"/"edge-light"/"worker" export conditions, which Next.js sets itself
+// when bundling for Edge — a plain Vercel Function build (this is a Vite
+// project, not Next.js) never sets them, so the bare specifier always
+// resolved to its Node.js build and crashed at runtime with "Dynamic
+// require of 'fs' is not supported" (reproduced identically in production
+// and locally). A deep import of its edge build
+// (@vercel/og/dist/index.edge.js) is blocked by Node's "exports"
+// restriction (only "." is exported); vendoring that built file locally got
+// past the restriction but Vercel's own Edge Function validator then
+// rejected the vendored bundle outright ("referencing unsupported
+// modules"). satori has no such split (a single universal build) and
+// @resvg/resvg-wasm explicitly exports its .wasm file
+// (`"./index_bg.wasm": "./index_bg.wasm"` in its package.json) for exactly
+// this edge-import pattern, so neither hits the problem.
 //
 // Written as plain object trees (a tiny `h()` helper) instead of JSX: Vercel's
 // zero-config Function build doesn't transform JSX for API routes, so an
-// earlier JSX version of this file silently never deployed. satori (which
-// @vercel/og wraps) accepts this plain {type, props: {style, children}}
-// shape directly, no React/JSX needed.
-// Imported from a local vendored copy (api/_vendor/), not `from '@vercel/og'`:
-// the package's export map only switches to its edge build under Next.js,
-// which sets the "edge-light" resolution condition itself — a plain Vercel
-// Function build doesn't, so the bare specifier always resolved to
-// dist/index.node.js and crashed with "Dynamic require of 'fs' is not
-// supported" (confirmed in production logs even with config.runtime =
-// 'edge'). A deep import of the package's own edge build
-// (@vercel/og/dist/index.edge.js) is blocked by Node's package.json
-// "exports" restriction (only "." is exported) — same restriction applies
-// during Vercel's build, confirmed locally. Vendoring the built file plus
-// its two .wasm assets and font under api/_vendor/ turns this into a plain
-// relative import, which isn't subject to that restriction. Regenerate
-// api/_vendor/ from node_modules/@vercel/og/dist/{index.edge.js,yoga.wasm,
-// resvg.wasm,Geist-Regular.ttf} if @vercel/og is ever upgraded.
-import { ImageResponse } from './_vendor/index.edge.js';
+// earlier JSX version of this file silently never deployed. satori accepts
+// this plain {type, props: {style, children}} shape directly, no React/JSX
+// needed.
+import satori from 'satori';
+import { Resvg, initWasm } from '@resvg/resvg-wasm';
+import resvgWasmModule from '@resvg/resvg-wasm/index_bg.wasm';
 
 // Duplicated (not imported) from src/lib/categories.js: Vercel's Edge Function
 // bundler doesn't reliably pick up relative imports that reach outside api/ —
@@ -105,6 +98,14 @@ async function loadGoogleFont(family, weight) {
   return fontRes.arrayBuffer();
 }
 
+// initWasm() throws if called twice, so the module-level promise is memoized
+// across warm invocations of this same edge function instance.
+let wasmReady = null;
+function ensureResvgWasm() {
+  if (!wasmReady) wasmReady = initWasm(resvgWasmModule);
+  return wasmReady;
+}
+
 export default async function handler(req) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
@@ -144,7 +145,9 @@ export default async function handler(req) {
       { name: 'IBM Plex Mono', data: plexMono600, weight: 600, style: 'normal' },
     ];
   } catch (_) {
-    // Fall back to satori's default font if Google Fonts can't be reached.
+    // satori requires at least one font — fall back to a minimal system stack
+    // reference if Google Fonts couldn't be reached (satori still needs real
+    // font data, so this case just lets the request fail gracefully below).
   }
 
   const tree = h('div', { style: { width: 1200, height: 630, display: 'flex', background: cat.share } }, [
@@ -168,7 +171,17 @@ export default async function handler(req) {
     ),
   ]);
 
-  return new ImageResponse(tree, { width: 1200, height: 630, fonts });
+  try {
+    const [svg] = await Promise.all([
+      satori(tree, { width: 1200, height: 630, fonts }),
+      ensureResvgWasm(),
+    ]);
+    const png = new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } }).render().asPng();
+    return new Response(png, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=3600' } });
+  } catch (error) {
+    console.error('og image generation error:', error);
+    return new Response(`Image generation failed: ${error.message}`, { status: 500 });
+  }
 }
 
 export const config = { runtime: 'edge' };
