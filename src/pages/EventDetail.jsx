@@ -97,9 +97,31 @@ export default function EventDetail() {
     setJoiningEvent(true);
     try {
       const { data, error } = await supabase.functions.invoke('join-event', { body: { event_id: event.id, action } });
+      // On a non-2xx response, supabase-js puts the JSON body on error.context
+      // (the raw Response), not on `data` — checking data?.error here first
+      // was dead code, so "hit the free-plan limit" always fell through to
+      // the generic failure toast below instead of opening the paywall.
+      let errorCode = data?.error;
+      if (error && !errorCode) {
+        try { errorCode = (await error.context.json())?.error; } catch { /* no JSON body */ }
+      }
+      if (errorCode === 'monthly_limit_reached') { setShowPremium(true); return; }
       if (error) { toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.'); return; }
-      if (data?.error === 'monthly_limit_reached') { setShowPremium(true); return; }
-      if (data?.event) setEvent(data.event);
+      if (data?.event) {
+        setEvent(data.event);
+        // The join button's own label change is easy to miss (it's a small
+        // text swap), so confirm the action explicitly instead of leaving
+        // the user unsure whether the click actually did anything.
+        const messages = {
+          join: lang === 'cs' ? 'Jdeš na akci!' : "You're in!",
+          join_waitlist: lang === 'cs' ? 'Jsi na čekačce.' : "You're on the waitlist.",
+          leave: lang === 'cs' ? 'Účast zrušena.' : 'Attendance cancelled.',
+          leave_waitlist: lang === 'cs' ? 'Odhlášeno z čekačky.' : 'Left the waitlist.',
+        };
+        toast.success(messages[action]);
+      }
+    } catch (_) {
+      toast.error(lang === 'cs' ? 'Nepodařilo se změnit účast.' : 'Failed to update attendance.');
     } finally { setJoiningEvent(false); }
   };
 
