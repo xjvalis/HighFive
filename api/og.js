@@ -19,7 +19,21 @@
 // earlier JSX version of this file silently never deployed. satori (which
 // @vercel/og wraps) accepts this plain {type, props: {style, children}}
 // shape directly, no React/JSX needed.
-import { ImageResponse } from '@vercel/og';
+// Imported from a local vendored copy (api/_vendor/), not `from '@vercel/og'`:
+// the package's export map only switches to its edge build under Next.js,
+// which sets the "edge-light" resolution condition itself — a plain Vercel
+// Function build doesn't, so the bare specifier always resolved to
+// dist/index.node.js and crashed with "Dynamic require of 'fs' is not
+// supported" (confirmed in production logs even with config.runtime =
+// 'edge'). A deep import of the package's own edge build
+// (@vercel/og/dist/index.edge.js) is blocked by Node's package.json
+// "exports" restriction (only "." is exported) — same restriction applies
+// during Vercel's build, confirmed locally. Vendoring the built file plus
+// its two .wasm assets and font under api/_vendor/ turns this into a plain
+// relative import, which isn't subject to that restriction. Regenerate
+// api/_vendor/ from node_modules/@vercel/og/dist/{index.edge.js,yoga.wasm,
+// resvg.wasm,Geist-Regular.ttf} if @vercel/og is ever upgraded.
+import { ImageResponse } from './_vendor/index.edge.js';
 
 // Duplicated (not imported) from src/lib/categories.js: Vercel's Edge Function
 // bundler doesn't reliably pick up relative imports that reach outside api/ —
