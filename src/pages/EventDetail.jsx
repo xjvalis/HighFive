@@ -170,15 +170,16 @@ export default function EventDetail() {
             <div style={infoTile}><p style={svMeta}>{tr.detailOrganizer}</p><p style={{ font: "500 13.5px 'Outfit', sans-serif", color: 'var(--sv-ink)', marginTop: 2 }}>{event.organizer_name||tr.detailAnonymous}</p></div>
           </div>
 
-          <div className="flex gap-2 mb-3.5">
+          <div className="flex gap-2 mb-2.5">
             <div className="flex-1"><AddToCalendar event={event}/></div>
             <ShareEventButton event={event}/>
-            {user && !isOrganizer && event.organizer_email && (
-              <button onClick={()=>setShowDM(true)} className="flex items-center justify-center" style={{ width: 36, borderRadius: 10, background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)' }}>
-                <Send className="w-3.5 h-3.5"/>
-              </button>
-            )}
           </div>
+
+          {user && !isOrganizer && event.organizer_email && (
+            <button onClick={()=>setShowDM(true)} className="w-full transition-colors" style={{ marginBottom: 14, borderRadius: 10, padding: '9px 0', background: 'var(--sv-brand-purple-bg)', color: 'var(--sv-brand-purple)', font: "500 12.5px 'Outfit', sans-serif" }}>
+              {lang === 'cs' ? 'DM organizátorovi' : 'DM to organizer'}
+            </button>
+          )}
 
           {(isOrganizer || event.participants?.length > 0) && (
             <button type="button" onClick={()=>setParticipantsOpen(true)} className="w-full text-left transition-colors" style={{ marginBottom: 18 }}>
