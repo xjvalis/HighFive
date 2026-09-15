@@ -86,8 +86,13 @@ export default function EventCard({ event, onJoin, onFavorite, isJoined, isFavor
               <span style={{ color: 'var(--sv-brand-purple)', fontWeight: 500 }}>{event.max_capacity}</span>
             </span>
           )}
-          <button onClick={handleFavoriteClick} aria-label={lang === 'cs' ? 'Přidat do oblíbených' : 'Add to favorites'}>
-            <SvIcon name="star" size={12} style={{ color: isFavorited ? 'var(--sv-brand-orange)' : 'var(--sv-placeholder)' }}/>
+          <button
+            onClick={handleFavoriteClick}
+            aria-label={lang === 'cs' ? 'Přidat do oblíbených' : 'Add to favorites'}
+            className="flex items-center justify-center flex-shrink-0"
+            style={{ padding: 6, margin: -6 }}
+          >
+            <SvIcon name="star" size={15} filled={isFavorited} style={{ color: isFavorited ? 'var(--sv-brand-orange)' : 'var(--sv-placeholder)' }}/>
           </button>
         </span>
       </div>

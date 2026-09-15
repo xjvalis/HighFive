@@ -175,7 +175,7 @@ export default function EventDetail() {
             <div className="flex items-center gap-1 flex-shrink-0">
               {canEdit && <button onClick={()=>setShowEdit(true)} style={ghostIcon}><Pencil className="w-4 h-4"/></button>}
               <button onClick={handleFavorite} style={ghostIcon}>
-                <SvIcon name="star" size={16} style={{ color: isFav ? 'var(--sv-brand-orange)' : 'var(--sv-meta)' }}/>
+                <SvIcon name="star" size={16} filled={isFav} style={{ color: isFav ? 'var(--sv-brand-orange)' : 'var(--sv-meta)' }}/>
               </button>
             </div>
           </div>

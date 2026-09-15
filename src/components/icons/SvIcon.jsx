@@ -16,9 +16,13 @@ const PATHS = {
   clock: `<circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.3l2.2 1.4"/>`,
 };
 
-export function SvIcon({ name, size = 14, ...rest }) {
+// `filled` is a deliberate, narrow exception to the "no fills" rule above —
+// for a toggled state (favorited) that needs to read as visually "on" at a
+// glance, not just a color change on a thin outline. Default stays
+// unfilled, so every existing call site is unaffected.
+export function SvIcon({ name, size = 14, filled = false, ...rest }) {
   return (
-    <svg viewBox="0 0 16 16" width={size} height={size} fill="none" stroke="currentColor"
+    <svg viewBox="0 0 16 16" width={size} height={size} fill={filled ? "currentColor" : "none"} stroke="currentColor"
          strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden {...rest}
          dangerouslySetInnerHTML={{ __html: PATHS[name] }} />
   );
