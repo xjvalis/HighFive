@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
 import { Bell, CheckCheck } from 'lucide-react';
@@ -9,12 +9,13 @@ import { useT } from '@/lib/i18n';
 import { toast } from 'sonner';
 import { useContext } from 'react';
 import { LanguageContext } from '@/lib/language';
-import { renderNotification } from '@/lib/notifTemplates';
+import { renderNotification, notifLink } from '@/lib/notifTemplates';
 
 export default function NotificationBell() {
   const tr = useT();
   const { lang } = useContext(LanguageContext);
   const { user } = useCurrentUser();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const ref = useRef(null);
@@ -73,7 +74,7 @@ export default function NotificationBell() {
             : notifications.map(n=>{
               const rendered = renderNotification(n, lang);
               return (
-              <div key={n.id} onClick={()=>{markRead(n);setOpen(false);if(n.event_id)window.open(`/event/${n.event_id}`,'_blank');}} className={cn('flex gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/50 transition-colors border-b border-border/40 last:border-0',!n.is_read&&'bg-lavender/20')}>
+              <div key={n.id} onClick={()=>{markRead(n);setOpen(false);const link=notifLink(n);if(link)navigate(link);}} className={cn('flex gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/50 transition-colors border-b border-border/40 last:border-0',!n.is_read&&'bg-lavender/20')}>
                 <span className="text-lg flex-shrink-0 mt-0.5">{rendered.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start gap-2">

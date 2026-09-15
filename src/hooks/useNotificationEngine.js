@@ -49,7 +49,7 @@ export function useNotificationEngine(user) {
           await supabase.from('notifications').insert({
             user_id: user.id, user_email: user.email, type: 'new_message',
             data: {
-              senderName: p.new.from_name || p.new.from_email, preview: p.new.content?.slice(0, 80),
+              senderName: p.new.from_name || p.new.from_email, senderEmail: p.new.from_email, preview: p.new.content?.slice(0, 80),
               isBroadcast: !!p.new.is_broadcast, eventTitle: p.new.event_title || null,
             },
             is_read: false,

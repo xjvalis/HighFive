@@ -1,4 +1,4 @@
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useState, useEffect, useRef, useContext } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useCurrentUser } from '@/contexts/CurrentUserContext';
@@ -15,6 +15,7 @@ import { svPageTitle, svCard, svField } from '@/lib/svStyles';
 export default function Messages() {
   const tr = useT();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { lang } = useContext(LanguageContext);
   const { user, profile, loading: userLoading } = useCurrentUser();
   const [messages, setMessages] = useState([]);
@@ -82,6 +83,15 @@ export default function Messages() {
       setMessages(prev=>prev.map(m=>unreadIds.includes(m.id)?{...m,is_read:true}:m));
     }
   };
+
+  // Deep-link from a "new message" notification (?with=email) — clicking one
+  // used to just open the event page, or do nothing at all if the message
+  // wasn't tied to an event, which is most DMs.
+  useEffect(() => {
+    if (loading || selected) return;
+    const withEmail = searchParams.get('with');
+    if (withEmail && threads.some(t => t.partnerEmail === withEmail)) openThread(withEmail);
+  }, [loading, searchParams, threads]);
 
   const handleSend = async () => {
     if (!reply.trim()||!selected||sending) return;

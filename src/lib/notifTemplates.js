@@ -25,6 +25,19 @@ const REASON_LABELS = {
   en: { inappropriate: '🚫 Inappropriate content', spam: '📢 Spam', fraud: '⚠️ Fraud', hate: '💢 Hateful content', other: '❓ Other' },
 };
 
+// Where clicking a notification should go. Most types are about a specific
+// event, but a DM notification (new_message) isn't tied to one — NotificationBell
+// and Notifications.jsx used to unconditionally open /event/:id, which for a DM
+// either opened the wrong page (a broadcast's event_id) or did nothing at all
+// (a 1:1 DM has none), so "new message" looked like a dead click.
+export function notifLink(n) {
+  if (n.type === 'new_message') {
+    const email = n.data?.senderEmail;
+    return email ? `/messages?with=${encodeURIComponent(email)}` : '/messages';
+  }
+  return n.event_id ? `/event/${n.event_id}` : null;
+}
+
 export function renderNotification(n, lang) {
   const icon = TYPE_ICONS[n.type] || '🔔';
   const d = n.data;

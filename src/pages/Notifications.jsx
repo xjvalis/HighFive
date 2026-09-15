@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { useT } from '@/lib/i18n';
 import { toast } from 'sonner';
 import { LanguageContext } from '@/lib/language';
-import { renderNotification } from '@/lib/notifTemplates';
+import { renderNotification, notifLink } from '@/lib/notifTemplates';
 import EmptyState from '@/components/ui/EmptyState';
 import { svPageTitle, svCard, svMeta } from '@/lib/svStyles';
 
@@ -74,7 +74,7 @@ export default function Notifications() {
           {notifications.map(n=>{
             const rendered = renderNotification(n, lang);
             return (
-            <div key={n.id} onClick={()=>{markRead(n);if(n.event_id)window.open(`/event/${n.event_id}`,'_blank');}} className="cursor-pointer transition-colors" style={{ ...svCard, padding: 14, borderColor: n.is_read ? 'var(--sv-hairline)' : '#E4D4F7', background: n.is_read ? 'var(--sv-surface)' : '#F8F4FC' }}>
+            <div key={n.id} onClick={()=>{markRead(n);const link=notifLink(n);if(link)navigate(link);}} className="cursor-pointer transition-colors" style={{ ...svCard, padding: 14, borderColor: n.is_read ? 'var(--sv-hairline)' : '#E4D4F7', background: n.is_read ? 'var(--sv-surface)' : '#F8F4FC' }}>
               <div className="flex gap-3">
                 <span className="flex-shrink-0" style={{ fontFamily: 'var(--sv-font-emoji)', fontSize: 19 }}>{rendered.icon}</span>
                 <div className="flex-1 min-w-0">

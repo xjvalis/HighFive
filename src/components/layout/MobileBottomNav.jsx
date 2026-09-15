@@ -16,6 +16,7 @@ export default function MobileBottomNav() {
     { icon: "popular", label: tr.trending, path: "/trending" },
     null, // center FAB
     { icon: "calendar", label: tr.myEvents, path: "/my-events" },
+    ...(user ? [{ icon: "message", label: tr.messages, path: "/messages" }] : []),
     { icon: "profile", label: tr.profile, path: "/profile" },
   ];
 
