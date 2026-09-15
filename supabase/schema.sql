@@ -97,6 +97,21 @@ create table public.direct_messages (
   created_at timestamptz default now()
 );
 
+-- Skupinový chat k akci — sdílený organizátorem a všemi účastníky (na rozdíl
+-- od direct_messages, což je striktně 1:1, a comments, což je veřejná
+-- diskuze viditelná i nepřihlášeným). Organizátor musí poslat první zprávu
+-- (založí chat); pak může psát kdokoliv z účastníků. Viz RLS níže.
+create table public.event_group_messages (
+  id uuid primary key default uuid_generate_v4(),
+  event_id uuid references public.events(id) on delete cascade not null,
+  author_id uuid references auth.users(id) on delete set null,
+  author_email text not null,
+  author_name text,
+  author_avatar text,
+  content text not null,
+  created_at timestamptz default now()
+);
+
 -- Notifikace
 create table public.notifications (
   id uuid primary key default uuid_generate_v4(),
@@ -160,6 +175,7 @@ create index events_participants_gin_idx on public.events using gin (participant
 
 create index direct_messages_from_email_idx on public.direct_messages(from_email);
 create index direct_messages_to_email_idx on public.direct_messages(to_email);
+create index event_group_messages_event_id_idx on public.event_group_messages(event_id);
 create index notifications_user_id_idx on public.notifications(user_id);
 create index notifications_is_read_idx on public.notifications(user_id, is_read);
 create index comments_event_id_idx on public.comments(event_id);
@@ -170,6 +186,7 @@ create index comments_event_id_idx on public.comments(event_id);
 alter table public.user_profiles enable row level security;
 alter table public.events enable row level security;
 alter table public.direct_messages enable row level security;
+alter table public.event_group_messages enable row level security;
 alter table public.notifications enable row level security;
 alter table public.comments enable row level security;
 alter table public.reports enable row level security;
@@ -362,6 +379,40 @@ create policy "dm_insert_auth" on public.direct_messages
 create policy "dm_update_recipient" on public.direct_messages
   for update using (to_id = auth.uid());
 
+-- EVENT GROUP CHAT
+-- Organizer or a joined participant — checked against events.participants
+-- (email) rather than a join table, matching how join-event stores attendance.
+create or replace function public.is_event_member(p_event_id uuid, p_user_id uuid)
+returns boolean
+language sql
+stable
+as $$
+  select exists (
+    select 1
+    from public.events e
+    left join public.user_profiles up on up.user_id = p_user_id
+    where e.id = p_event_id
+      and (e.organizer_id = p_user_id or (up.user_email is not null and up.user_email = any(e.participants)))
+  );
+$$;
+
+create policy "group_messages_read_members" on public.event_group_messages
+  for select using (
+    public.is_event_member(event_id, auth.uid())
+    or public.is_admin(auth.uid())
+  );
+
+create policy "group_messages_insert_members" on public.event_group_messages
+  for insert with check (
+    author_id = auth.uid()
+    and public.is_event_member(event_id, auth.uid())
+    and (
+      -- chat already founded, or this insert is the organizer founding it
+      exists (select 1 from public.event_group_messages g where g.event_id = event_group_messages.event_id)
+      or exists (select 1 from public.events e where e.id = event_group_messages.event_id and e.organizer_id = auth.uid())
+    )
+  );
+
 -- NOTIFICATIONS
 create policy "notif_read_own" on public.notifications
   for select using (
@@ -406,6 +457,7 @@ create policy "reports_update_admin" on public.reports
 -- REALTIME — povol realtime pro tyto tabulky
 -- ============================================================
 alter publication supabase_realtime add table public.direct_messages;
+alter publication supabase_realtime add table public.event_group_messages;
 alter publication supabase_realtime add table public.notifications;
 alter publication supabase_realtime add table public.events;
 alter publication supabase_realtime add table public.comments;

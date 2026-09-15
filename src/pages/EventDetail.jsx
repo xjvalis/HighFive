@@ -203,6 +203,17 @@ export default function EventDetail() {
             <ShareEventButton event={event}/>
           </div>
 
+          {(isJoined || isOrganizer) && (
+            <button
+              onClick={()=>navigate(`/messages?group=${event.id}`)}
+              className="w-full flex items-center justify-center gap-1.5 transition-colors"
+              style={{ background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 10, padding: '10px 0', font: "500 12.5px 'Outfit', sans-serif", marginBottom: 14 }}
+            >
+              <SvIcon name="message" size={13}/>
+              {lang === 'cs' ? 'Skupinový chat' : 'Group chat'}
+            </button>
+          )}
+
           {(isOrganizer || event.participants?.length > 0) && (
             <button type="button" onClick={()=>setParticipantsOpen(true)} className="w-full text-left transition-colors" style={{ marginBottom: 18 }}>
               <p style={{ ...svSectionLabel, marginBottom: 8 }}>{tr.detailGoing} ({event.participants?.length||0})</p>

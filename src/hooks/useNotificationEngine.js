@@ -58,6 +58,23 @@ export function useNotificationEngine(user) {
       .subscribe();
     channelsRef.current.push(dmCh);
 
+    // New event group chat message (collapses bursts, same as discussion)
+    const groupCh = supabase.channel(`notif-group-${Math.random().toString(36).slice(2)}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'event_group_messages' },
+        async (p) => {
+          const msg = p.new;
+          if (msg.author_email === user.email) return;
+          const { data: ev } = await supabase.from('events').select('title,participants,organizer_email').eq('id', msg.event_id).single();
+          if (!ev) return;
+          if (!ev.participants?.includes(user.email) && ev.organizer_email !== user.email) return;
+          await notifyOrCollapse({
+            userId: user.id, userEmail: user.email, eventId: msg.event_id, eventTitle: ev.title,
+            kind: 'groupchat', senderName: msg.author_name || msg.author_email, preview: msg.content?.slice(0, 60),
+          });
+        })
+      .subscribe();
+    channelsRef.current.push(groupCh);
+
     // New discussion comment notification (collapses repeat comments)
     const commentCh = supabase.channel(`notif-comment-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments' },

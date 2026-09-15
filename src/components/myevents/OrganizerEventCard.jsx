@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { format } from 'date-fns';
-import { ChevronDown, ChevronUp, Mail, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getCategoryStyle, getCategoryLabel } from '@/lib/categories';
 import { isEventFull } from '@/lib/events';
@@ -11,7 +11,7 @@ import { useT } from '@/lib/i18n';
 import { LanguageContext } from '@/lib/language';
 import ParticipantsPanel from '@/components/events/ParticipantsPanel';
 import { SvIcon } from '@/components/icons/SvIcon';
-import { svCard, svField, svSectionLabel } from '@/lib/svStyles';
+import { svCard, svSectionLabel } from '@/lib/svStyles';
 
 const ghostBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-surface-muted)', color: 'var(--sv-ink-soft)', borderRadius: 10, padding: '8px 14px', font: "500 12.5px 'Outfit', sans-serif" };
 const actionBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--sv-action-bg)', color: 'var(--sv-action-ink)', borderRadius: 10, padding: '8px 14px', font: "500 12.5px 'Outfit', sans-serif" };
@@ -22,49 +22,13 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
   const { user } = useCurrentUser();
   const [expanded, setExpanded] = useState(false);
   const navigate = useNavigate();
-  const [emailLoading, setEmailLoading] = useState(false);
   const [reminderLoading, setReminderLoading] = useState(false);
-  const [emailMsg, setEmailMsg] = useState('');
   const [participantsOpen, setParticipantsOpen] = useState(false);
 
   const cat = getCategoryStyle(event.category);
   const participants = event.participants || [];
   const waitlist = event.waitlist || [];
   const isFull = isEventFull(event);
-
-  const sendMessage = async () => {
-    const recipients = participants.filter(email => email !== user?.email);
-    if (!emailMsg.trim()||recipients.length===0||!user) return;
-    setEmailLoading(true);
-    try {
-      // Resolve each recipient's user_id first — direct_messages RLS gates
-      // reads on to_id = auth.uid(), so a row inserted with to_id left null
-      // is silently invisible to the recipient (it only ever shows up for
-      // the sender). Without this, "message all participants" looked like
-      // it worked but nobody on the other end ever saw it.
-      const { data: profiles, error: profilesError } = await supabase.from('user_profiles_public').select('user_id,user_email').in('user_email', recipients);
-      if (profilesError) throw profilesError;
-      const idByEmail = {};
-      (profiles || []).forEach(p => { idByEmail[p.user_email] = p.user_id; });
-
-      const content = emailMsg.trim();
-      const rows = recipients.map(email => ({
-        from_id: user.id, from_email: user.email, from_name: event.organizer_name || user.email,
-        to_id: idByEmail[email] || null, to_email: email,
-        event_id: event.id, event_title: event.title, is_broadcast: true,
-        content, is_read: false,
-      }));
-      const { error } = await supabase.from('direct_messages').insert(rows);
-      if (error) throw error;
-
-      setEmailMsg('');
-      toast.success(tr.messageSentToAll?.(recipients.length) || 'Zpráva odeslána všem účastníkům!');
-    } catch {
-      toast.error(lang === 'cs' ? 'Nepodařilo se odeslat zprávu všem účastníkům.' : 'Failed to message all participants.');
-    } finally {
-      setEmailLoading(false);
-    }
-  };
 
   const sendReminder = async () => {
     if (participants.length===0||!user) return;
@@ -119,9 +83,10 @@ export default function OrganizerEventCard({ event, onParticipantsChange }) {
 
           <div>
             <p style={{ ...svSectionLabel, marginBottom: 8 }}>{tr.messageAll}</p>
-            <textarea value={emailMsg} onChange={e=>setEmailMsg(e.target.value)} placeholder={tr.messagePlaceholder?.(participants.length)} className="w-full resize-none h-20 p-3" style={svField}/>
-            <div className="flex gap-2 mt-2">
-              <button onClick={sendMessage} disabled={emailLoading||!emailMsg.trim()||participants.length===0} className="flex-1" style={{ ...actionBtn, opacity: (emailLoading||!emailMsg.trim()||participants.length===0) ? 0.5 : 1 }}><Mail className="w-3 h-3"/>{emailLoading?tr.sendingBtn:tr.sendBtn?.(participants.length)}</button>
+            <div className="flex gap-2">
+              <button onClick={()=>navigate(`/messages?group=${event.id}`)} disabled={participants.length===0} className="flex-1" style={{ ...actionBtn, opacity: participants.length===0 ? 0.5 : 1 }}>
+                <SvIcon name="message" size={13}/>{lang === 'cs' ? 'Skupinový chat' : 'Group chat'}
+              </button>
               <button onClick={sendReminder} disabled={reminderLoading} style={{ ...ghostBtn, opacity: reminderLoading ? 0.5 : 1 }}>{reminderLoading?tr.sendingReminder:tr.reminder}</button>
             </div>
           </div>

@@ -35,6 +35,9 @@ export function notifLink(n) {
     const email = n.data?.senderEmail;
     return email ? `/messages?with=${encodeURIComponent(email)}` : '/messages';
   }
+  if (n.type === 'new_chat_message' && n.data?.kind === 'groupchat') {
+    return n.event_id ? `/messages?group=${n.event_id}` : '/messages';
+  }
   return n.event_id ? `/event/${n.event_id}` : null;
 }
 
@@ -113,11 +116,14 @@ export function renderNotification(n, lang) {
           };
 
     case 'new_chat_message': {
-      const collapsedBody = cz ? 'V diskuzi jsou nové zprávy.' : 'There are new messages in the discussion.';
+      const isGroup = d.kind === 'groupchat';
+      const collapsedBody = isGroup
+        ? (cz ? 'Ve skupinovém chatu jsou nové zprávy.' : 'There are new messages in the group chat.')
+        : (cz ? 'V diskuzi jsou nové zprávy.' : 'There are new messages in the discussion.');
       const sender = d.senderName || (cz ? 'Někdo' : 'Someone');
       return {
         icon,
-        title: `💬 ${cz ? 'Diskuze' : 'Discussion'}: ${d.eventTitle}`,
+        title: `💬 ${isGroup ? (cz ? 'Skupinový chat' : 'Group chat') : (cz ? 'Diskuze' : 'Discussion')}: ${d.eventTitle}`,
         body: d.collapsed ? collapsedBody : `${sender}: ${d.preview}`, // sender/preview — verbatim
       };
     }
