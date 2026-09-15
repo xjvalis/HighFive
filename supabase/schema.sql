@@ -373,8 +373,12 @@ create policy "dm_read_own" on public.direct_messages
     or public.is_admin(auth.uid())
   );
 
+-- from_email must match the caller's own verified JWT email (auth.email()),
+-- not just from_id — otherwise a user with legitimate access to a thread
+-- (their own DMs) could still post a row with a fabricated from_email,
+-- impersonating a different real person to whoever reads the thread.
 create policy "dm_insert_auth" on public.direct_messages
-  for insert with check (from_id = auth.uid());
+  for insert with check (from_id = auth.uid() and from_email = auth.email());
 
 create policy "dm_update_recipient" on public.direct_messages
   for update using (to_id = auth.uid());
@@ -402,9 +406,13 @@ create policy "group_messages_read_members" on public.event_group_messages
     or public.is_admin(auth.uid())
   );
 
+-- author_email locked to auth.email() for the same impersonation reason as
+-- dm_insert_auth above — a legitimate member could otherwise post under a
+-- fabricated author_email/name and be misread as a different real person.
 create policy "group_messages_insert_members" on public.event_group_messages
   for insert with check (
     author_id = auth.uid()
+    and author_email = auth.email()
     and public.is_event_member(event_id, auth.uid())
     and (
       -- chat already founded, or this insert is the organizer founding it
