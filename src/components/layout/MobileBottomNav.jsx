@@ -13,9 +13,8 @@ export default function MobileBottomNav() {
 
   const tabs = [
     { icon: "home", label: tr.home, path: "/" },
-    { icon: "popular", label: tr.trending, path: "/trending" },
-    null, // center FAB
     { icon: "calendar", label: tr.myEvents, path: "/my-events" },
+    null, // center FAB
     ...(user ? [{ icon: "message", label: tr.messages, path: "/messages" }] : []),
     { icon: "profile", label: tr.profile, path: "/profile" },
   ];
