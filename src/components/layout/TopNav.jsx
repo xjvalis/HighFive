@@ -145,6 +145,7 @@ function MobileDrawer({ open, onClose, tr, lang, profile, onFeedback }) {
     { icon: TrendingUp, label: tr.trending, path: '/trending' },
     { icon: Star, label: tr.favorites, path: '/favorites' },
     { icon: Calendar, label: tr.myEvents, path: '/my-events' },
+    ...(user ? [{ icon: MessageSquare, label: tr.messages, path: '/messages' }] : []),
     ...(profile?.is_admin || profile?.is_moderator ? [{ icon: Shield, label: tr.moderation, path: '/admin' }] : []),
   ];
 
